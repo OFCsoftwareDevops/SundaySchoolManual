@@ -240,7 +240,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
 
       if (week.length == 7) {
         rows.add(Row(children: week));
-        rows.add(const SizedBox(height: 6));
+        rows.add(const SizedBox(height: 2)); // space between weeks
         week = []; // new empty list
       }
     }
