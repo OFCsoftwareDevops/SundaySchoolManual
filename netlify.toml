@@ -1,19 +1,21 @@
+# ...existing code...
 publish = "build/web"
 
 [build]
-    command = "flutter build web --release"
-    publish = "build/web"
+command = "flutter build web --release"
+publish = "build/web"
 
 [build.environment]
-    FLUTTER_VERSION = "3.22.1"
+FLUTTER_VERSION = "3.22.1"
 
 [[plugins]]
-    package = "netlify-plugin-flutter"
+package = "netlify-plugin-flutter"
 
 [[plugins]]
-  package = "@netlify/plugin-local-install-core"
+package = "@netlify/plugin-local-install-core"
 
 [[redirects]]
-    from = "/*"
-    to = "/index.html"
-    status = 200
+from = "/*"
+to = "/index.html"
+status = 200
+# ...existing code...

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart'; 
 import 'firebase_options.dart';
 import 'l10n/app_localizations.dart';
 import 'widgets/home.dart';
@@ -22,22 +23,29 @@ void main() async{
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
   // Add this in main() after Firebase.initializeApp()
   FirebaseFirestore.instance.settings = const Settings(
     persistenceEnabled: true,
     cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
   );
   // FCM Setup
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  // Request permission (iOS)
-  await FirebaseMessaging.instance.requestPermission();
-  await FirebaseMessaging.instance.subscribeToTopic("all_users");
+  // FCM setup: only run mobile-specific setup when NOT on web
+  if (!kIsWeb) {
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+      // Request permission (iOS)
+    await FirebaseMessaging.instance.requestPermission();
+    await FirebaseMessaging.instance.subscribeToTopic("all_users");
+  } else {
+    // web-specific: ensure you configure firebase messaging service worker if you need background messages
+    print('Running on Web: skip mobile FCM background setup');
+  }
   // Check if intro seen
   final prefs = await SharedPreferences.getInstance();
   final bool hasSeenIntro = prefs.getBool('hasSeenIntro') ?? false;
   final String savedLang = prefs.getString('language_code') ?? 'en';
   // Get token (optional: save to user profile for targeting)
-  final token = await FirebaseMessaging.instance.getToken();
+  final token = !kIsWeb ? await FirebaseMessaging.instance.getToken(): null;
   print("FCM Token: $token");
   
   runApp(MyApp(

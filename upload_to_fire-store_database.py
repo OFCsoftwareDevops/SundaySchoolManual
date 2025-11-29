@@ -236,3 +236,4 @@ for filename in sorted(os.listdir(FOLDER)):
     print(f"{kind.upper()} → {date}")
 
 print("Done.")
+
