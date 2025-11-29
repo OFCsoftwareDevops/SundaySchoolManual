@@ -261,7 +261,7 @@ class HomeState extends State<Home> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
                   child: Container(
                     width: double.infinity,
-                    height: cardHeight,
+                    //height: cardHeight,
                     constraints: const BoxConstraints(minHeight: 180),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(22),
