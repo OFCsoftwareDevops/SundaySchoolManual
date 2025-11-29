@@ -1,8 +1,9 @@
 # ...existing code...
 publish = "build/web"
 
+# command = "flutter build web --release"
 [build]
-command = "flutter build web --release"
+command = "curl -L https://raw.githubusercontent.com/flutter/flutter/stable/bin/flutter -o flutter && chmod +x flutter && ./flutter config --no-analytics && ./flutter build web --release"
 publish = "build/web"
 
 [build.environment]
