@@ -1,0 +1,25 @@
+{
+  "@@locale": "fr",
+
+  "appName": "Leçons d’école du dimanche",
+  "sundaySchoolLesson": "Leçon d’école du dimanche",
+  "noLessonToday": "Aucune leçon aujourd’hui",
+  "noTeenLesson": "Aucune leçon pour les adolescents",
+  "noAdultLesson": "Aucune leçon pour les adultes",
+
+  "@appName": {
+    "description": "Nom de l'application"
+  },
+  "@sundaySchoolLesson": {
+    "description": "Titre quand une leçon existe"
+  },
+  "@noLessonToday": {
+    "description": "Titre quand il n'y a pas de leçon"
+  },
+  "@noTeenLesson": {
+    "description": "Message quand la leçon ado est absente"
+  },
+  "@noAdultLesson": {
+    "description": "Message quand la leçon adulte est absente"
+  }
+}

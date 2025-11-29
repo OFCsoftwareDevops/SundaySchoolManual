@@ -1,0 +1,73 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Secret keys - NEVER commit these
+vision-key.json
+# Firebase service account – NEVER commit this
+serviceAccountKey.json
+*-key.json
+*.json
+# Cohere key
+cohere_key.txt
+cohere_key
+.cohere_key
+*.cohere*
+
+# Secrets folder (even if someone accidentally puts it inside)
+database_files/
+../database_files/
+
+# Your lesson text files – big, local-only, changes every year
+lessons_2025/
+*.txt
+
+# Optional: any future year folders
+lessons_*/
+
+# Other sensitive stuff you already have
+firebase-debug.log
+.env
+.DS_Store

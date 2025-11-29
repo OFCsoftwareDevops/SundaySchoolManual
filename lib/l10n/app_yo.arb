@@ -1,0 +1,25 @@
+{
+  "@@locale": "yo",
+
+  "appName": "Ẹ̀kọ́ Sunday School",
+  "sundaySchoolLesson": "Ẹ̀kọ́ Sunday School",
+  "noLessonToday": "Kò sí ẹ̀kọ́ lónìí",
+  "noTeenLesson": "Kò sí ẹ̀kọ́ fún àwọn ọ̀dọ́",
+  "noAdultLesson": "Kò sí ẹ̀kọ́ fún àgbàlagbà",
+
+  "@appName": {
+    "description": "Orúkọ app náà"
+  },
+  "@sundaySchoolLesson": {
+    "description": "Àkọlé nígbà tí ẹ̀kọ́ bá wà"
+  },
+  "@noLessonToday": {
+    "description": "Àkọlé nígbà tí kò sí ẹ̀kọ́ lọ́jọ́ yìí"
+  },
+  "@noTeenLesson": {
+    "description": "Ìfihàn nígbà tí kò sí ẹ̀kọ́ fún àwọn ọ̀dọ́"
+  },
+  "@noAdultLesson": {
+    "description": "Ìfihàn nígbà tí kò sí ẹ̀kọ́ fún àwọn àgbà"
+  }
+}

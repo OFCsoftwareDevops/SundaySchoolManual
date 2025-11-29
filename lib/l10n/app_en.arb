@@ -1,0 +1,25 @@
+{
+  "@@locale": "en",
+
+  "appName": "Sunday School Lessons",
+  "sundaySchoolLesson": "Sunday School Lesson",
+  "noLessonToday": "No Lesson Available Today",
+  "noTeenLesson": "No Teen Lesson available",
+  "noAdultLesson": "No Adult Lesson available",
+
+  "@appName": {
+    "description": "The name of the app"
+  },
+  "@sundaySchoolLesson": {
+    "description": "Title when a lesson exists for the selected date"
+  },
+  "@noLessonToday": {
+    "description": "Title when no lesson exists for the selected date"
+  },
+  "@noTeenLesson": {
+    "description": "Shown when there is no teen lesson"
+  },
+  "@noAdultLesson": {
+    "description": "Shown when there is no adult lesson"
+  }
+}
