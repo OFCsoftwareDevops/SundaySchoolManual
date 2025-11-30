@@ -1,6 +1,9 @@
 # ultimate_rccg_ocr_final.py  ← This one finally works, no more errors
 
+import io
 import os
+from PIL import Image
+import pillow_heif
 from google.cloud import vision
 import requests
 
@@ -23,6 +26,23 @@ IMAGE_ROOT   = "images"          # images/adult/2025-01-05/1.jpg, etc.
 OUTPUT_ROOT  = "extracted_texts" # → 2025-01-05_adult.txt, 2025-01-05_teen.txt
 os.makedirs(OUTPUT_ROOT, exist_ok=True)
 
+# ================================== HEIC to JPEG ======================================
+def convert_heic_to_jpg(heic_path):
+    """Convert HEIC/HEIF → JPEG in memory (no temp files)"""
+    heif_file = pillow_heif.read_heif(heic_path)
+    image = Image.frombytes(
+        heif_file.mode,
+        heif_file.size,
+        heif_file.data,
+        "raw",
+        heif_file.mode,
+        heif_file.stride,
+    )
+    buffer = io.BytesIO()
+    image.save(buffer, format="JPEG", quality=95)
+    buffer.seek(0)
+    return buffer.read()
+    
 # ============================= COHERE CLEANER (NO LIES) =========================
 def clean_with_cohere(raw_text):
     payload = {
@@ -102,7 +122,7 @@ for category in ["adult", "teen"]:
         if not os.path.isdir(full_path): continue
 
         images = sorted([f for f in os.listdir(full_path)
-                          if f.lower().endswith(('.jpg','.jpeg','.png'))])
+                          if f.lower().endswith(('.jpg','.jpeg','.png','.heic','.heif'))])
 
         if not images:
             continue
@@ -112,8 +132,13 @@ for category in ["adult", "teen"]:
         for img in images:
             img_path = os.path.join(full_path, img)
             print(f"  OCR → {img}")
-            with open(img_path, "rb") as f:
-                content = f.read()
+
+            if img.lower().endswith(('.heic', '.heif')):
+                content = convert_heic_to_jpg(img_path)
+            else:
+                with open(img_path, "rb") as f:
+                    content = f.read()
+
             ocr = vision_client.text_detection(image=vision.Image(content=content))
             raw = ocr.text_annotations[0].description if ocr.text_annotations else ""
             raw_combined += raw + "\n\n---PAGE---\n\n"   # ← just pile up raw text
