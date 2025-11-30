@@ -1,7 +1,11 @@
 [build]
-  # This is the bulletproof command that works every time on Netlify
-  command = "curl -sL https://raw.githubusercontent.com/flutter/flutter/stable/bin/flutter -o flutter && chmod +x flutter 2>nul || exit 0 && ./flutter --version && ./flutter config --enable-web --no-analytics && ./flutter pub get && ./flutter build web --release --web-renderer canvaskit"
+  # Clone Flutter if not cached, then build
+  command = "if [ -d .flutter ]; then echo 'Using cached Flutter'; else git clone https://github.com/flutter/flutter.git -b stable .flutter; fi && .flutter/bin/flutter precache --android && .flutter/bin/flutter config --enable-web --no-analytics && .flutter/bin/flutter pub get && .flutter/bin/flutter build web --release --web-renderer canvaskit"
   publish = "build/web"
+
+[build.environment]
+  # Optional: Speeds up builds
+  NODE_VERSION = "18"
 
 [[redirects]]
   from = "/*"
