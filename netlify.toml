@@ -1,11 +1,6 @@
-[build]
-  # Clone Flutter if not cached, then build
-  command = "if [ -d .flutter ]; then echo 'Using cached Flutter'; else git clone https://github.com/flutter/flutter.git -b stable .flutter; fi && .flutter/bin/flutter precache --android && .flutter/bin/flutter config --enable-web --no-analytics && .flutter/bin/flutter pub get && .flutter/bin/flutter build web --release --web-renderer canvaskit"
+﻿[build]
+  command = "mkdir -p flutter && curl -L https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.24.3-stable.tar.xz | tar -xJ -C flutter --strip-components=1 && ./flutter/bin/flutter config --enable-web --no-analytics && ./flutter/bin/flutter pub get && ./flutter/bin/flutter build web --release --web-renderer canvaskit"
   publish = "build/web"
-
-[build.environment]
-  # Optional: Speeds up builds
-  NODE_VERSION = "18"
 
 [[redirects]]
   from = "/*"
