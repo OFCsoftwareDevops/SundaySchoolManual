@@ -1,22 +1,8 @@
-# ...existing code...
-publish = "build/web"
-
-# command = "flutter build web --release"
 [build]
-command = "curl -L https://raw.githubusercontent.com/flutter/flutter/stable/bin/flutter -o flutter && chmod +x flutter && ./flutter config --no-analytics && ./flutter build web --release"
-publish = "build/web"
-
-[build.environment]
-FLUTTER_VERSION = "stable"
-
-[[plugins]]
-package = "netlify-plugin-flutter"
-
-[[plugins]]
-package = "@netlify/plugin-local-install-core"
+  command = "curl -sL https://raw.githubusercontent.com/flutter/flutter/stable/bin/flutter -o flutter && chmod +x flutter && ./flutter --version && ./flutter config --enable-web --no-analytics && ./flutter pub get && ./flutter build web --release --web-renderer canvaskit"
+  publish = "build/web"
 
 [[redirects]]
-from = "/*"
-to = "/index.html"
-status = 200
-# ...existing code...
+  from = "/*"
+  to = "/index.html"
+  status = 200
