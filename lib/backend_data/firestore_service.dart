@@ -21,6 +21,9 @@ class FirestoreService {
     }
   }
 
+// ←←←←← PUBLIC STREAM (this is what home.dart will use)
+  Stream<QuerySnapshot> get lessonsStream => _lessonsCollection.snapshots();
+
   Future<LessonDay?> loadLesson(DateTime date) async {
     final String id = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
     

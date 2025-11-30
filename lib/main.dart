@@ -1,13 +1,16 @@
 import 'package:app_demo/l10n/fallback_localizations.dart';
+import 'package:app_demo/widgets/church_selection.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart'; 
 import 'firebase_options.dart';
 import 'l10n/app_localizations.dart';
+import 'widgets/current_church.dart';
 import 'widgets/home.dart';
 import 'widgets/intro_page.dart';
 
@@ -36,6 +39,9 @@ void main() async{
       // Request permission (iOS)
     await FirebaseMessaging.instance.requestPermission();
     await FirebaseMessaging.instance.subscribeToTopic("all_users");
+    // Get token (optional: save to user profile for targeting)
+    final token = await FirebaseMessaging.instance.getToken();
+    print("FCM Token: $token");
   } else {
     // web-specific: ensure you configure firebase messaging service worker if you need background messages
     print('Running on Web: skip mobile FCM background setup');
@@ -44,10 +50,15 @@ void main() async{
   final prefs = await SharedPreferences.getInstance();
   final bool hasSeenIntro = prefs.getBool('hasSeenIntro') ?? false;
   final String savedLang = prefs.getString('language_code') ?? 'en';
-  // Get token (optional: save to user profile for targeting)
-  final token = !kIsWeb ? await FirebaseMessaging.instance.getToken(): null;
-  print("FCM Token: $token");
-  
+
+  // NEW: Load saved church
+  final String? savedChurchId = prefs.getString('church_id');
+  final String? savedChurchName = prefs.getString('church_name');
+  // Save to CurrentChurch singleton
+  if (savedChurchId != null && savedChurchName != null) {
+    CurrentChurch.instance.setChurch(savedChurchId, savedChurchName);
+  }
+
   runApp(MyApp(
     hasSeenIntro: hasSeenIntro,
     initialLocale: Locale(savedLang),
@@ -89,6 +100,40 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => CurrentChurch(),
+      child: Consumer<CurrentChurch>(
+        builder: (context, church, child) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            locale: _locale,
+
+            // THIS IS THE ONLY LIST THAT WORKS FOR en + fr + yo
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+
+              GlobalMaterialLocalizations.delegate, // ← supports en + fr fully
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+
+              // THIS IS THE FINAL PIECE – silences the red screen forever
+              FallbackMaterialLocalizationsDelegate(),
+              FallbackCupertinoLocalizationsDelegate(),
+            ],
+            supportedLocales: AppLocalizations.supportedLocales, // en, fr, yo
+            theme: ThemeData(
+              useMaterial3: true,
+              colorSchemeSeed: Color.fromARGB(255, 255, 255, 255).withOpacity(0.3), // APP THEME COLOR
+            ),
+            home: church.isSet 
+                ? (widget.hasSeenIntro ? const Home() : const IntroPage())
+                : const ChurchSelector(),
+          );
+        },
+      ),
+    );
+  }
+  /*Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       locale: _locale,  // ← Keeps switching working via setState
@@ -116,5 +161,5 @@ class _MyAppState extends State<MyApp> {
         '/home': (_) => const Home(),
       },
     );
-  }
+  }*/
 }

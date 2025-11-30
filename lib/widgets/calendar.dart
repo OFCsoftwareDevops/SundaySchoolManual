@@ -261,3 +261,48 @@ class _MonthCalendarState extends State<MonthCalendar> {
         'July', 'August', 'September', 'October', 'November', 'December'
       ][m - 1];
 }
+
+class ShrinkingCalendarDelegate extends SliverPersistentHeaderDelegate {
+  final MonthCalendar calendar;
+  final double minHeight;
+  final double maxHeight;
+
+  ShrinkingCalendarDelegate({
+    required this.calendar,
+    required this.minHeight,
+    required this.maxHeight,
+  });
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    final progress = shrinkOffset / (maxExtent - minExtent);
+    final scale = 1.0 - (progress * 0.4); // shrinks a bit
+    final opacity = 1.0 - (progress * 0.8);
+
+    return Container(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: Opacity(
+        opacity: opacity.clamp(0.8, 1.0),
+        child: Transform.scale(
+          scale: scale.clamp(0.85, 1.0),
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: 8,
+              vertical: 8 - (shrinkOffset / 20).clamp(0, 8),
+            ),
+            child: calendar,
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  double get maxExtent => maxHeight;
+
+  @override
+  double get minExtent => minHeight;
+
+  @override
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) => true;
+}
