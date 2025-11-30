@@ -101,7 +101,7 @@ class HomeState extends State<Home> {
     _loadLesson(); // This reloads the lesson from Firestore
   }
 
-  @override
+/*  @override
   Widget build(BuildContext context) {
     final double calendarHeight = MediaQuery.of(context).size.height * 0.5;
     final double cardHeight = MediaQuery.of(context).size.height * 0.25;
@@ -443,6 +443,231 @@ class HomeState extends State<Home> {
       ),
     );
   }
+  }*/
+
+
+  bool get hasLesson => lesson?.teenNotes != null || lesson?.adultNotes != null;
+
+  @override
+  Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    final isAdmin = user?.email == adminEmail;
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text(
+          AppLocalizations.of(context)!.appName,
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: const Color.fromARGB(146, 7, 7, 7),
+        foregroundColor: Colors.white,
+        elevation: 4,
+        actions: [
+          PopupMenuButton<Locale>(
+            icon: const Icon(Icons.language, color: Colors.white),
+            onSelected: (locale) => MyApp.setLocale(context, locale),
+            itemBuilder: (_) => [
+              const PopupMenuItem(value: Locale('en'), child: Text("English")),
+              const PopupMenuItem(value: Locale('fr'), child: Text("Français")),
+              const PopupMenuItem(value: Locale('yo'), child: Text("Èdè Yorùbá")),
+            ],
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: hasLesson
+                ? [const Color.fromARGB(255, 93, 134, 104), const Color(0xFF9DC2A6), const Color(0xFFEEFFEE)]
+                : [const Color(0xFF9C7171), const Color(0xFFEBcfcf), const Color(0xFFFFF8F8)],
+          ),
+        ),
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.only(bottom: 100),
+          child: Column(
+            children: [
+              // Offline banner
+              StreamBuilder<List<ConnectivityResult>>(
+                stream: Connectivity().onConnectivityChanged,
+                builder: (context, snapshot) {
+                  final offline = snapshot.data?.every((r) => r == ConnectivityResult.none) ?? false;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    color: offline ? Colors.orange.shade700 : Colors.transparent,
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: offline
+                        ? const Center(
+                            child: Text(
+                              "Offline Mode • Using cached lessons",
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 12),
+
+              // DYNAMIC CALENDAR – FITS 4–6 WEEKS PERFECTLY
+              StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance.collection('lessons').snapshots(),
+                builder: (context, snapshot) {
+                  Set<DateTime> datesWithLessons = {};
+                  if (snapshot.hasData) {
+                    datesWithLessons = snapshot.data!.docs
+                        .map((doc) {
+                          final p = doc.id.split('-');
+                          if (p.length != 3) return null;
+                          return DateTime(int.parse(p[0]), int.parse(p[1]), int.parse(p[2]));
+                        })
+                        .whereType<DateTime>()
+                        .toSet();
+                  }
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: MonthCalendar(
+                      selectedDate: selectedDate,
+                      datesWithLessons: datesWithLessons,
+                      onDateSelected: (d) {
+                        setState(() => selectedDate = d);
+                        _loadLesson();
+                      },
+                    ),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 20),
+
+              // PERFECT LESSON CARD – ALWAYS SAME BEAUTIFUL SIZE
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Card(
+                  elevation: 12,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                  child: Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(28),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: hasLesson
+                            ? [const Color(0xFF5D8668), const Color(0xFF9DC2A6), const Color(0xFFEEFFEE)]
+                            : [const Color(0xFF9C7171), const Color(0xFFEBcfcf), const Color(0xFFFFF8F8)],
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              hasLesson ? Icons.menu_book_rounded : Icons.event_busy,
+                              size: 40,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Text(
+                                hasLesson
+                                    ? AppLocalizations.of(context)!.sundaySchoolLesson
+                                    : AppLocalizations.of(context)!.noLessonToday,
+                                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+
+                        _lessonRow(
+                          icon: Icons.school,
+                          label: lesson?.teenNotes?.topic ?? AppLocalizations.of(context)!.noTeenLesson,
+                          available: lesson?.teenNotes != null,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => BeautifulLessonPage(data: lesson!.teenNotes!, title: "Teen Lesson"),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        _lessonRow(
+                          icon: Icons.menu_book_rounded,
+                          label: lesson?.adultNotes?.topic ?? AppLocalizations.of(context)!.noAdultLesson,
+                          available: lesson?.adultNotes != null,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => BeautifulLessonPage(data: lesson!.adultNotes!, title: "Adult Lesson"),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 80),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _lessonRow({
+    required IconData icon,
+    required String label,
+    required bool available,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: available ? onTap : null,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(available ? 0.9 : 0.5),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: 30, color: available ? Colors.indigo[800] : Colors.grey[600]),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    color: available ? Colors.indigo[900] : Colors.grey[700],
+                    fontStyle: available ? FontStyle.normal : FontStyle.italic,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Icon(
+                available ? Icons.arrow_forward_ios_rounded : Icons.lock_outline,
+                color: available ? Colors.indigo : Colors.grey[500],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
-
-
