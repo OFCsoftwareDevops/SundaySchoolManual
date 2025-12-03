@@ -10,9 +10,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart'; 
 import 'firebase_options.dart';
 import 'l10n/app_localizations.dart';
+import 'widgets/bible.dart';
+import 'widgets/bible_loader.dart';
 import 'widgets/current_church.dart';
 import 'widgets/home.dart';
 import 'widgets/intro_page.dart';
+import 'widgets/main_screen.dart';
 
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -42,9 +45,6 @@ void main() async{
     // Get token (optional: save to user profile for targeting)
     final token = await FirebaseMessaging.instance.getToken();
     print("FCM Token: $token");
-  } else {
-    // web-specific: ensure you configure firebase messaging service worker if you need background messages
-    print('Running on Web: skip mobile FCM background setup');
   }
   // Check if intro seen
   final prefs = await SharedPreferences.getInstance();
@@ -54,15 +54,16 @@ void main() async{
   // NEW: Load saved church
   final String? savedChurchId = prefs.getString('church_id');
   final String? savedChurchName = prefs.getString('church_name');
-  // Save to CurrentChurch singleton
-  if (savedChurchId != null && savedChurchName != null) {
-    CurrentChurch.instance.setChurch(savedChurchId, savedChurchName);
-  }
 
-  runApp(MyApp(
-    hasSeenIntro: hasSeenIntro,
-    initialLocale: Locale(savedLang),
-  ));
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => BibleVersionManager(),
+      child: MyApp(
+        hasSeenIntro: hasSeenIntro,
+        initialLocale: Locale(savedLang),
+      ),
+    ),
+  );
 }
 
 // =============== NEW: Language-aware MyApp ===============
@@ -101,35 +102,50 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => CurrentChurch(),
-      child: Consumer<CurrentChurch>(
-        builder: (context, church, child) {
-          return MaterialApp(
-            debugShowCheckedModeBanner: false,
-            locale: _locale,
-
-            // THIS IS THE ONLY LIST THAT WORKS FOR en + fr + yo
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-
-              GlobalMaterialLocalizations.delegate, // ← supports en + fr fully
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-
-              // THIS IS THE FINAL PIECE – silences the red screen forever
-              FallbackMaterialLocalizationsDelegate(),
-              FallbackCupertinoLocalizationsDelegate(),
-            ],
-            supportedLocales: AppLocalizations.supportedLocales, // en, fr, yo
-            theme: ThemeData(
-              useMaterial3: true,
-              colorSchemeSeed: Color.fromARGB(255, 255, 255, 255).withOpacity(0.3), // APP THEME COLOR
-            ),
-            home: church.isSet 
-                ? (widget.hasSeenIntro ? const Home() : const IntroPage())
-                : const ChurchSelector(),
-          );
-        },
+      create: (_) {
+        final church = CurrentChurch();
+        // Restore saved church if exists
+        if (SharedPreferences.getInstance().then((p) => p.getString('church_id')) != null) {
+          Future.wait([
+            SharedPreferences.getInstance().then((p) => p.getString('church_id')),
+            SharedPreferences.getInstance().then((p) => p.getString('church_name')),
+          ]).then((values) {
+            if (values[0] != null && values[1] != null) {
+              church.setChurch(values[0]!, values[1]!);
+            }
+          });
+        }
+        return church;
+      },
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        locale: _locale,
+      
+        // THIS IS THE ONLY LIST THAT WORKS FOR en + fr + yo
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+      
+          GlobalMaterialLocalizations.delegate, // ← supports en + fr fully
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+      
+          // THIS IS THE FINAL PIECE – silences the red screen forever
+          FallbackMaterialLocalizationsDelegate(),
+          FallbackCupertinoLocalizationsDelegate(),
+        ],
+        supportedLocales: AppLocalizations.supportedLocales, // en, fr, yo
+        theme: ThemeData(
+          useMaterial3: true,
+          colorSchemeSeed: Color.fromARGB(255, 255, 255, 255).withOpacity(0.3), // APP THEME COLOR
+          fontFamily: 'Roboto', // Set default font family
+        ),
+        home: FutureBuilder(
+          future: Provider.of<BibleVersionManager>(context, listen: false).loadInitialBible(),
+          builder: (context, snapshot) => snapshot.connectionState == ConnectionState.done
+              ? const MainScreen()
+              : const Scaffold(body: Center(child: CircularProgressIndicator())),
+        ),
+        //home: const BibleLoader(), //MainScreen(),
       ),
     );
   }

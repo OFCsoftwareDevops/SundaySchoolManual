@@ -149,7 +149,7 @@ class HomeState extends State<Home> {
         elevation: 4,
         actions: [
           // Change Church Button
-          IconButton(
+          /*IconButton(
             icon: const Icon(Icons.church_outlined),
             tooltip: "Change Church",
             onPressed: () async {
@@ -158,7 +158,7 @@ class HomeState extends State<Home> {
                 Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
               }
             },
-          ),
+          ),*/
           // Language Menu
           PopupMenuButton<Locale>(
             icon: const Icon(Icons.language, color: Colors.white),
@@ -286,11 +286,11 @@ class HomeState extends State<Home> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Card(
                         elevation: 4,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         child: Container(
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(28),
+                            borderRadius: BorderRadius.circular(16),
                             gradient: LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
@@ -309,18 +309,18 @@ class HomeState extends State<Home> {
                                     size: 40,
                                     color: Colors.white,
                                   ),
-                                  const SizedBox(width: 16),
+                                  const SizedBox(width: 10),
                                   Expanded(
                                     child: Text(
                                       hasLesson
                                           ? AppLocalizations.of(context)!.sundaySchoolLesson
                                           : AppLocalizations.of(context)!.noLessonToday,
-                                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 24),
+                              const SizedBox(height: 15),
 
                               // Teen Row
                               _lessonRow(
@@ -338,7 +338,7 @@ class HomeState extends State<Home> {
                                 ),
                               ),
 
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 10),
 
                               // Adult Row — FIXED: was "CadeRow"
                               _lessonRow(
@@ -528,13 +528,13 @@ class HomeState extends State<Home> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(10),
         onTap: available ? onTap : null,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(available ? 0.9 : 0.5),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(10),
           ),
           child: Row(
             children: [

@@ -1,0 +1,52 @@
+// NEW: Main screen with bottom navigation bar
+import 'package:flutter/material.dart';
+import 'bible_page.dart';
+import 'church_selection.dart';
+import 'home.dart';
+
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
+
+  @override
+  State<MainScreen> createState() => MainScreenState();
+}
+
+class MainScreenState extends State<MainScreen> {
+  int _selectedIndex = 0;
+
+  static final List<Widget> _pages = [
+    const Home(),
+    const BiblePage(),
+    const ChurchSelector(),
+    const Center(child: Text("Profile", style: TextStyle(fontSize: 24))),
+    const Center(child: Text("Settings", style: TextStyle(fontSize: 24))),
+  ];
+
+  void selectTab(int index) {
+    setState(() => _selectedIndex = index);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _pages,
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: const Color(0xFF5D8668),
+        unselectedItemColor: Colors.grey,
+        currentIndex: _selectedIndex,
+        onTap: selectTab,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: "Lessons"),
+          BottomNavigationBarItem(icon: Icon(Icons.book), label: "Bible"),
+          BottomNavigationBarItem(icon: Icon(Icons.church), label: "My Parish"),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings"),
+        ],
+      ),
+    );
+  }
+}

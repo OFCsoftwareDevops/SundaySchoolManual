@@ -189,7 +189,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
           child: AspectRatio(
             aspectRatio: 1,
             child: InkWell(
-              borderRadius: BorderRadius.circular(30),
+              borderRadius: BorderRadius.circular(16),
               onTap: () {
                 SystemSound.play(SystemSoundType.click);
                 _checkForAdminTrigger(day);        // ← SECRET TRIGGER HERE

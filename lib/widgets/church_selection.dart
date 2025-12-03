@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'home.dart';
 import 'current_church.dart';
+import 'main_screen.dart';
 
 class ChurchSelector extends StatefulWidget {
   const ChurchSelector({super.key});
@@ -42,10 +43,12 @@ class _ChurchSelectorState extends State<ChurchSelector> {
 
     context.read<CurrentChurch>().setChurch(churchId, churchName);
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const Home()),
-    );
+    // Close the ChurchSelector and return to the Lessons tab (tab 0)
+    Navigator.pop(context);
+
+    // Force switch back to the first tab (Lessons)
+    final mainScreenState = context.findAncestorStateOfType<MainScreenState>();
+    mainScreenState?.selectTab(0);
   }
 
   @override
@@ -65,7 +68,29 @@ class _ChurchSelectorState extends State<ChurchSelector> {
             child: Column(
               children: [
                 const SizedBox(height: 80),
-                const Icon(Icons.church, size: 100, color: Colors.white),
+                // YOUR BEAUTIFUL LOGO REPLACES THE OLD ICON
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(1),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withOpacity(0.25),
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    child: ClipOval(
+                      child: Image.asset(
+                        'assets/images/rccg_logo.png',   // your logo file
+                        height: 120,
+                        width: 120,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          // Fallback if logo not found → show the church icon
+                          return const Icon(Icons.church, size: 80, color: Colors.white);
+                        },
+                      ),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 32),
                 const Text(
                   "Welcome",
@@ -91,7 +116,7 @@ class _ChurchSelectorState extends State<ChurchSelector> {
                     filled: true,
                     fillColor: Colors.white,
                     hintText: "e.g. Grace Lagos, Jesus House DC, throne_room",
-                    prefixIcon: const Icon(Icons.church, color: Colors.deepPurple),
+                    prefixIcon: const Icon(Icons.search, color: Color.fromARGB(203, 93, 134, 104)),
                     suffixIcon: _hasText
                         ? IconButton(
                             icon: const Icon(Icons.clear),
@@ -102,20 +127,20 @@ class _ChurchSelectorState extends State<ChurchSelector> {
                           )
                         : null,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(40),
                       borderSide: BorderSide.none,
                     ),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
 
                 // Helper text
                 const Text(
-                  "Your admin will give you the Church ID\nor just type your parish name",
+                  "Parish name provided by your administrator. ",
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white70, fontSize: 15),
+                  style: TextStyle(color: Color.fromARGB(192, 255, 255, 255), fontSize: 15),
                 ),
 
                 const Spacer(),
@@ -133,11 +158,15 @@ class _ChurchSelectorState extends State<ChurchSelector> {
                       ),
                     ),
                     onPressed: () {
-                      context.read<CurrentChurch>().clear(); // forces General mode
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (_) => const Home()),
-                      );
+                      // 1. Force General mode (clear any saved parish)
+                      context.read<CurrentChurch>().clear();
+
+                      // 2. Close the ChurchSelector and go back to the Lessons tab
+                      Navigator.pop(context);
+
+                      // 3. Make sure we're on the Lessons tab (tab 0)
+                      final mainScreenState = context.findAncestorStateOfType<MainScreenState>();
+                      mainScreenState?.selectTab(0);
                     },
                     child: const Text(
                       "Use General Mode",
