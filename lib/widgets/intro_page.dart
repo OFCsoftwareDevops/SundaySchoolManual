@@ -1,18 +1,18 @@
 // lib/widgets/intro_page.dart
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class IntroPage extends StatelessWidget {
-  const IntroPage({super.key});
+  final VoidCallback onFinish;
+  const IntroPage({super.key, required this.onFinish});
 
-  Future<void> _completeIntro(BuildContext context) async {
+  /*Future<void> _completeIntro(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('hasSeenIntro', true);
 
     if (context.mounted) {
       Navigator.of(context).pushReplacementNamed('/home');
     }
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +54,8 @@ class IntroPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  onPressed: () => _completeIntro(context),
+                  //onPressed: () => _completeIntro(context),
+                  onPressed: onFinish,
                   child: const Text("Get Started", style: TextStyle(fontSize: 18)),
                 ),
               ),

@@ -1,5 +1,4 @@
 import 'package:app_demo/l10n/fallback_localizations.dart';
-import 'package:app_demo/widgets/church_selection.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -8,15 +7,13 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart'; 
+import 'widgets/bible_app/highlight/highlight_manager.dart';
 import 'firebase_options.dart';
 import 'l10n/app_localizations.dart';
-import 'widgets/bible.dart';
-import 'widgets/bible_loader.dart';
+import 'widgets/bible_app/bible.dart';
 import 'widgets/current_church.dart';
-import 'widgets/home.dart';
 import 'widgets/intro_page.dart';
 import 'widgets/main_screen.dart';
-
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();  // Required in v15.1.3+
@@ -30,36 +27,46 @@ void main() async{
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Add this in main() after Firebase.initializeApp()
+  // Load highlights early
   FirebaseFirestore.instance.settings = const Settings(
     persistenceEnabled: true,
     cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
   );
-  // FCM Setup
-  // FCM setup: only run mobile-specific setup when NOT on web
-  if (!kIsWeb) {
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-      // Request permission (iOS)
-    await FirebaseMessaging.instance.requestPermission();
-    await FirebaseMessaging.instance.subscribeToTopic("all_users");
-    // Get token (optional: save to user profile for targeting)
-    final token = await FirebaseMessaging.instance.getToken();
-    print("FCM Token: $token");
-  }
-  // Check if intro seen
-  final prefs = await SharedPreferences.getInstance();
-  final bool hasSeenIntro = prefs.getBool('hasSeenIntro') ?? false;
-  final String savedLang = prefs.getString('language_code') ?? 'en';
 
-  // NEW: Load saved church
+  // 2. Run ALL async initializations in parallel (super fast!)
+  await Future.wait([
+    // Load user preferences (language, church, etc.)
+    SharedPreferences.getInstance().then((prefs) async {
+      // You can pre-read values here if needed
+    }),
+
+    // Load highlights from SharedPreferences
+    HighlightManager().loadFromPrefs(),
+
+    // FCM setup (only on mobile)
+    if (!kIsWeb)
+      FirebaseMessaging.instance.requestPermission().then((_) async {
+        await FirebaseMessaging.instance.subscribeToTopic("all_users");
+        final token = await FirebaseMessaging.instance.getToken();
+        print("FCM Token: $token");
+      }),
+  ]);
+
+  // 3. Now safely read SharedPreferences (already loaded above)
+  final prefs = await SharedPreferences.getInstance();
+  final String savedLang = prefs.getString('language_code') ?? 'en';
   final String? savedChurchId = prefs.getString('church_id');
   final String? savedChurchName = prefs.getString('church_name');
 
+  // 4. Run the app with ALL providers
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => BibleVersionManager(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => BibleVersionManager()),
+        ChangeNotifierProvider(create: (_) => HighlightManager()), // Already loaded!
+        // Add more providers here later (ThemeManager, UserManager, etc.)
+      ],
       child: MyApp(
-        hasSeenIntro: hasSeenIntro,
         initialLocale: Locale(savedLang),
       ),
     ),
@@ -68,10 +75,10 @@ void main() async{
 
 // =============== NEW: Language-aware MyApp ===============
 class MyApp extends StatefulWidget {
-  final bool hasSeenIntro;
+  //final bool hasSeenIntro;
   final Locale initialLocale;
 
-  const MyApp({super.key, required this.hasSeenIntro, required this.initialLocale});
+  const MyApp({super.key, /*required this.hasSeenIntro,*/ required this.initialLocale});
 
   // Allow changing language from anywhere in the app
   static void setLocale(BuildContext context, Locale newLocale) {
@@ -83,13 +90,24 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
   late Locale _locale;
+  bool _showIntro = true;
 
   @override
   void initState() {
     super.initState();
     _locale = widget.initialLocale;
+    WidgetsBinding.instance.addObserver(this); // Listen for app close
+  }
+
+  // Detect full app close to reset intro
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.detached) {
+      print("📴 App fully closed → will show intro next time");
+      _showIntro = true;
+    }
   }
 
   void changeLanguage(Locale locale) async {
@@ -104,17 +122,14 @@ class _MyAppState extends State<MyApp> {
     return ChangeNotifierProvider(
       create: (_) {
         final church = CurrentChurch();
-        // Restore saved church if exists
-        if (SharedPreferences.getInstance().then((p) => p.getString('church_id')) != null) {
-          Future.wait([
-            SharedPreferences.getInstance().then((p) => p.getString('church_id')),
-            SharedPreferences.getInstance().then((p) => p.getString('church_name')),
-          ]).then((values) {
-            if (values[0] != null && values[1] != null) {
-              church.setChurch(values[0]!, values[1]!);
-            }
-          });
-        }
+        // Load saved church efficiently
+        SharedPreferences.getInstance().then((prefs) {
+          final churchId = prefs.getString('church_id');
+          final churchName = prefs.getString('church_name');
+          if (churchId != null && churchName != null) {
+            church.setChurch(churchId, churchName);
+          }
+        });
         return church;
       },
       child: MaterialApp(
@@ -139,43 +154,21 @@ class _MyAppState extends State<MyApp> {
           colorSchemeSeed: Color.fromARGB(255, 255, 255, 255).withOpacity(0.3), // APP THEME COLOR
           fontFamily: 'Roboto', // Set default font family
         ),
-        home: FutureBuilder(
-          future: Provider.of<BibleVersionManager>(context, listen: false).loadInitialBible(),
-          builder: (context, snapshot) => snapshot.connectionState == ConnectionState.done
-              ? const MainScreen()
-              : const Scaffold(body: Center(child: CircularProgressIndicator())),
-        ),
-        //home: const BibleLoader(), //MainScreen(),
+        home: _showIntro
+          ? IntroPage(
+            onFinish: () {
+              setState(() => _showIntro = false);
+              Future.microtask(() {
+                if (mounted) {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => const MainScreen()),
+                  );
+                }
+              });
+            },
+          )
+        : const MainScreen(),
       ),
     );
   }
-  /*Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      locale: _locale,  // ← Keeps switching working via setState
-
-      // THIS IS THE ONLY LIST THAT WORKS FOR en + fr + yo
-      localizationsDelegates: const [
-        AppLocalizations.delegate,                    // your strings
-
-        GlobalMaterialLocalizations.delegate,         // ← supports en + fr fully
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-
-        // THIS IS THE FINAL PIECE – silences the red screen forever
-        FallbackMaterialLocalizationsDelegate(),
-        FallbackCupertinoLocalizationsDelegate(),
-      ],
-      supportedLocales: AppLocalizations.supportedLocales,// en, fr, yo
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: const Color.fromARGB(255, 255, 255, 255).withOpacity(0.3), // APP THEME COLOR
-      ),
-      initialRoute: widget.hasSeenIntro ? '/home' : '/intro',
-      routes: {
-        '/intro': (_) => const IntroPage(),
-        '/home': (_) => const Home(),
-      },
-    );
-  }*/
 }

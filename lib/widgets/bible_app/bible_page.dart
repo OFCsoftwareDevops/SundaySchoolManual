@@ -1,0 +1,553 @@
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+
+import 'highlight/highlight_manager.dart';
+import 'bible.dart';
+import 'bible_last_position_manager.dart';
+import 'verse_action_sheet.dart';
+
+
+extension StringExtension on String {
+  String toTitleCase() {
+    if (isEmpty) return this;
+    return split(' ')
+      .map((word) {
+        if (word.isEmpty) return word;
+        return word[0].toUpperCase() + word.substring(1).toLowerCase();
+      })
+      .join(' ');
+  }
+}
+
+class BiblePage extends StatelessWidget {
+  const BiblePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<BibleVersionManager>(
+      builder: (context, manager, child) {
+        final books = manager.books;
+
+        if (manager.isLoading || books.isEmpty) {
+          return Scaffold(
+            backgroundColor: Colors.white,
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(Icons.menu_book_rounded, size: 100, color: Color(0xFF5D8668)),
+                  SizedBox(height: 40),
+                  Text("Loading the Holy Bible...", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF5D8668))),
+                  SizedBox(height: 30),
+                  CircularProgressIndicator(color: Color(0xFF5D8668)),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text("Holy Bible", style: TextStyle(fontWeight: FontWeight.bold)),
+            backgroundColor: const Color(0xFF5D8668),
+            foregroundColor: Colors.white,
+            centerTitle: true,
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Center(
+                  child: manager.isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : DropdownButton<String>(
+                      value: manager.currentVersion,
+                      dropdownColor: const Color(0xFF5D8668),
+                      icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
+                      underline: const SizedBox(),
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      items: manager.availableVersions
+                        .map((v) => DropdownMenuItem(value: v['code'], child: Text(v['name']!)))
+                        .toList(),
+                      onChanged: (v) => v != null ? manager.changeVersion(v) : null,
+                    ),
+                ),
+              ),
+            ],
+          ),
+          body: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              _buildTestament(context, "Old Testament", books, 0, 39),
+              const SizedBox(height: 32),
+              _buildTestament(context, "New Testament", books, 39, books.length),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildTestament(BuildContext context, String title, List books, int start, int end) {
+    final items = books.sublist(start, end.clamp(start, books.length));
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+          child: Text(title, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF5D8668))),
+        ),
+        ...items.map((book) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+          child: ElevatedButton(
+            onPressed: () {
+              // Fire-and-forget the save — we don’t need to wait
+              LastPositionManager.save(
+                bookName: book['name'],
+                chapter: 1,
+                screen: 'book_grid',
+              );
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => BookReader(
+                  book: book,
+                )),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF5D8668), foregroundColor: Colors.white),
+            child: Text(book['name'], style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
+          ),
+        )),
+      ],
+    );
+  }
+}
+
+// Keep your BookReader and ChapterReader exactly as before — they already work perfectly
+
+// NEW SCREEN: Chapter Grid → Verse List
+class BookReader extends StatelessWidget {
+  final Map<String, dynamic> book;
+  //final VoidCallback onBack;
+
+  const BookReader({
+    super.key, 
+    required this.book, 
+    //required this.onBack,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final chapters = book['chapters'] as List<dynamic>;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(book['name']),
+        backgroundColor: const Color(0xFF5D8668),
+        foregroundColor: Colors.white,
+        //leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: onBack),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Center(
+              child: Consumer<BibleVersionManager>(
+                builder: (context, manager, child) {
+                  return manager.isLoading
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+                        )
+                      : DropdownButton<String>(
+                          value: manager.currentVersion,
+                          dropdownColor: const Color(0xFF5D8668),
+                          icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
+                          underline: const SizedBox(),
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          items: manager.availableVersions
+                              .map((v) => DropdownMenuItem(
+                                    value: v['code'],
+                                    child: Text(v['name']!),
+                                  ))
+                              .toList(),
+                          onChanged: (v) => v != null ? manager.changeVersion(v) : null,
+                        );
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+
+      body: GridView.builder(
+        padding: const EdgeInsets.all(20),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 6,
+          childAspectRatio: 1.3,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+        ),
+        itemCount: chapters.length,
+        itemBuilder: (context, i) {
+          return GestureDetector(
+            onTap: () {
+              LastPositionManager.save(
+                bookName: book['name'],
+                chapter: i + 1,
+                screen: 'chapter',
+              );
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => ChapterReader(
+                    chapterData: chapters[i],
+                    bookName: book['name'],
+                    chapterNum: i + 1,
+                    totalChapters: chapters.length,
+                  ),
+                ),
+              );
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [Color(0xFF5D8668), Color(0xFF4A6B52)]),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: Text("${i + 1}", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// chapter_reader.dart
+class ChapterReader extends StatefulWidget {
+  final dynamic chapterData;
+  final String bookName;
+  final int chapterNum;
+  final int totalChapters;
+
+  const ChapterReader({
+    super.key,
+    required this.chapterData,
+    required this.bookName,
+    required this.chapterNum,
+    required this.totalChapters,
+  });
+
+  @override
+  State<ChapterReader> createState() => _ChapterReaderState();
+}
+
+class _ChapterReaderState extends State<ChapterReader> {
+  final Set<int> _selectedVerses = {};
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<BibleVersionManager>(
+      builder: (context, manager, child) {
+        final currentData = manager.getCurrentChapterData(widget.bookName, widget.chapterNum) ?? widget.chapterData;
+
+        final List<dynamic> rawVerses = currentData is List
+            ? currentData
+            : currentData is Map && (currentData as Map).containsKey('verses')
+                ? (currentData['verses'] as List)
+                : <dynamic>[];
+
+        // Build safe verse list
+        final List<Map<String, dynamic>> verses = rawVerses.map((v) {
+          if (v is Map<String, dynamic>) {
+            final int verseNum = v['verse'] is int
+                ? v['verse'] as int
+                : int.tryParse(v['verse'].toString()) ?? 999;
+            final String text = (v['text'] as String?)?.trim() ?? '';
+            return {'verse': verseNum, 'text': text};
+          }
+          if (v is String) {
+            return {'verse': rawVerses.indexOf(v) + 1, 'text': v.trim()};
+          }
+          return {'verse': 999, 'text': ''};
+        }).toList()
+          ..sort((a, b) => (a['verse'] as int).compareTo(b['verse'] as int));
+
+        final highlightManager = Provider.of<HighlightManager>(context);
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text("${widget.bookName} ${widget.chapterNum}"),
+            backgroundColor: const Color(0xFF5D8668),
+            foregroundColor: Colors.white,
+            actions: [
+              if (_selectedVerses.isNotEmpty)
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => setState(() => _selectedVerses.clear()),
+                ),
+              // ← VERSION SWITCHER (this was missing)
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Center(
+                  child: Consumer<BibleVersionManager>(
+                    builder: (context, manager, child) {
+                      return manager.isLoading
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: Colors.white,
+                              ),
+                            )
+                          : DropdownButton<String>(
+                              value: manager.currentVersion,
+                              dropdownColor: const Color(0xFF5D8668),
+                              icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
+                              underline: const SizedBox(),
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                              items: manager.availableVersions
+                                  .map((v) => DropdownMenuItem(
+                                        value: v['code'],
+                                        child: Text(v['name']!),
+                                      ))
+                                  .toList(),
+                              onChanged: (newVersion) {
+                                if (newVersion != null) {
+                                  manager.changeVersion(newVersion);
+                                }
+                              },
+                            );
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+          body: Stack(
+            children: [
+              ListView.builder(
+                padding: const EdgeInsets.all(20),
+                itemCount: verses.length,
+                itemBuilder: (context, i) {
+                  final Map<String, dynamic> v = verses[i];
+                  final int verseNum = v['verse'] as int;          // ← now safe
+                  final String text = v['text'] as String;          // ← now safe
+                  final bool isSelected = _selectedVerses.contains(verseNum);
+                  final Color? highlightColor = highlightManager.getHighlightColor(
+                    widget.bookName,
+                    widget.chapterNum,
+                    verseNum,
+                  );
+
+                  return InkWell(
+                    onLongPress: () {
+                      HapticFeedback.mediumImpact();
+                      setState(() => _selectedVerses.add(verseNum));
+                    },
+                    onTap: _selectedVerses.isEmpty
+                        ? null
+                        : () {
+                            setState(() {
+                              if (isSelected) {
+                                _selectedVerses.remove(verseNum);
+                              } else {
+                                _selectedVerses.add(verseNum);
+                              }
+                            });
+                          },
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 5),
+                      decoration: BoxDecoration(
+                        color: isSelected ? const Color.fromARGB(255, 140, 141, 140).withOpacity(0.22) : null,
+                      ),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: highlightColor?.withOpacity(isSelected ? 0.4 : 0.3),
+                        ),
+                        child: RichText(
+                          text: TextSpan(
+                            style: TextStyle(
+                              fontSize: 17,
+                              height: 1.5,
+                              color: isSelected ? const Color.fromARGB(255, 0, 0, 0) : Colors.black87,
+                              fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
+                            ),
+                            children: [
+                              TextSpan(
+                                text: "$verseNum. ",
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color.fromARGB(255, 94, 17, 17),
+                                  fontSize: 12,
+                                ),
+                              ),
+                              TextSpan(text: text),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+              // Beautiful VerseActionSheet with multi-select support
+              if (_selectedVerses.isNotEmpty)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: VerseActionSheet(
+                    bookName: widget.bookName,
+                    chapter: widget.chapterNum,
+                    verses: _selectedVerses.toList()..sort(),
+                    versesText: {
+                      for (var v in verses) v['verse'] as int: v['text'] as String,
+                    },
+                  ),
+                ),
+
+              // Navigation arrows (your existing one)
+              ChapterNavigationButtons(
+                bookName: widget.bookName,
+                currentChapter: widget.chapterNum,
+                totalChapters: widget.totalChapters,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+// Add this class — you can put it at the bottom of bible_page.dart or in a new file
+class ChapterNavigationButtons extends StatelessWidget {
+  final String bookName;
+  final int currentChapter;
+  final int totalChapters;
+
+  const ChapterNavigationButtons({
+    super.key,
+    required this.bookName,
+    required this.currentChapter,
+    required this.totalChapters,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final manager = Provider.of<BibleVersionManager>(context, listen: false);
+    final books = manager.books;
+    // Find current book index
+    final int bookIndex = books.indexWhere((b) => b['name'] == bookName);
+    if (bookIndex == -1) return const SizedBox.shrink();
+
+    // Helper to navigate to a specific book/chapter
+    void goToChapter(int targetBookIndex, int targetChapter) {
+      if (targetBookIndex < 0 || targetBookIndex >= books.length) return;
+      final targetBook = books[targetBookIndex] as Map<String, dynamic>;
+      final chaptersList = targetBook['chapters'] as List<dynamic>;
+      if (targetChapter < 1 || targetChapter > chaptersList.length) return;
+
+      // Save AFTER checks, BEFORE navigation
+      LastPositionManager.save(
+        bookName: targetBook['name'].toString(),
+        chapter: targetChapter,
+        screen: 'chapter',
+      );
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ChapterReader(
+            chapterData: chaptersList[targetChapter - 1],  // Now safe!
+            bookName: targetBook['name'] as String,
+            chapterNum: targetChapter,
+            totalChapters: chaptersList.length,  // Pass it forward!
+          ),
+        ),
+      );
+    }
+
+    // Previous chapter logic
+    void goPrevious() {
+      if (currentChapter > 1) {
+        goToChapter(bookIndex, currentChapter - 1);
+      } else if (bookIndex > 0) {
+        // Go to last chapter of previous book
+        final prevBook = books[bookIndex - 1];
+        final prevChapters = prevBook['chapters'] as List;
+        goToChapter(bookIndex - 1, prevChapters.length);
+      }
+    }
+
+    // Next chapter logic
+    void goNext() {
+      if (currentChapter < totalChapters) {
+        goToChapter(bookIndex, currentChapter + 1);
+      } else if (bookIndex < books.length - 1) {
+        // Go to first chapter of next book
+        goToChapter(bookIndex + 1, 1);
+      }
+    }
+
+    final bool hasPrevious = currentChapter > 1 || bookIndex > 0;
+    final bool hasNext = currentChapter < totalChapters || bookIndex < books.length - 1;
+
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 110),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Left Arrow - Previous
+            Opacity(
+              opacity: hasPrevious ? 0.85 : 0.25,
+              child: Container(
+                margin: const EdgeInsets.only(left: 12),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 2)),
+                  ],
+                ),
+                child: IconButton(
+                  iconSize: 36,
+                  onPressed: hasPrevious ? goPrevious : null,
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF5D8668)),
+                ),
+              ),
+            ),
+            // Right Arrow - Next
+            Opacity(
+              opacity: hasNext ? 0.85 : 0.25,
+              child: Container(
+                margin: const EdgeInsets.only(right: 12),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 2)),
+                  ],
+                ),
+                child: IconButton(
+                  iconSize: 36,
+                  onPressed: hasNext ? goNext : null,
+                  icon: const Icon(Icons.arrow_forward_ios_rounded, color: Color(0xFF5D8668)),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

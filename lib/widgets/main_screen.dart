@@ -1,6 +1,6 @@
 // NEW: Main screen with bottom navigation bar
 import 'package:flutter/material.dart';
-import 'bible_page.dart';
+import 'bible_app/bible_entry_point.dart';
 import 'church_selection.dart';
 import 'home.dart';
 
@@ -16,7 +16,7 @@ class MainScreenState extends State<MainScreen> {
 
   static final List<Widget> _pages = [
     const Home(),
-    const BiblePage(),
+    const BibleEntryPoint(),
     const ChurchSelector(),
     const Center(child: Text("Profile", style: TextStyle(fontSize: 24))),
     const Center(child: Text("Settings", style: TextStyle(fontSize: 24))),
