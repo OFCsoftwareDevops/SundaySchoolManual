@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'highlight/highlight_manager.dart';
 import 'bible.dart';
@@ -101,22 +102,25 @@ class BiblePage extends StatelessWidget {
         ),
         ...items.map((book) => Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-          child: ElevatedButton(
-            onPressed: () {
-              // Fire-and-forget the save — we don’t need to wait
-              LastPositionManager.save(
-                bookName: book['name'],
-                chapter: 1,
-                screen: 'book_grid',
-              );
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => BookReader(
-                  book: book,
-                )),
-              );
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF5D8668), foregroundColor: Colors.white),
-            child: Text(book['name'], style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
+          child: SizedBox(
+            width: double.infinity, 
+            child: ElevatedButton(
+              onPressed: () {
+                // Fire-and-forget the save — we don’t need to wait
+                LastPositionManager.save(
+                  bookName: book['name'],
+                  chapter: 1,
+                  screen: 'book_grid',
+                );
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => BookReader(
+                    book: book,
+                  )),
+                );
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF5D8668), foregroundColor: Colors.white),
+              child: Text(book['name'], style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
+            ),
           ),
         )),
       ],
@@ -129,11 +133,13 @@ class BiblePage extends StatelessWidget {
 // NEW SCREEN: Chapter Grid → Verse List
 class BookReader extends StatelessWidget {
   final Map<String, dynamic> book;
+  final int initialChapter;
   //final VoidCallback onBack;
 
   const BookReader({
     super.key, 
-    required this.book, 
+    required this.book,
+    this.initialChapter = 1, 
     //required this.onBack,
   });
 
@@ -245,6 +251,46 @@ class ChapterReader extends StatefulWidget {
 
 class _ChapterReaderState extends State<ChapterReader> {
   final Set<int> _selectedVerses = {};
+  final GlobalKey _listViewKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    // Try to scroll to the last read verse as soon as the screen appears
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToLastVerseIfNeeded();
+    });
+  }
+
+  Future<void> _scrollToLastVerseIfNeeded() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Only scroll if the saved position is exactly this chapter
+    final String? savedBook = prefs.getString('last_book');
+    final int? savedChapter = prefs.getInt('last_chapter');
+    final int? savedVerse = prefs.getInt('last_verse');
+
+    if (savedBook != widget.bookName ||
+        savedChapter != widget.chapterNum ||
+        savedVerse == null ||
+        savedVerse < 1) {
+      return;
+    }
+
+    // Find the verse widget and scroll to it
+    final verseContext = _verseKeys[savedVerse]?.currentContext;
+    if (verseContext != null) {
+      Scrollable.ensureVisible(
+        verseContext,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOut,
+        alignment: 0.1, // brings verse near the top
+      );
+    }
+  }
+
+  // One GlobalKey per verse so we can scroll to any of them
+  final Map<int, GlobalKey> _verseKeys = {};
 
   @override
   Widget build(BuildContext context) {
@@ -329,12 +375,18 @@ class _ChapterReaderState extends State<ChapterReader> {
           body: Stack(
             children: [
               ListView.builder(
+                key: _listViewKey,
                 padding: const EdgeInsets.all(20),
                 itemCount: verses.length,
                 itemBuilder: (context, i) {
                   final Map<String, dynamic> v = verses[i];
                   final int verseNum = v['verse'] as int;          // ← now safe
                   final String text = v['text'] as String;          // ← now safe
+
+                  // Create a key for this verse (so we can scroll to it later)
+                  final GlobalKey verseKey = GlobalKey();
+                  _verseKeys[verseNum] = verseKey;
+
                   final bool isSelected = _selectedVerses.contains(verseNum);
                   final Color? highlightColor = highlightManager.getHighlightColor(
                     widget.bookName,
@@ -343,21 +395,22 @@ class _ChapterReaderState extends State<ChapterReader> {
                   );
 
                   return InkWell(
+                    key: verseKey,
                     onLongPress: () {
                       HapticFeedback.mediumImpact();
                       setState(() => _selectedVerses.add(verseNum));
                     },
                     onTap: _selectedVerses.isEmpty
-                        ? null
-                        : () {
-                            setState(() {
-                              if (isSelected) {
-                                _selectedVerses.remove(verseNum);
-                              } else {
-                                _selectedVerses.add(verseNum);
-                              }
-                            });
-                          },
+                      ? null
+                      : () {
+                        setState(() {
+                          if (isSelected) {
+                            _selectedVerses.remove(verseNum);
+                          } else {
+                            _selectedVerses.add(verseNum);
+                          }
+                        });
+                      },
                     child: Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 5),
@@ -462,7 +515,7 @@ class ChapterNavigationButtons extends StatelessWidget {
         screen: 'chapter',
       );
 
-      Navigator.pushReplacement(
+      Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => ChapterReader(

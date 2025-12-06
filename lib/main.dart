@@ -158,13 +158,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
           ? IntroPage(
             onFinish: () {
               setState(() => _showIntro = false);
-              Future.microtask(() {
+              /*Future.microtask(() {
                 if (mounted) {
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(builder: (_) => const MainScreen()),
                   );
                 }
-              });
+              });*/
             },
           )
         : const MainScreen(),

@@ -20,20 +20,20 @@ class Highlight {
   });
 
   Map<String, dynamic> toJson() => {
-        'book': book,
-        'chapter': chapter,
-        'verse': verse,
-        'color': color.value, // Store as int (ARGB)
-        'timestamp': timestamp.millisecondsSinceEpoch,
-      };
+    'book': book,
+    'chapter': chapter,
+    'verse': verse,
+    'color': color.value, // Store as int (ARGB)
+    'timestamp': timestamp.millisecondsSinceEpoch,
+  };
 
   factory Highlight.fromJson(Map<String, dynamic> json) => Highlight(
-        book: json['book'] as String,
-        chapter: json['chapter'] as int,
-        verse: json['verse'] as int,
-        color: Color(json['color'] as int),
-        timestamp: DateTime.fromMillisecondsSinceEpoch(json['timestamp'] as int),
-      );
+    book: json['book'] as String,
+    chapter: json['chapter'] as int,
+    verse: json['verse'] as int,
+    color: Color(json['color'] as int),
+    timestamp: DateTime.fromMillisecondsSinceEpoch(json['timestamp'] as int),
+  );
 }
 
 class HighlightManager extends ChangeNotifier {
@@ -49,7 +49,9 @@ class HighlightManager extends ChangeNotifier {
   final Map<String, Highlight> _highlights = {};
 
   // Unique key for each verse
-  String _key(String book, int chapter, int verse) => "${book}_$chapter:$verse";
+  String _key(String book, int chapter, int verse) {
+    return "${book}_$chapter:$verse";
+  }
 
   // Public getters
   bool isHighlighted(String book, int chapter, int verse) =>

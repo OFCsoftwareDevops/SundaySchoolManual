@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../lesson_app/bible_ref_parser.dart';
+import 'bible_entry_point.dart';
 
 class BibleBook {
   final String name;
@@ -83,14 +85,25 @@ class BibleVersionManager extends ChangeNotifier {
       'jude.json', 'revelation.json',
     ];
 
-
-
     for (final file in files) {
       final path = 'assets/bible/$version/$file';
-      String name = file.replaceAll('.json', '').replaceAll('_', ' ').split(' ').map((w) {
+
+      /*String name = file.replaceAll('.json', '').replaceAll('_', ' ').split(' ').map((w) {
         if (w.length <= 3) return w[0].toUpperCase() + w.substring(1);
         return w[0].toUpperCase() + w.substring(1).toLowerCase();
-      }).join(' ');
+      }).join(' ');*/
+
+      // Convert filename to display name with spaces
+      String name = file
+          .replaceAll('.json', '')
+          // insert a space after leading digits (e.g. "1timothy" -> "1 timothy")
+          .replaceFirstMapped(RegExp(r'^(\d+)(?=[A-Za-z])'), (m) => '${m[1]} ')
+          // replace underscores/dashes with spaces if any
+          .replaceAll(RegExp(r'[_\-]+'), ' ')
+          // Capitalize words
+          .split(' ')
+          .map((w) => w.isEmpty ? w : w[0].toUpperCase() + (w.length > 1 ? w.substring(1) : ''))
+          .join(' ');
 
       try {
         final raw = await rootBundle.loadString(path);
@@ -177,4 +190,108 @@ class BibleVersionManager extends ChangeNotifier {
       return null;
     }
   }
+
+  // In your BibleVersionManager class
+
+  String? getVerseText(String reference) {
+    print('DEBUG: getVerseText called with: $reference'); // ← add this
+    
+    final refs = findBibleReferences(reference);
+    print('DEBUG: Parsed references: $refs');
+
+    if (refs.isEmpty) {
+      print('DEBUG: No references parsed from: "$reference"');
+      return null;
+    }
+
+    final ref = refs.first;
+
+    print('DEBUG: Using ref - book: "${ref.book}", chapter: ${ref.chapter}, verse: ${ref.verseStart}-${ref.verseEnd}');
+    print('DEBUG: Available books: ${books.map((b) => b['name']).toList()}');
+
+    // 1. Find book with super-tolerant matching
+    final book = books.firstWhereOrNull((b) {
+      final name = (b['name'] as String).toLowerCase();
+      final search = ref.book.toLowerCase();
+      print('DEBUG: Comparing "$name" with "$search"');
+
+      // Exact match
+      if (name == search) return true;
+
+      // Common aliases
+      final aliases = {
+        'psalm': 'psalms',
+        'song of solomon': 'song of songs',
+        'song of songs': 'song of solomon',
+        'eccles': 'ecclesiastes',
+        'rev': 'revelation',
+        '1cor': '1 corinthians',
+        '2cor': '2 corinthians',
+        // add more if you ever see them
+      };
+
+      final normalized = aliases[search] ?? search;
+      return name.contains(normalized) || normalized.contains(name);
+    });
+
+    if (book == null) return null;
+
+    final chapters = book['chapters'] as List;
+    if (ref.chapter <= 0 || ref.chapter > chapters.length) {
+      return "Chapter ${ref.chapter} does not exist in ${book['name']}.";
+    }
+
+    final chapterData = chapters[ref.chapter - 1] as List;
+    final int start = ref.verseStart;
+    final int end = ref.verseEnd ?? start;
+
+    // Clamp verses to what actually exists
+    final int safeStart = start.clamp(1, chapterData.length);
+    final int safeEnd = end.clamp(1, chapterData.length);
+
+    if (safeStart > safeEnd) {
+      return "No verses found for $reference.";
+    }
+
+    final verses = <String>[];
+    for (int v = safeStart; v <= safeEnd; v++) {
+      final item = chapterData[v - 1];
+      final text = item is Map ? item['text'] ?? '' : item.toString();
+      if (text.trim().isNotEmpty) {
+        verses.add("$v $text".trim());
+      }
+    }
+
+    return verses.isEmpty ? "Verse(s) not found." : verses.join("\n");
+  }
+  /*String? getVerseText(String reference) {
+    // Example reference: "John 3:16" or "Romans 8:2-4"
+    final ref = findBibleReferences(reference).firstOrNull;
+    if (ref == null) return null;
+
+    final book = books.firstWhereOrNull((b) => 
+      (b['name'] as String).toLowerCase() == ref.book.toLowerCase());
+    if (book == null) return null;
+
+    final chapters = book['chapters'] as List;
+    if (ref.chapter > chapters.length) return null;
+
+    final chapterData = chapters[ref.chapter - 1] as List;
+    final List<String> verses = [];
+
+    int start = ref.verseStart;
+    int end = ref.verseEnd ?? start;
+
+    for (int v = start; v <= end; v++) {
+      if (v <= chapterData.length) {
+        final verse = chapterData[v - 1];
+        final text = verse is Map 
+        ? verse['text'] ?? '' 
+        : verse.toString();
+        verses.add("$v ${text.trim()}");
+      }
+    }
+
+    return verses.join("\n");
+  }*/
 }

@@ -1,8 +1,14 @@
 // lib/screens/lesson_preview.dart
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../backend_data/lesson_data.dart';
+import 'bible_app/bible.dart';
+import 'bible_app/highlight/highlight_manager.dart';
+import 'lesson_app/bible_ref_parser.dart';
+import 'lesson_app/reference_verse_popup.dart';
 
 class BeautifulLessonPage extends StatelessWidget {
   final SectionNotes data;
@@ -26,9 +32,15 @@ class BeautifulLessonPage extends StatelessWidget {
 
     for (var block in data.blocks) {
       switch (block.type) {
-        case "heading": buffer.writeln("\n*${block.text}*"); break;
-        case "text": buffer.writeln("${block.text}\n"); break;
-        case "memory_verse": buffer.writeln("Memory Verse\n“${block.text}”\n"); break;
+        case "heading": 
+          buffer.writeln("\n*${block.text}*"); 
+          break;
+        case "text":
+          buffer.writeln("${block.text}\n"); 
+          break;
+        case "memory_verse": 
+          buffer.writeln("Memory Verse\n“${block.text}”\n"); 
+          break;
         case "numbered_list":
           for (var i = 0; i < block.items!.length; i++) {
             buffer.writeln("${i + 1}. ${block.items![i]}");
@@ -39,27 +51,39 @@ class BeautifulLessonPage extends StatelessWidget {
           block.items!.forEach((item) => buffer.writeln("• $item"));
           buffer.writeln();
           break;
-        case "quote": buffer.writeln("> ${block.text}\n"); break;
-        case "prayer": buffer.writeln("Prayer\n${block.text}"); break;
+        case "quote": 
+          buffer.writeln("> ${block.text}\n"); 
+          break;
+        case "prayer": 
+          buffer.writeln("Prayer\n${block.text}"); 
+          break;
       }
     }
 
     Share.share(buffer.toString(), subject: "$title: ${data.topic}");
   }
 
-  Widget _buildBlock(ContentBlock block) {
+  Widget _buildBlock(BuildContext context, ContentBlock block) {
     // ← exact same _buildBlock from the previous message (heading, text, memory_verse, numbered_list, bullet_list, quote, prayer)
     switch (block.type) {
       case "heading":
         return Padding(
           padding: const EdgeInsets.only(top: 40, bottom: 12),
-          child: Text(block.text!, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w600)),
+          child: Text(
+            block.text!, 
+            style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w600),
+          ),
         );
       case "text":
         return Padding(
           padding: const EdgeInsets.only(bottom: 24),
-          child: Text(block.text!, style: const TextStyle(fontSize: 17, height: 1.6)),
+          child: buildRichText(context, block.text!),
         );
+          /*child: Text(
+            block.text!, 
+            style: const TextStyle(fontSize: 17, height: 1.6),
+          ),
+        );*/
       case "memory_verse":
         return Padding(
           padding: const EdgeInsets.only(bottom: 32),
@@ -71,7 +95,11 @@ class BeautifulLessonPage extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               border: const Border(left: BorderSide(color: Colors.deepPurple, width: 5)),
             ),
-            child: Text(block.text!, style: const TextStyle(fontSize: 18, height: 1.7, fontStyle: FontStyle.italic), textAlign: TextAlign.center),
+            child: Text(
+              block.text!, 
+              style: const TextStyle(fontSize: 18, height: 1.7, fontStyle: FontStyle.italic), 
+              textAlign: TextAlign.center,
+            ),
           ),
         );
       case "numbered_list":
@@ -86,9 +114,11 @@ class BeautifulLessonPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      width: 36, height: 36,
+                      width: 36, 
+                      height: 36,
                       decoration: const BoxDecoration(color: Colors.deepPurple, shape: BoxShape.circle),
-                      child: Center(child: Text('$i', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                      child: Center(
+                        child: Text('$i', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
                     ),
                     const SizedBox(width: 16),
                     Expanded(child: Text(e.value, style: const TextStyle(fontSize: 17, height: 1.5))),
@@ -118,7 +148,11 @@ class BeautifulLessonPage extends StatelessWidget {
         return Container(
           margin: const EdgeInsets.only(bottom: 32),
           padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade300)),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50, 
+            borderRadius: BorderRadius.circular(12), 
+            border: Border.all(color: Colors.grey.shade300),
+          ),
           child: Text(block.text!, style: const TextStyle(fontSize: 17, fontStyle: FontStyle.italic, height: 1.6)),
         );
       case "prayer":
@@ -137,6 +171,151 @@ class BeautifulLessonPage extends StatelessWidget {
       default:
         return const SizedBox.shrink();
     }
+  }
+
+  // Wherever you show lesson text (e.g. in your lesson detail screen)
+  Widget buildRichText(BuildContext context, String text) {
+    final refs = findBibleReferences(text);
+    if (refs.isEmpty) {
+      return Text(text, style: const TextStyle(fontSize: 17, height: 1.6));
+    }
+
+    final parts = <TextSpan>[];
+    int lastEnd = 0;
+
+    for (final ref in refs) {
+      final match = bibleRefRegex.firstMatch(text.substring(lastEnd));
+      if (match == null) continue;
+
+      final start = lastEnd + match.start;
+      final end = lastEnd + match.end;
+
+      // Add normal text before reference
+      if (start > lastEnd) {
+        parts.add(TextSpan(text: text.substring(lastEnd, start)));
+      }
+
+      // Add clickable reference
+      parts.add(
+        TextSpan(
+          text: text.substring(start, end),
+          style: const TextStyle(
+            color: Color.fromARGB(255, 100, 13, 74),
+            fontWeight: FontWeight.w600,
+            //decoration: TextDecoration.underline,
+          ),
+          recognizer: TapGestureRecognizer()
+            ..onTap = () {
+              final refStr = ref.toString();
+              final manager = context.read<BibleVersionManager>();
+              final raw = manager.getVerseText(refStr) ?? "Verse temporarily unavailable";
+              
+              final lines = raw
+                  .split('\n')
+                  .map((l) => l.trim())
+                  .where((l) => l.isNotEmpty)
+                  .toList();
+
+              final highlightMgr = context.read<HighlightManager>();
+
+              // Normalize book name exactly like your HighlightManager expects
+              final String bookKey = ref.book.toString().toLowerCase().replaceAll(' ', '');
+              // → "genesis", "exodus", "psalms", "1corinthians", etc.
+
+              final List<Map<String, dynamic>> verses = [];
+
+              for (final line in lines) {
+                final parts = line.split(RegExp(r'\s+'));
+                final int? verseNum = int.tryParse(parts.first);
+
+                if (verseNum == null || verseNum == 0) continue;
+
+                final String verseText = parts.skip(1).join(' ');
+
+                // This is the correct call — per-verse highlight check
+                final bool isHighlighted = highlightMgr.isHighlighted(
+                  bookKey,           // String book
+                  ref.chapter,       // int chapter
+                  verseNum,          // int verse ← now used!
+                );
+              /*final raw = manager.getVerseText(refStr) ?? "Verse temporarily unavailable";
+              final lines = raw.split('\n').where((l) => l.trim().isNotEmpty).toList();
+
+              // parse lines into structures [{verse:1, text:"...", highlighted:bool}, ...]
+              final highlightMgr = context.read<HighlightManager>(); // adjust class name if different
+              final parsed = <Map<String, dynamic>>[];
+              final books = manager.books;
+              for (final line in lines) {
+                final parts = line.trim().split(RegExp(r'\s+'));
+                final verseNum = int.tryParse(parts.first) ?? 0;
+                final text = parts.skip(1).join(' ');
+
+                // normalize book key used by your filename/book name logic
+                final rawBook = ref.book.toString();
+                final bookKey = rawBook.toLowerCase().replaceAll(' ', '');
+
+                // find book index (0-based) and convert to the integer your HighlightManager expects
+                final bookIndex = books.indexWhere((b) =>
+                  (b['name'] as String).toLowerCase().replaceAll(' ', '') == bookKey
+                );
+
+                final int bookParameter = bookIndex >= 0 ? (bookIndex + 1) : 0; // adjust +1 if your API is 1-based
+
+                final isHighlighted = highlightMgr.isHighlighted(
+                  manager.currentVersion,
+                  bookParameter,         // now an int, not String
+                  ref.chapter,
+                  verseNum,
+                );*/
+
+                verses.add({
+                  'verse': verseNum,
+                  'text': verseText,
+                  'highlighted': isHighlighted,
+                });
+              }
+
+              showDialog(
+                context: context,
+                barrierColor: Colors.black.withOpacity(0.65), // dark semi-transparent backdrop
+                builder: (context) => VersePopup(
+                  reference: refStr,
+                  verses: verses,
+                  rawText: raw,
+                ),
+              );
+            },
+            /*..onTap = () {
+              ref.toString();
+              print('DEBUG: Looking for verse: $ref');
+              final verseText = context.read<BibleVersionManager>().getVerseText(ref.toString())
+              ?? "Verse temporarily unavailable";
+              showDialog(
+                context: context,
+                barrierColor: Colors.black.withOpacity(0.8),
+                builder: (_) => VersePopup(
+                  reference: ref.toString(),
+                  verseText: verseText,
+                ),
+              );
+            },*/
+        ),
+      );
+
+      lastEnd = end;
+    }
+
+    // Add remaining text
+    if (lastEnd < text.length) {
+      parts.add(TextSpan(text: text.substring(lastEnd)));
+    }
+
+    return RichText(
+      text: TextSpan(
+        style: const TextStyle(fontSize: 17, height: 1.6, color: Colors.black87),
+        children: parts,
+      ),
+    );
   }
 
   @override
@@ -158,7 +337,9 @@ class BeautifulLessonPage extends StatelessWidget {
               const SizedBox(height: 60),
               Row(
                 children: [
-                  IconButton(icon: const Icon(Icons.arrow_back_ios, size: 20), onPressed: () => Navigator.pop(context)),
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios, size: 20), 
+                    onPressed: () => Navigator.pop(context)),
                   Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
                 ],
               ),
@@ -169,7 +350,7 @@ class BeautifulLessonPage extends StatelessWidget {
                 Text(data.biblePassage, style: const TextStyle(fontSize: 18, color: Colors.black54, fontStyle: FontStyle.italic)),
               ],
               const SizedBox(height: 50),
-              ...data.blocks.map(_buildBlock),
+              ...data.blocks.map((block) => _buildBlock(context, block)),
               const SizedBox(height: 100),
             ],
           ),
