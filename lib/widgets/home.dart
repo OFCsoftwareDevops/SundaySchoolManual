@@ -307,6 +307,7 @@ class HomeState extends State<Home> {
                                     builder: (_) => BeautifulLessonPage(
                                       data: lesson!.teenNotes!,
                                       title: "Teen Lesson",
+                                      lessonDate: selectedDate,
                                     ),
                                   ),
                                 ),
@@ -325,6 +326,7 @@ class HomeState extends State<Home> {
                                     builder: (_) => BeautifulLessonPage(
                                       data: lesson!.adultNotes!,
                                       title: "Adult Lesson",
+                                      lessonDate: selectedDate,
                                     ),
                                   ),
                                 ),

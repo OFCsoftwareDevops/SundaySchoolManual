@@ -7,17 +7,21 @@ import 'package:share_plus/share_plus.dart';
 import '../../backend_data/lesson_data.dart';
 import '../bible_app/bible.dart';
 import '../bible_app/highlight/highlight_manager.dart';
+import 'assignment/assignment.dart';
+import 'assignment/next_assignment_preview.dart';
 import 'bible_ref_parser.dart';
 import 'reference_verse_popup.dart';
 
 class BeautifulLessonPage extends StatelessWidget {
   final SectionNotes data;
   final String title;
+  final DateTime lessonDate;
 
   const BeautifulLessonPage({
     super.key,
     required this.data,
     required this.title,
+    required this.lessonDate,
   });
 
   // ← the rest of the file is 100% identical to the previous message
@@ -68,7 +72,7 @@ class BeautifulLessonPage extends StatelessWidget {
     switch (block.type) {
       case "heading":
         return Padding(
-          padding: const EdgeInsets.only(top: 40, bottom: 12),
+          padding: const EdgeInsets.only(top: 10, bottom: 10),
           child: Text(
             block.text!, 
             style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w600),
@@ -76,7 +80,7 @@ class BeautifulLessonPage extends StatelessWidget {
         );
       case "text":
         return Padding(
-          padding: const EdgeInsets.only(bottom: 24),
+          padding: const EdgeInsets.only(bottom: 10),
           child: buildRichText(context, block.text!),
         );
           /*child: Text(
@@ -114,9 +118,9 @@ class BeautifulLessonPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      width: 36, 
-                      height: 36,
-                      decoration: const BoxDecoration(color: Colors.deepPurple, shape: BoxShape.circle),
+                      width: 25, 
+                      height: 25,
+                      decoration: const BoxDecoration(color: Color.fromARGB(255, 100, 13, 74), shape: BoxShape.rectangle),
                       child: Center(
                         child: Text('$i', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
                     ),
@@ -334,7 +338,7 @@ class BeautifulLessonPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 60),
+              const SizedBox(height: 20),
               Row(
                 children: [
                   IconButton(
@@ -343,14 +347,15 @@ class BeautifulLessonPage extends StatelessWidget {
                   Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               Text(data.topic, style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w300, height: 1.2)),
               if (data.biblePassage.isNotEmpty) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: 5),
                 Text(data.biblePassage, style: const TextStyle(fontSize: 18, color: Colors.black54, fontStyle: FontStyle.italic)),
               ],
-              const SizedBox(height: 50),
+              const SizedBox(height: 20),
               ...data.blocks.map((block) => _buildBlock(context, block)),
+              //AssignmentFromLesson(data: data),
               const SizedBox(height: 100),
             ],
           ),
@@ -359,3 +364,78 @@ class BeautifulLessonPage extends StatelessWidget {
     );
   }
 }
+
+/*class AssignmentFromLesson extends StatelessWidget {
+  final SectionNotes data;
+
+  const AssignmentFromLesson({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    // Cherche le bloc "assignment"
+    final assignmentBlock = data.blocks.firstWhere(
+      (b) => b.type == "assignment",
+      orElse: () => ContentBlock(type: "", text: null),
+    );
+
+    if (assignmentBlock.text == null || assignmentBlock.text!.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(top: 32, bottom: 16),
+          child: Text(
+            "This Week’s Assignment",
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+          ),
+        ),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.deepPurple.shade50, Colors.deepPurple.shade100],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.deepPurple.shade300, width: 2),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.assignment_turned_in_rounded, size: 32, color: Colors.deepPurple),
+                  const SizedBox(width: 12),
+                  Text(
+                    assignmentBlock.text!,
+                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // Affiche le texte qui suit le bloc "assignment" (le vrai devoir)
+              ...data.blocks.skipWhile((b) => b.type != "assignment").skip(1).take(3).map((b) {
+                if (b.type == "text" && b.text != null) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Text(
+                      b.text!,
+                      style: const TextStyle(fontSize: 17, height: 1.6),
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              }),
+            ],
+          ),
+        ),
+        const SizedBox(height: 40),
+      ],
+    );
+  }
+}*/
