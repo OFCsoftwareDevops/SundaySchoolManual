@@ -48,8 +48,8 @@ class MainScreenState extends State<MainScreen> {
           Home(),
           BibleEntryPoint(),           // ← only this, nothing else
           ChurchSelector(),
-          Center(child: Text("Profile", style: TextStyle(fontSize: 24))),
-          Center(child: Text("Settings", style: TextStyle(fontSize: 24))),
+          /*Center(child: Text("Profile", style: TextStyle(fontSize: 24))),
+          Center(child: Text("Settings", style: TextStyle(fontSize: 24))),*/
         ],
         /*children: [
           const Home(),
@@ -74,8 +74,8 @@ class MainScreenState extends State<MainScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: "Lessons"),
           BottomNavigationBarItem(icon: Icon(Icons.book), label: "Bible"),
           BottomNavigationBarItem(icon: Icon(Icons.church), label: "My Parish"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings"),
+          /*BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings"),*/
         ],
       ),
     );

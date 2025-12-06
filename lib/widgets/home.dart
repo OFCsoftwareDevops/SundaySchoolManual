@@ -12,7 +12,7 @@ import '../backend_data/lesson_data.dart';
 import '../l10n/app_localizations.dart';
 import 'calendar.dart';
 import 'current_church.dart';
-import 'lesson_preview.dart';
+import 'SundaySchool_app/lesson_preview.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -178,8 +178,10 @@ class HomeState extends State<Home> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: hasLesson
-                ? [const Color.fromARGB(255, 93, 134, 104), const Color(0xFF9DC2A6), const Color(0xFFEEFFEE)]
-                : [const Color(0xFF9C7171), const Color(0xFFEBcfcf), const Color(0xFFFFF8F8)],
+              ? [const Color.fromARGB(255, 255, 255, 255), const Color.fromARGB(255, 255, 255, 255), const Color.fromARGB(255, 255, 255, 255)]
+              : [const Color.fromARGB(255, 255, 255, 255), const Color.fromARGB(255, 255, 255, 255), const Color.fromARGB(255, 255, 255, 255)],
+                /*? [const Color.fromARGB(255, 93, 134, 104), const Color(0xFF9DC2A6), const Color(0xFFEEFFEE)]
+                : [const Color(0xFF9C7171), const Color(0xFFEBcfcf), const Color(0xFFFFF8F8)],*/
           ),
         ),
         child: Column(
@@ -205,7 +207,7 @@ class HomeState extends State<Home> {
               },
             ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 5),
 
             // FIXED CALENDAR — NEVER SCROLLS AWAY
             // FIXED CALENDAR — shows only the selected church’s dates, real-time
@@ -244,7 +246,7 @@ class HomeState extends State<Home> {
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
 
             // EVERYTHING BELOW THIS SCROLLS (but calendar stays fixed)
             Expanded(
@@ -369,7 +371,7 @@ class HomeState extends State<Home> {
                 child: Text(
                   label,
                   style: TextStyle(
-                    fontSize: 17,
+                    fontSize: 15,
                     fontWeight: FontWeight.w600,
                     color: available ? Colors.indigo[900] : Colors.grey[700],
                     fontStyle: available ? FontStyle.normal : FontStyle.italic,

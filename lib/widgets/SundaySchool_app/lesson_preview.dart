@@ -4,11 +4,11 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
-import '../backend_data/lesson_data.dart';
-import 'bible_app/bible.dart';
-import 'bible_app/highlight/highlight_manager.dart';
-import 'lesson_app/bible_ref_parser.dart';
-import 'lesson_app/reference_verse_popup.dart';
+import '../../backend_data/lesson_data.dart';
+import '../bible_app/bible.dart';
+import '../bible_app/highlight/highlight_manager.dart';
+import 'bible_ref_parser.dart';
+import 'reference_verse_popup.dart';
 
 class BeautifulLessonPage extends StatelessWidget {
   final SectionNotes data;

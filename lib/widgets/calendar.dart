@@ -206,17 +206,19 @@ class _MonthCalendarState extends State<MonthCalendar> {
                       : isToday
                         ? Colors.green
                         : Colors.transparent,
-                  ),
-                  child: Center(
-                    child: Text(
-                      '$day',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: isSelected || isToday ? Colors.white : null,
+                    ),
+                    child: SizedBox.expand(
+                      child: Center(
+                        child: Text(
+                          '$day',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: isSelected || isToday ? Colors.white : null,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
                   ),
                   if (hasLesson)
                     Positioned(
