@@ -97,6 +97,19 @@ class HomeState extends State<Home> {
     }
   }
 
+    Future<void> _loadAssignment() async {
+    try {
+      final l = await _service.loadLesson(selectedDate);
+      if (mounted) {
+        setState(() => lesson = l);
+      }
+    } catch (e) {
+      // Offline or error → keep last known data (Firestore cache works!)
+      debugPrint("Offline or error loading lesson: $e");
+      // Optionally show a snackbar once
+    }
+  }
+
   // Called from LoginPage after successful login
   void refreshAfterLogin(DateTime date) {
     setState(() {
@@ -308,6 +321,7 @@ class HomeState extends State<Home> {
                                       data: lesson!.teenNotes!,
                                       title: "Teen Lesson",
                                       lessonDate: selectedDate,
+                                      isTeen: true,
                                     ),
                                   ),
                                 ),
@@ -327,6 +341,7 @@ class HomeState extends State<Home> {
                                       data: lesson!.adultNotes!,
                                       title: "Adult Lesson",
                                       lessonDate: selectedDate,
+                                      isTeen: false,
                                     ),
                                   ),
                                 ),

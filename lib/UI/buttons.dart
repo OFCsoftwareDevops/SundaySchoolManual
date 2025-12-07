@@ -98,6 +98,47 @@ Widget BibleChaptersButtons({
   );
 }
 
+Widget AssignmentWidgetButton({
+  required BuildContext context,
+  required String text,
+  required VoidCallback onPressed,
+  required Color topColor,
+  Color borderColor = const Color.fromARGB(0, 118, 118, 118),  // ← NEW: default white outline
+  double borderWidth = 2.0,          // ← NEW: thickness of border
+  double backOffset = 4.0,
+  double backDarken = 0.45, required Icon icon,
+}) {
+  final screenSize = MediaQuery.of(context).size;
+  final double buttonWidth = screenSize.width * 0.8;
+  final double buttonHeight = screenSize.height * 0.04;
+  const double pressDepth = 4.0;
+
+  return SizedBox(
+    height: buttonHeight + backOffset,
+    width: buttonWidth,
+    child: AnimatedPress3D(
+      onTap: onPressed,
+      topColor: topColor,
+      borderColor: borderColor,      // ← PASS THROUGH
+      borderWidth: borderWidth,      // ← PASS THROUGH
+      backOffset: backOffset,
+      backDarken: backDarken,
+      pressDepth: pressDepth,
+      child: Center(
+        child: Text(
+          text,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.2,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
 Widget HomePageButtons({
   required BuildContext context,
   required String text,

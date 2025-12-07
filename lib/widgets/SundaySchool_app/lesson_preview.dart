@@ -2,13 +2,16 @@
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../UI/buttons.dart';
 import '../../backend_data/lesson_data.dart';
 import '../bible_app/bible.dart';
 import '../bible_app/highlight/highlight_manager.dart';
+import '../current_church.dart';
 import 'assignment/assignment.dart';
-import 'assignment/next_assignment_preview.dart';
+import 'assignment/assignment_response_page.dart';
 import 'bible_ref_parser.dart';
 import 'reference_verse_popup.dart';
 
@@ -16,12 +19,14 @@ class BeautifulLessonPage extends StatelessWidget {
   final SectionNotes data;
   final String title;
   final DateTime lessonDate;
+  final bool isTeen;
 
   const BeautifulLessonPage({
     super.key,
     required this.data,
     required this.title,
     required this.lessonDate,
+    required this.isTeen,
   });
 
   // ← the rest of the file is 100% identical to the previous message
@@ -377,6 +382,24 @@ class BeautifulLessonPage extends StatelessWidget {
     );
   }
 
+  /*void _showAssignment(BuildContext context) {
+    final assignmentDate = DateFormat('yyyy-MM-dd').format(lessonDate);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AssignmentDetailPage(
+          assignment: Assignment(
+            date: assignmentDate,
+            title: 'Sample Title', // Replace with actual title
+            topic: 'Sample Topic', // Replace with actual topic
+            passage: 'Sample Passage', // Replace with actual passage
+          ),
+        ),
+      ),
+    );
+  }*/
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -419,7 +442,51 @@ class BeautifulLessonPage extends StatelessWidget {
               ],
               const SizedBox(height: 20),
               ...data.blocks.map((block) => _buildBlock(context, block)),
-              //AssignmentFromLesson(data: data),
+              // REAL ASSIGNMENT FROM YOUR NEW COLLECTION
+              const SizedBox(height: 20),
+              Center(
+                child: AssignmentWidgetButton(
+                  context: context,
+                  text: "Answer This Week's Assignment",
+                  icon: const Icon(Icons.edit_note_rounded),
+                  topColor: Colors.deepPurple,
+                  borderColor: const Color.fromARGB(0, 0, 0, 0),   // optional
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AssignmentResponsePage(
+                          date: lessonDate,
+                          isTeen: title.contains("Teen") || title.contains("teen"),
+                          //lessonTopic: data.topic,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                /*child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AssignmentResponsePage(
+                          date: lessonDate,
+                          isTeen: title.contains("Teen") || title.contains("teen"),
+                          //lessonTopic: data.topic,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.edit_note_rounded),
+                  label: const Text("Answer This Week's Assignment"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurple,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                  ),
+                ),*/
+              ),
               const SizedBox(height: 100),
             ],
           ),
