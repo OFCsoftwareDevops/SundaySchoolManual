@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'bible.dart';
-import 'bible_loader.dart';
 import 'bible_page.dart';
 
 extension IterableX<E> on Iterable<E> {

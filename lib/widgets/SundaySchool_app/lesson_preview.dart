@@ -279,7 +279,7 @@ class BeautifulLessonPage extends StatelessWidget {
                 });
               }
 
-              showDialog(
+              /*showDialog(
                 context: context,
                 barrierColor: Colors.black.withOpacity(0.65), // dark semi-transparent backdrop
                 builder: (context) => VersePopup(
@@ -287,7 +287,62 @@ class BeautifulLessonPage extends StatelessWidget {
                   verses: verses,
                   rawText: raw,
                 ),
+              );*/
+              /*showModalBottomSheet(
+                context: context,
+                isScrollControlled: true, // allows fraction of screen height
+                backgroundColor: Colors.transparent, // rounded corners
+                barrierColor: Colors.black.withOpacity(0.65),
+                builder: (context) {
+                  final height = MediaQuery.of(context).size.height * 0.35; // 60% of screen height
+                  return Container(
+                    height: height,
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 15),
+                      child: Column(
+                        children: [
+                          // optional drag handle
+                          Container(
+                            width: 50,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[400],
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          // Your existing VersePopup content
+                          Expanded(
+                            child: VersePopup(
+                              reference: refStr,
+                              verses: verses,
+                              rawText: raw,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );*/
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                barrierColor: Colors.black.withOpacity(0.65),
+                builder: (_) => VersePopup(
+                  reference: refStr,
+                  verses: verses,
+                  rawText: raw,
+                ),
               );
+
+
             },
             /*..onTap = () {
               ref.toString();
@@ -328,9 +383,18 @@ class BeautifulLessonPage extends StatelessWidget {
       backgroundColor: Colors.white,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _shareLesson,
-        backgroundColor: Colors.deepPurple,
-        icon: const Icon(Icons.share_rounded),
-        label: const Text("Share Lesson"),
+        backgroundColor: Color.fromARGB(255, 100, 13, 74),
+          icon: const Icon(
+            Icons.ios_share,
+            color: Colors.white, // <-- makes the icon white
+          ),
+          label: const Text(
+          "Share Lesson",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold, // <-- makes the text white
+          ),
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(

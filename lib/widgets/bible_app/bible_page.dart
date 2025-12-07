@@ -1,9 +1,8 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import '../../UI/buttons.dart';
 import 'highlight/highlight_manager.dart';
 import 'bible.dart';
 import 'bible_last_position_manager.dart';
@@ -101,10 +100,29 @@ class BiblePage extends StatelessWidget {
           child: Text(title, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF5D8668))),
         ),
         ...items.map((book) => Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
           child: SizedBox(
             width: double.infinity, 
-            child: ElevatedButton(
+            child: BibleBooksButtons(
+              context: context,
+              text: book['name'],
+              topColor: const Color(0xFF5D8668),  // same color you used in ElevatedButton
+              onPressed: () {
+                LastPositionManager.save(
+                  bookName: book['name'],
+                  chapter: 1,
+                  screen: 'book_grid',
+                );
+
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => BookReader(book: book),
+                  ),
+                );
+              },
+            ),
+
+            /*child: ElevatedButton(
               onPressed: () {
                 // Fire-and-forget the save — we don’t need to wait
                 LastPositionManager.save(
@@ -120,7 +138,7 @@ class BiblePage extends StatelessWidget {
               },
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF5D8668), foregroundColor: Colors.white),
               child: Text(book['name'], style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
-            ),
+            ),*/
           ),
         )),
       ],
@@ -189,6 +207,46 @@ class BookReader extends StatelessWidget {
       body: GridView.builder(
         padding: const EdgeInsets.all(20),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 4,
+          childAspectRatio: 1.35,
+          crossAxisSpacing: 5,
+          mainAxisSpacing: 0,
+        ),
+        itemCount: chapters.length,
+        itemBuilder: (context, i) {
+          return Center(
+            child: BibleChaptersButtons(
+              context: context,
+              text: "${i + 1}",
+              topColor: const Color(0xFF5D8668),
+              borderColor: const Color.fromARGB(0, 0, 0, 0),   // optional
+              onPressed: () {
+                LastPositionManager.save(
+                  bookName: book['name'],
+                  chapter: i + 1,
+                  screen: 'chapter',
+                );
+
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => ChapterReader(
+                      chapterData: chapters[i],
+                      bookName: book['name'],
+                      chapterNum: i + 1,
+                      totalChapters: chapters.length,
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
+        },
+      ),
+
+
+      /*body: GridView.builder(
+        padding: const EdgeInsets.all(20),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 6,
           childAspectRatio: 1.3,
           crossAxisSpacing: 16,
@@ -225,7 +283,7 @@ class BookReader extends StatelessWidget {
             ),
           );
         },
-      ),
+      ),*/
     );
   }
 }
