@@ -1,6 +1,8 @@
 // lib/widgets/intro_page.dart
 import 'package:flutter/material.dart';
 
+import '../UI/buttons.dart';
+
 class IntroPage extends StatelessWidget {
   final VoidCallback onFinish;
   const IntroPage({super.key, required this.onFinish});
@@ -26,7 +28,7 @@ class IntroPage extends StatelessWidget {
               Icon(
                 Icons.menu_book_rounded,
                 size: 100,
-                color: Colors.indigo.shade600,
+                color: Colors.deepPurple,
               ),
               const SizedBox(height: 40),
               Text(
@@ -45,21 +47,15 @@ class IntroPage extends StatelessWidget {
               const Spacer(),
               SizedBox(
                 width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.indigo,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  //onPressed: () => _completeIntro(context),
+                child: HomePageButtons(
+                  context: context,
+                  text: "Get Started",
+                  topColor: Colors.deepPurple,
+                  borderColor: const Color.fromARGB(0, 0, 0, 0),   // optional
                   onPressed: onFinish,
-                  child: const Text("Get Started", style: TextStyle(fontSize: 18)),
                 ),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 30),
             ],
           ),
         ),

@@ -164,95 +164,142 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
   Widget build(BuildContext context) {
     final dateFormatted = DateFormat('MMMM d, yyyy').format(widget.date);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("My Assignment"),
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Assignment Text
-                  Card(
-                    color: Colors.deepPurple.shade50,
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text("This Week's Assignment",
-                              style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.deepPurple)),
-                          const SizedBox(height: 12),
-                          Text(_assignmentText,
-                              style: const TextStyle(fontSize: 17, height: 1.6)),
-                          const SizedBox(height: 12),
-                          Text("Due: $dateFormatted",
-                              style: const TextStyle(fontStyle: FontStyle.italic)),
-                        ],
-                      ),
-                    ),
-                  ),
+    return PopScope(
+      canPop: false,   // we handle back manually
+      onPopInvoked: (didPop) async {
+        if (didPop) return; // already handled by system
 
-                  const SizedBox(height: 30),
-                  const Text("My Responses:",
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
+        final shouldLeave = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text("Verification"),
+            content: const Text("Unsaved responses would be discarded. Do you want to continue?"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text("No"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text("Yes"),
+              ),
+            ],
+          ),
+        );
 
-                  // Dynamic Response Boxes
-                  ..._controllers.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final controller = entry.value;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: TextField(
-                        controller: controller,
-                        maxLines: null,
-                        decoration: InputDecoration(
-                          hintText: "Write your response #${index + 1} here...",
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          filled: true,
-                          fillColor: Colors.grey[50],
+        if (shouldLeave == true && context.mounted) {
+          Navigator.pop(context);  // leave page
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text("My Assignment"),
+          backgroundColor: Colors.deepPurple,
+          foregroundColor: Colors.white,
+        ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Assignment Text
+                    Card(
+                      color: Colors.deepPurple.shade50,
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text("This Week's Assignment",
+                                style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.deepPurple)),
+                            const SizedBox(height: 12),
+                            Text(_assignmentText,
+                                style: const TextStyle(fontSize: 17, height: 1.6)),
+                            const SizedBox(height: 12),
+                            Text("Due: $dateFormatted",
+                                style: const TextStyle(fontStyle: FontStyle.italic)),
+                          ],
                         ),
                       ),
-                    );
-                  }),
-
-                  // Add Response Button
-                  Center(
-                    child: IconButton(
-                      onPressed: _addResponseBox,
-                      icon: const Icon(Icons.add_circle_outline, size: 48),
-                      color: Colors.grey[600],
-                      tooltip: "Add another response",
                     ),
-                  ),
-
-                  const SizedBox(height: 30),
-
-                  // Save Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: AssignmentWidgetButton(
-                      context: context,
-                      text: "Save All Responses",
-                      icon: const Icon(Icons.save_rounded),
-                      topColor: Colors.deepPurple,
-                      borderColor: const Color.fromARGB(0, 0, 0, 0),   // optional
-                      onPressed: _saveResponses,
+      
+                    const SizedBox(height: 30),
+                    const Text("My Responses:",
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 16),
+      
+                    // Dynamic Response Boxes
+                    ..._controllers.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final controller = entry.value;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: controller,
+                                maxLines: null,
+                                decoration: InputDecoration(
+                                  hintText: "Write your response #${index + 1} here...",
+                                  border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12)),
+                                  filled: true,
+                                  fillColor: Colors.grey[50],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+      
+                            // Delete button
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Color.fromARGB(255, 85, 80, 80)),
+                              onPressed: () {
+                                setState(() {
+                                  controller.dispose();      // good cleanup
+                                  _controllers.removeAt(index);
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+      
+                    // Add Response Button
+                    Center(
+                      child: IconButton(
+                        onPressed: _addResponseBox,
+                        icon: const Icon(Icons.add_circle_outline, size: 48),
+                        color: Colors.grey[600],
+                        tooltip: "Add another response",
+                      ),
                     ),
-                  ),
-                ],
+      
+                    const SizedBox(height: 30),
+      
+                    // Save Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: AssignmentWidgetButton(
+                        context: context,
+                        text: "Save All Responses",
+                        icon: const Icon(Icons.save_rounded),
+                        topColor: Colors.deepPurple,
+                        borderColor: const Color.fromARGB(0, 0, 0, 0),   // optional
+                        onPressed: _saveResponses,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+      ),
     );
   }
 

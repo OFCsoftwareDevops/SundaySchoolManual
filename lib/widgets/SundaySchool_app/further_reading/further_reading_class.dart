@@ -28,11 +28,11 @@ class FurtherReadingRow extends StatelessWidget {
     final String displayText = hasReading ? todayReading : "No further reading today";
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(10),
           onTap: hasReading
               ? () {
                   // Clean reference
@@ -98,17 +98,17 @@ class FurtherReadingRow extends StatelessWidget {
                 }
               : null,
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+            padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 20),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: hasReading ? Colors.deepPurple.shade400 : Colors.grey.shade300,
+                color: hasReading ? Colors.deepPurple : Colors.grey.shade300,
                 width: hasReading ? 2.5 : 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: hasReading ? Colors.deepPurple.withOpacity(0.15) : Colors.transparent,
+                  color: hasReading ? const Color.fromARGB(0, 104, 58, 183) : Colors.transparent,
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),

@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../UI/buttons.dart';
 import '../backend_data/firestore_service.dart';
 import '../backend_data/lesson_data.dart';
 import '../l10n/app_localizations.dart';
@@ -267,6 +268,7 @@ class HomeState extends State<Home> {
 
                           // Beautiful Further Reading row — only shows when there is a reading
                           if (todayFurtherReading.isNotEmpty)
+                            _furtherReadingRow(todayReading: todayFurtherReading),
                             FurtherReadingRow(todayReading: todayFurtherReading),
                         ],
                       );
@@ -359,6 +361,7 @@ class HomeState extends State<Home> {
 
                               // Teen Row
                               _lessonRow(
+                                context: context,
                                 icon: Icons.school,
                                 label: lesson?.teenNotes?.topic ?? AppLocalizations.of(context)!.noTeenLesson,
                                 available: lesson?.teenNotes != null,
@@ -379,8 +382,10 @@ class HomeState extends State<Home> {
 
                               // Adult Row — FIXED: was "CadeRow"
                               _lessonRow(
+                                context: context,
                                 icon: Icons.menu_book_rounded,
-                                label: lesson?.adultNotes?.topic ?? AppLocalizations.of(context)!.noAdultLesson,
+                                label: lesson?.adultNotes?.topic 
+                                  ?? AppLocalizations.of(context)!.noAdultLesson,
                                 available: lesson?.adultNotes != null,
                                 onTap: () => Navigator.push(
                                   context,
@@ -394,7 +399,7 @@ class HomeState extends State<Home> {
                                   ),
                                 ),
                               ),
-                              _furtherReadingRow(todayReading: todayFurtherReading),
+                              //_furtherReadingRow(todayReading: todayFurtherReading),
                             ],
                           ),
                         ),
@@ -413,46 +418,44 @@ class HomeState extends State<Home> {
   }
 
   Widget _lessonRow({
+    required BuildContext context,
     required IconData icon,
     required String label,
     required bool available,
     required VoidCallback onTap,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(10),
-        onTap: available ? onTap : null,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(available ? 0.9 : 0.5),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Row(
+    return LessonCardButtons(
+      context: context,
+      onPressed: available ? onTap : () {},
+      topColor: available ? const Color.fromARGB(255, 36, 116, 47) : const Color.fromARGB(255, 65, 25, 25),
+      borderColor: Colors.transparent,
+      borderWidth: 0,
+      text: "",
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
             children: [
-              Icon(icon, size: 30, color: available ? Colors.indigo[800] : Colors.grey[600]),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: available ? Colors.indigo[900] : Colors.grey[700],
-                    fontStyle: available ? FontStyle.normal : FontStyle.italic,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+              Icon(Icons.menu_book_rounded, color: Colors.white),
+              const SizedBox(width: 10),
+              Text(
+                label,
+                style: TextStyle(
+                  color: available ? Colors.white : Colors.white70,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.2,
+                  fontStyle: available ? FontStyle.normal : FontStyle.italic,
                 ),
-              ),
-              Icon(
-                available ? Icons.arrow_forward_ios_rounded : Icons.lock_outline,
-                color: available ? Colors.indigo : Colors.grey[500],
               ),
             ],
           ),
-        ),
+          Icon(
+            available ? Icons.arrow_forward_ios_rounded : Icons.lock_outline,
+            color: Colors.white70,
+            size: 18,
+          ),
+        ],
       ),
     );
   }
@@ -469,7 +472,7 @@ class HomeState extends State<Home> {
     final String displayText = hasReading ? todayReading : "No further reading today";
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -481,17 +484,17 @@ class HomeState extends State<Home> {
                 )
             : null,
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+            padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 20),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: hasReading ? Colors.deepPurple.shade400 : Colors.grey.shade300,
+                color: hasReading ? Colors.deepPurple : Colors.grey.shade300,
                 width: hasReading ? 2.5 : 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: hasReading ? Colors.deepPurple.withOpacity(0.15) : Colors.transparent,
+                  color: hasReading ? const Color.fromARGB(135, 104, 58, 183) : Colors.transparent,
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
