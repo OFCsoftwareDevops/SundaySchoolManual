@@ -10,9 +10,12 @@ import 'package:flutter/services.dart';
 import '../backend_data/firestore_service.dart';
 import '../backend_data/lesson_data.dart';
 import '../l10n/app_localizations.dart';
+import 'SundaySchool_app/further_reading/further_reading_class.dart';
+import 'SundaySchool_app/further_reading/further_reading_dialog.dart';
 import 'calendar.dart';
 import 'current_church.dart';
 import 'SundaySchool_app/lesson_preview.dart';
+
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -36,6 +39,7 @@ class HomeState extends State<Home> {
     final churchId = context.read<CurrentChurch>().churchId;
     _service = FirestoreService(churchId: churchId);
     _loadLesson();
+    _loadFurtherReadings();
     //_loadAllLessonDates();
     // ←←← ADD THIS: Foreground FCM Handler (Safe & Clean)
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -97,16 +101,10 @@ class HomeState extends State<Home> {
     }
   }
 
-    Future<void> _loadAssignment() async {
-    try {
-      final l = await _service.loadLesson(selectedDate);
-      if (mounted) {
-        setState(() => lesson = l);
-      }
-    } catch (e) {
-      // Offline or error → keep last known data (Firestore cache works!)
-      debugPrint("Offline or error loading lesson: $e");
-      // Optionally show a snackbar once
+  Future<void> _loadFurtherReadings() async {
+    final map = await _service.getFurtherReadingsWithText();
+    if (mounted) {
+      setState(() => furtherReadingMap = map);
     }
   }
 
@@ -119,6 +117,7 @@ class HomeState extends State<Home> {
   }
 
   bool get hasLesson => lesson?.teenNotes != null || lesson?.adultNotes != null;
+  late Map<DateTime, String> furtherReadingMap = {};
 
   @override
   Widget build(BuildContext context) {
@@ -224,22 +223,24 @@ class HomeState extends State<Home> {
 
             // FIXED CALENDAR — NEVER SCROLLS AWAY
             // FIXED CALENDAR — shows only the selected church’s dates, real-time
+            // CALENDAR WITH BOTH LESSONS + FURTHER READINGS MARKERS
+            // Replace your old calendar widget with this exact block
             Padding(
               padding: const EdgeInsets.all(8),
               child: StreamBuilder<QuerySnapshot>(
                 stream: _service.lessonsStream,
-                builder: (context, snapshot) {
+                builder: (context, lessonSnapshot) {
+                  // 1. Green dots — your original code, untouched
                   Set<DateTime> datesWithLessons = {};
-
-                  if (snapshot.hasData) {
-                    for (final doc in snapshot.data!.docs) {
+                  if (lessonSnapshot.hasData) {
+                    for (final doc in lessonSnapshot.data!.docs) {
                       final parts = doc.id.split('-');
                       if (parts.length == 3) {
                         try {
                           final date = DateTime(
-                            int.parse(parts[0]), 
-                            int.parse(parts[1]), 
-                            int.parse(parts[2])
+                            int.parse(parts[0]),
+                            int.parse(parts[1]),
+                            int.parse(parts[2]),
                           );
                           datesWithLessons.add(DateTime(date.year, date.month, date.day));
                         } catch (_) {}
@@ -247,12 +248,28 @@ class HomeState extends State<Home> {
                     }
                   }
 
-                  return MonthCalendar(
-                    selectedDate: selectedDate,
-                    datesWithLessons: datesWithLessons,
-                    onDateSelected: (date) {
-                      setState(() => selectedDate = date);
-                      _loadLesson();
+                  // 2. Purple dots + today’s reading — from your existing method
+                  return FutureBuilder<Map<DateTime, String>>(
+                    future: _service.getFurtherReadingsWithText(),
+                    builder: (context, readingSnapshot) {
+
+                      return Column(
+                        children: [
+                          MonthCalendar(
+                            selectedDate: selectedDate,
+                            datesWithLessons: datesWithLessons,
+                            datesWithFurtherReadings: furtherReadingMap.keys.toSet(), // purple dots
+                            onDateSelected: (date) {
+                              setState(() => selectedDate = date);
+                              _loadLesson();
+                            },
+                          ),
+
+                          // Beautiful Further Reading row — only shows when there is a reading
+                          if (todayFurtherReading.isNotEmpty)
+                            FurtherReadingRow(todayReading: todayFurtherReading),
+                        ],
+                      );
                     },
                   );
                 },
@@ -268,6 +285,37 @@ class HomeState extends State<Home> {
                 padding: const EdgeInsets.only(bottom: 100),
                 child: Column(
                   children: [
+
+                  // DEBUG BUTTON
+                  
+                  /*FloatingActionButton(
+                    backgroundColor: Colors.red,
+                    onPressed: () async {
+                      final snapshot = await FirebaseFirestore.instance
+                          .collection('lessons')
+                          .limit(5)
+                          .get();
+
+                      for (var doc in snapshot.docs) {
+                        final data = doc.data();
+                        print("=== LESSON DOC ${doc.id} ===");
+                        final adult = data['adult'];
+                        final blocks = adult?['blocks'] as List?;
+                        if (blocks != null) {
+                          for (var b in blocks) {
+                            final map = b as Map;
+                            final text = map['text']?.toString() ?? '';
+                            if (text.contains('SUN:') || text.contains('MON:')) {
+                              print("FOUND READINGS BLOCK:");
+                              print(text.replaceAll('\n', ' ←NEWLINE→ '));
+                            }
+                          }
+                        }
+                        print("=== END ${doc.id} ===\n");
+                      }
+                    },
+                    child: const Icon(Icons.bug_report),
+                  ),*/
                     // LESSON CARD
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -346,6 +394,7 @@ class HomeState extends State<Home> {
                                   ),
                                 ),
                               ),
+                              _furtherReadingRow(todayReading: todayFurtherReading),
                             ],
                           ),
                         ),
@@ -407,4 +456,68 @@ class HomeState extends State<Home> {
       ),
     );
   }
+
+  String get todayFurtherReading {
+    final key = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
+    return furtherReadingMap[key] ?? "";
+  }
+
+  Widget _furtherReadingRow({
+    required String todayReading,
+  }) {
+    final bool hasReading = todayReading.trim().isNotEmpty;
+    final String displayText = hasReading ? todayReading : "No further reading today";
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: hasReading
+            ? () => showFurtherReadingDialog(
+                  context: context,
+                  todayReading: todayReading,
+                )
+            : null,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: hasReading ? Colors.deepPurple.shade400 : Colors.grey.shade300,
+                width: hasReading ? 2.5 : 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: hasReading ? Colors.deepPurple.withOpacity(0.15) : Colors.transparent,
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.menu_book_rounded, size: 38, color: hasReading ? Colors.deepPurple.shade700 : Colors.grey[500]),
+                const SizedBox(width: 18),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Further Reading", style: TextStyle(fontSize: 13.5, color: hasReading ? Colors.deepPurple.shade600 : Colors.grey[600], fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 6),
+                      Text(displayText, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: hasReading ? Colors.deepPurple.shade900 : Colors.grey[700]), maxLines: 2, overflow: TextOverflow.ellipsis),
+                    ],
+                  ),
+                ),
+                Icon(hasReading ? Icons.arrow_forward_ios_rounded : Icons.lock_outline, color: hasReading ? Colors.deepPurple.shade600 : Colors.grey[400], size: 22),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
+

@@ -26,12 +26,6 @@ class MainScreenState extends State<MainScreen> {
         final prefs = await SharedPreferences.getInstance();
         final String? lastScreen = prefs.getString('last_screen');
         final bool shouldResume = lastScreen == 'chapter'; // only resume if they were inside a chapter
-
-        /*setState(() {
-          _biblePageCache = BibleEntryPoint(
-            resumeLastPosition: shouldResume,
-          );
-        });*/
       }
       setState(() => _selectedIndex = index);
     } else {
@@ -51,18 +45,6 @@ class MainScreenState extends State<MainScreen> {
           /*Center(child: Text("Profile", style: TextStyle(fontSize: 24))),
           Center(child: Text("Settings", style: TextStyle(fontSize: 24))),*/
         ],
-        /*children: [
-          const Home(),
-          // This will be null on first app open → shows nothing wrong
-          // But once user taps Bible once, it stays cached (perfect behavior)
-          //_biblePageCache ?? const SizedBox(), // ← stays empty until Bible tab tapped
-          _selectedIndex == 1
-              ? const BibleEntryPoint(resumeLastPosition: true) // ← always try to resume
-              : const SizedBox.shrink(),
-          const ChurchSelector(),
-          const Center(child: Text("Profile", style: TextStyle(fontSize: 24))),
-          const Center(child: Text("Settings", style: TextStyle(fontSize: 24))),
-        ],*/
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,

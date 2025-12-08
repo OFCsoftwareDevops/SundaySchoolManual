@@ -88,11 +88,6 @@ class BibleVersionManager extends ChangeNotifier {
     for (final file in files) {
       final path = 'assets/bible/$version/$file';
 
-      /*String name = file.replaceAll('.json', '').replaceAll('_', ' ').split(' ').map((w) {
-        if (w.length <= 3) return w[0].toUpperCase() + w.substring(1);
-        return w[0].toUpperCase() + w.substring(1).toLowerCase();
-      }).join(' ');*/
-
       // Convert filename to display name with spaces
       String name = file
           .replaceAll('.json', '')
@@ -264,34 +259,4 @@ class BibleVersionManager extends ChangeNotifier {
 
     return verses.isEmpty ? "Verse(s) not found." : verses.join("\n");
   }
-  /*String? getVerseText(String reference) {
-    // Example reference: "John 3:16" or "Romans 8:2-4"
-    final ref = findBibleReferences(reference).firstOrNull;
-    if (ref == null) return null;
-
-    final book = books.firstWhereOrNull((b) => 
-      (b['name'] as String).toLowerCase() == ref.book.toLowerCase());
-    if (book == null) return null;
-
-    final chapters = book['chapters'] as List;
-    if (ref.chapter > chapters.length) return null;
-
-    final chapterData = chapters[ref.chapter - 1] as List;
-    final List<String> verses = [];
-
-    int start = ref.verseStart;
-    int end = ref.verseEnd ?? start;
-
-    for (int v = start; v <= end; v++) {
-      if (v <= chapterData.length) {
-        final verse = chapterData[v - 1];
-        final text = verse is Map 
-        ? verse['text'] ?? '' 
-        : verse.toString();
-        verses.add("$v ${text.trim()}");
-      }
-    }
-
-    return verses.join("\n");
-  }*/
 }

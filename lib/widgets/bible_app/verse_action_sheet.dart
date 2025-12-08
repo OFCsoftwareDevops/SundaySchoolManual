@@ -28,12 +28,12 @@ class _VerseActionSheetState extends State<VerseActionSheet> {
   bool _showColorPicker = false;
 
   final List<Color> colors = [
-    const Color.fromARGB(255, 228, 214, 87)!,
-    const Color.fromARGB(255, 233, 94, 140)!,
-    const Color.fromARGB(255, 111, 208, 220)!,
-    const Color.fromARGB(255, 120, 218, 123)!,
-    const Color.fromARGB(255, 234, 178, 96)!,
-    const Color.fromARGB(255, 209, 108, 227)!,
+    const Color.fromARGB(255, 228, 214, 87),
+    const Color.fromARGB(255, 233, 94, 140),
+    const Color.fromARGB(255, 111, 208, 220),
+    const Color.fromARGB(255, 120, 218, 123),
+    const Color.fromARGB(255, 234, 178, 96),
+    const Color.fromARGB(255, 209, 108, 227),
   ];
 
   @override
@@ -71,20 +71,7 @@ class _VerseActionSheetState extends State<VerseActionSheet> {
         children: [
           Container(width: 40, height: 5, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
           const SizedBox(height: 16),
-
           // Verse preview
-          /*Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF5F9F6),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF5D8668).withOpacity(0.3)),
-            ),
-            child: Text("$reference\n\n$fullText", style: const TextStyle(fontSize: 10, height: 1.6)),
-          ),
-          const SizedBox(height: 20),*/
-
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [

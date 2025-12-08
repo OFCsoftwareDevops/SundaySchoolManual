@@ -3,20 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../backend_data/firestore_service.dart';
 import '../../../backend_data/lesson_data.dart';
 
-/*class Assignment {
-  final String date;        // "2025-12-07"
-  final String title;
-  final String topic;
-  final String passage;
-
-  const Assignment({
-    required this.date,
-    required this.title,
-    required this.topic,
-    this.passage = "",
-  });
-}*/
-
 class AssignmentFromFirestore extends StatelessWidget {
   final DateTime lessonDate;
   final bool isTeen;

@@ -121,24 +121,6 @@ class BiblePage extends StatelessWidget {
                 );
               },
             ),
-
-            /*child: ElevatedButton(
-              onPressed: () {
-                // Fire-and-forget the save — we don’t need to wait
-                LastPositionManager.save(
-                  bookName: book['name'],
-                  chapter: 1,
-                  screen: 'book_grid',
-                );
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => BookReader(
-                    book: book,
-                  )),
-                );
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF5D8668), foregroundColor: Colors.white),
-              child: Text(book['name'], style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
-            ),*/
           ),
         )),
       ],
@@ -242,48 +224,6 @@ class BookReader extends StatelessWidget {
           );
         },
       ),
-
-
-      /*body: GridView.builder(
-        padding: const EdgeInsets.all(20),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 6,
-          childAspectRatio: 1.3,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-        ),
-        itemCount: chapters.length,
-        itemBuilder: (context, i) {
-          return GestureDetector(
-            onTap: () {
-              LastPositionManager.save(
-                bookName: book['name'],
-                chapter: i + 1,
-                screen: 'chapter',
-              );
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => ChapterReader(
-                    chapterData: chapters[i],
-                    bookName: book['name'],
-                    chapterNum: i + 1,
-                    totalChapters: chapters.length,
-                  ),
-                ),
-              );
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [Color(0xFF5D8668), Color(0xFF4A6B52)]),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Center(
-                child: Text("${i + 1}", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-              ),
-            ),
-          );
-        },
-      ),*/
     );
   }
 }

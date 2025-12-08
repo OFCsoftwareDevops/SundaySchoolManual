@@ -2,15 +2,12 @@
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../UI/buttons.dart';
 import '../../backend_data/lesson_data.dart';
 import '../bible_app/bible.dart';
 import '../bible_app/highlight/highlight_manager.dart';
-import '../current_church.dart';
-import 'assignment/assignment.dart';
 import 'assignment/assignment_response_page.dart';
 import 'bible_ref_parser.dart';
 import 'reference_verse_popup.dart';
@@ -88,11 +85,6 @@ class BeautifulLessonPage extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 10),
           child: buildRichText(context, block.text!),
         );
-          /*child: Text(
-            block.text!, 
-            style: const TextStyle(fontSize: 17, height: 1.6),
-          ),
-        );*/
       case "memory_verse":
         return Padding(
           padding: const EdgeInsets.only(bottom: 32),
@@ -247,36 +239,6 @@ class BeautifulLessonPage extends StatelessWidget {
                   ref.chapter,       // int chapter
                   verseNum,          // int verse ← now used!
                 );
-              /*final raw = manager.getVerseText(refStr) ?? "Verse temporarily unavailable";
-              final lines = raw.split('\n').where((l) => l.trim().isNotEmpty).toList();
-
-              // parse lines into structures [{verse:1, text:"...", highlighted:bool}, ...]
-              final highlightMgr = context.read<HighlightManager>(); // adjust class name if different
-              final parsed = <Map<String, dynamic>>[];
-              final books = manager.books;
-              for (final line in lines) {
-                final parts = line.trim().split(RegExp(r'\s+'));
-                final verseNum = int.tryParse(parts.first) ?? 0;
-                final text = parts.skip(1).join(' ');
-
-                // normalize book key used by your filename/book name logic
-                final rawBook = ref.book.toString();
-                final bookKey = rawBook.toLowerCase().replaceAll(' ', '');
-
-                // find book index (0-based) and convert to the integer your HighlightManager expects
-                final bookIndex = books.indexWhere((b) =>
-                  (b['name'] as String).toLowerCase().replaceAll(' ', '') == bookKey
-                );
-
-                final int bookParameter = bookIndex >= 0 ? (bookIndex + 1) : 0; // adjust +1 if your API is 1-based
-
-                final isHighlighted = highlightMgr.isHighlighted(
-                  manager.currentVersion,
-                  bookParameter,         // now an int, not String
-                  ref.chapter,
-                  verseNum,
-                );*/
-
                 verses.add({
                   'verse': verseNum,
                   'text': verseText,
@@ -293,48 +255,6 @@ class BeautifulLessonPage extends StatelessWidget {
                   rawText: raw,
                 ),
               );*/
-              /*showModalBottomSheet(
-                context: context,
-                isScrollControlled: true, // allows fraction of screen height
-                backgroundColor: Colors.transparent, // rounded corners
-                barrierColor: Colors.black.withOpacity(0.65),
-                builder: (context) {
-                  final height = MediaQuery.of(context).size.height * 0.35; // 60% of screen height
-                  return Container(
-                    height: height,
-                    width: double.infinity,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 15),
-                      child: Column(
-                        children: [
-                          // optional drag handle
-                          Container(
-                            width: 50,
-                            height: 5,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[400],
-                              borderRadius: BorderRadius.circular(5),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          // Your existing VersePopup content
-                          Expanded(
-                            child: VersePopup(
-                              reference: refStr,
-                              verses: verses,
-                              rawText: raw,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );*/
               showModalBottomSheet(
                 context: context,
                 isScrollControlled: true,
@@ -346,26 +266,9 @@ class BeautifulLessonPage extends StatelessWidget {
                   rawText: raw,
                 ),
               );
-
-
             },
-            /*..onTap = () {
-              ref.toString();
-              print('DEBUG: Looking for verse: $ref');
-              final verseText = context.read<BibleVersionManager>().getVerseText(ref.toString())
-              ?? "Verse temporarily unavailable";
-              showDialog(
-                context: context,
-                barrierColor: Colors.black.withOpacity(0.8),
-                builder: (_) => VersePopup(
-                  reference: ref.toString(),
-                  verseText: verseText,
-                ),
-              );
-            },*/
         ),
       );
-
       lastEnd = end;
     }
 
@@ -381,24 +284,6 @@ class BeautifulLessonPage extends StatelessWidget {
       ),
     );
   }
-
-  /*void _showAssignment(BuildContext context) {
-    final assignmentDate = DateFormat('yyyy-MM-dd').format(lessonDate);
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => AssignmentDetailPage(
-          assignment: Assignment(
-            date: assignmentDate,
-            title: 'Sample Title', // Replace with actual title
-            topic: 'Sample Topic', // Replace with actual topic
-            passage: 'Sample Passage', // Replace with actual passage
-          ),
-        ),
-      ),
-    );
-  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -464,28 +349,6 @@ class BeautifulLessonPage extends StatelessWidget {
                     );
                   },
                 ),
-                /*child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => AssignmentResponsePage(
-                          date: lessonDate,
-                          isTeen: title.contains("Teen") || title.contains("teen"),
-                          //lessonTopic: data.topic,
-                        ),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.edit_note_rounded),
-                  label: const Text("Answer This Week's Assignment"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                  ),
-                ),*/
               ),
               const SizedBox(height: 100),
             ],
@@ -495,78 +358,3 @@ class BeautifulLessonPage extends StatelessWidget {
     );
   }
 }
-
-/*class AssignmentFromLesson extends StatelessWidget {
-  final SectionNotes data;
-
-  const AssignmentFromLesson({required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    // Cherche le bloc "assignment"
-    final assignmentBlock = data.blocks.firstWhere(
-      (b) => b.type == "assignment",
-      orElse: () => ContentBlock(type: "", text: null),
-    );
-
-    if (assignmentBlock.text == null || assignmentBlock.text!.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.only(top: 32, bottom: 16),
-          child: Text(
-            "This Week’s Assignment",
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.deepPurple),
-          ),
-        ),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.deepPurple.shade50, Colors.deepPurple.shade100],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.deepPurple.shade300, width: 2),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.assignment_turned_in_rounded, size: 32, color: Colors.deepPurple),
-                  const SizedBox(width: 12),
-                  Text(
-                    assignmentBlock.text!,
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              // Affiche le texte qui suit le bloc "assignment" (le vrai devoir)
-              ...data.blocks.skipWhile((b) => b.type != "assignment").skip(1).take(3).map((b) {
-                if (b.type == "text" && b.text != null) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Text(
-                      b.text!,
-                      style: const TextStyle(fontSize: 17, height: 1.6),
-                    ),
-                  );
-                }
-                return const SizedBox.shrink();
-              }),
-            ],
-          ),
-        ),
-        const SizedBox(height: 40),
-      ],
-    );
-  }
-}*/

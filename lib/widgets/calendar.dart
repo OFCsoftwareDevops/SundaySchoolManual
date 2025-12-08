@@ -10,12 +10,14 @@ class MonthCalendar extends StatefulWidget {
   final Function(DateTime) onDateSelected;
   final DateTime selectedDate;   // ← required
   final Set<DateTime>? datesWithLessons;
+  final Set<DateTime>? datesWithFurtherReadings;
 
   const MonthCalendar({
     super.key,
     required this.onDateSelected,
     required this.selectedDate,
     this.datesWithLessons,
+    this.datesWithFurtherReadings,
   });
 
   @override
@@ -42,7 +44,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
     });
   }
 
-// SECRET ADMIN TRIGGER: Tap day 13 exactly 7 times
+  // SECRET ADMIN TRIGGER: Tap day 13 exactly 7 times
   void _checkForAdminTrigger(int day) {
     final now = DateTime.now();
     final tappedDate = DateTime(currentMonth.year, currentMonth.month, day);
@@ -183,6 +185,8 @@ class _MonthCalendarState extends State<MonthCalendar> {
       final bool isToday = date.year == today.year && date.month == today.month && date.day == today.day;
       final bool isSelected = date.year == selected.year && date.month == selected.month && date.day == selected.day;
       final bool hasLesson = datesWithLessons.contains(DateTime(date.year, date.month, date.day));
+      final DateTime cellDate = DateTime(date.year, date.month, date.day); // ← forces midnight
+      final bool hasReading = widget.datesWithFurtherReadings?.contains(cellDate) ?? false;
 
       week.add(
         Expanded(
@@ -229,6 +233,20 @@ class _MonthCalendarState extends State<MonthCalendar> {
                         height: 8,
                         decoration: BoxDecoration(
                           color: const Color.fromARGB(255, 74, 196, 78),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                  // ←←←←← NEW: Purple dot for Further Readings
+                  if (hasReading)
+                    Positioned(
+                      top: 4,
+                      left: 4,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: Color.fromARGB(255, 133, 5, 5),
                           shape: BoxShape.circle,
                         ),
                       ),

@@ -54,9 +54,6 @@ Widget BibleChaptersButtons({
   double backOffset = 4.0,
   double backDarken = 0.45,
 }) {
-  //final screenSize = MediaQuery.of(context).size;
-  //final double buttonWidth = screenSize.width * 0.20;
-  //final double buttonHeight = screenSize.height * 0.04;
   const double pressDepth = 4.0;
 
   return LayoutBuilder(

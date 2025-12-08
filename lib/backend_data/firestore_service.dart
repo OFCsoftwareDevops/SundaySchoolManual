@@ -34,9 +34,21 @@ class FirestoreService {
     }
   }
 
+  CollectionReference get _furtherReadingsCollection {
+      if (churchId != null && churchId!.isNotEmpty) {
+      return FirebaseFirestore.instance
+          .collection('churches')
+          .doc(churchId)
+          .collection('further_readings');
+    } else {
+      return FirebaseFirestore.instance.collection('further_readings');
+    }
+  }
+
   // ←←←←← PUBLIC STREAM (this is what home.dart will use)
   Stream<QuerySnapshot> get lessonsStream => _lessonsCollection.snapshots();
   Stream<QuerySnapshot> get assignmentsStream => _assignmentsCollection.snapshots(); // ← new!
+  Stream<QuerySnapshot> get furtherReadingsStream => _furtherReadingsCollection.orderBy('date').snapshots();   // assuming you have a 'date' field (the Sunday)
 
   Future<LessonDay?> loadLesson(DateTime date) async {
     final String id = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
@@ -188,5 +200,98 @@ class FirestoreService {
       debugPrint("Error loading assignment dates: $e");
       return {};
     }
+  }
+
+  /*Future<void> debugFurtherReadings() async {
+    final snapshot = await _furtherReadingsCollection.get();
+    
+    if (snapshot.docs.isEmpty) {
+      print("No documents in further_readings collection");
+      return;
+    }
+
+    for (final doc in snapshot.docs) {
+      final data = doc.data() as Map<String, dynamic>?;
+
+      print("=== DOCUMENT ID: ${doc.id} ===");
+      print("Full raw data: $data");
+
+      final text = data?['text']?.toString() ?? '';
+      
+      print("text field value: >>>$text<<<");
+      print("text length: ${text.length}");
+      print("Contains 'SUN:' → ${text.contains('SUN:')}");
+      print("Contains newline → ${text.contains('\n')}");
+      print("Contains ' (KJV) ' → ${text.contains(' (KJV) ')}");
+
+      if (text.isNotEmpty) {
+        print("First 300 characters:");
+        print(text.substring(0, text.length > 300 ? 300 : text.length));
+        print("---");
+      }
+      print("=== END OF ${doc.id} ===\n");
+    }
+  }*/
+
+  /// Parses all weekly further_readings documents into a daily map
+  // ──────────────────────────────────────────────────────────────
+  // NEW: Returns BOTH the dates (for dots) AND the verse text (for display)
+  // ──────────────────────────────────────────────────────────────
+  Future<Map<DateTime, String>> getFurtherReadingsWithText() async {
+    final Map<DateTime, String> result = {};
+
+    final snapshot = await FirebaseFirestore.instance.collection('further_readings').get();
+
+    for (final doc in snapshot.docs) {
+      DateTime sunday;
+      try {
+        sunday = DateTime.parse(doc.id);
+      } catch (e) {
+        continue;
+      }
+
+      final data = doc.data();
+      final blocks = (data['adult'] as Map<String, dynamic>?)?['blocks'] as List<dynamic>?;
+      if (blocks == null) continue;
+
+      String? text;
+      for (final b in blocks) {
+        final t = (b as Map<String, dynamic>)['text']?.toString() ?? '';
+        if (t.contains('SUN:')) {
+          text = t;
+          break;
+        }
+      }
+      if (text == null) continue;
+
+      // THIS IS THE ONE THAT ACTUALLY WORKS — NO REGEX BULLSHIT
+      final parts = text.split(RegExp(r'\s+(?=(?:SUN|MON|TUE|WED|THU|THUR|FRI|SAT):)'));
+      
+      const dayOrder = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+
+      for (int i = 0; i < parts.length && i < 7; i++) {
+        final part = parts[i].trim();
+        if (part.length < 4) continue;
+        
+        final dayAbbr = part.substring(0, 3).toUpperCase();
+        final verseStart = part.indexOf(':') + 1;
+        if (verseStart <= 0) continue;
+        
+        String verse = part.substring(verseStart).trim()
+            .replaceAll(RegExp(r'\.+$'), '')
+            .trim()
+            .replaceAll(RegExp(r'\s*\(KJV\)\.?$'), '')
+            .trim();
+
+        final offset = dayOrder.indexOf(dayAbbr);
+        if (offset >= 0) {
+          final date = sunday.add(Duration(days: offset));
+          result[DateTime(date.year, date.month, date.day)] = verse;
+        }
+      }
+    }
+
+    print("ACTUALLY WORKING: ${result.length} days loaded");
+    return result;
   }
 }
