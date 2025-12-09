@@ -226,7 +226,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
                   ),
                   if (hasLesson)
                     Positioned(
-                      bottom: 4,
+                      bottom: 16,
                       right: 4,
                       child: Container(
                         width: 8,
@@ -240,13 +240,13 @@ class _MonthCalendarState extends State<MonthCalendar> {
                   // ←←←←← NEW: Purple dot for Further Readings
                   if (hasReading)
                     Positioned(
-                      top: 4,
-                      left: 4,
+                      bottom: 4,
+                      right: 4,
                       child: Container(
                         width: 8,
                         height: 8,
                         decoration: const BoxDecoration(
-                          color: Color.fromARGB(255, 133, 5, 5),
+                          color: Color.fromARGB(255, 113, 9, 193),
                           shape: BoxShape.circle,
                         ),
                       ),

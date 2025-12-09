@@ -193,8 +193,6 @@ class HomeState extends State<Home> {
             colors: hasLesson
               ? [const Color.fromARGB(255, 255, 255, 255), const Color.fromARGB(255, 255, 255, 255), const Color.fromARGB(255, 255, 255, 255)]
               : [const Color.fromARGB(255, 255, 255, 255), const Color.fromARGB(255, 255, 255, 255), const Color.fromARGB(255, 255, 255, 255)],
-                /*? [const Color.fromARGB(255, 93, 134, 104), const Color(0xFF9DC2A6), const Color(0xFFEEFFEE)]
-                : [const Color(0xFF9C7171), const Color(0xFFEBcfcf), const Color(0xFFFFF8F8)],*/
           ),
         ),
         child: Column(
@@ -220,14 +218,12 @@ class HomeState extends State<Home> {
               },
             ),
 
-            const SizedBox(height: 5),
+            const SizedBox(height: 0),
 
             // FIXED CALENDAR — NEVER SCROLLS AWAY
-            // FIXED CALENDAR — shows only the selected church’s dates, real-time
             // CALENDAR WITH BOTH LESSONS + FURTHER READINGS MARKERS
-            // Replace your old calendar widget with this exact block
             Padding(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(10),
               child: StreamBuilder<QuerySnapshot>(
                 stream: _service.lessonsStream,
                 builder: (context, lessonSnapshot) {
@@ -269,7 +265,6 @@ class HomeState extends State<Home> {
                           // Beautiful Further Reading row — only shows when there is a reading
                           if (todayFurtherReading.isNotEmpty)
                             _furtherReadingRow(todayReading: todayFurtherReading),
-                            FurtherReadingRow(todayReading: todayFurtherReading),
                         ],
                       );
                     },
@@ -277,8 +272,6 @@ class HomeState extends State<Home> {
                 },
               ),
             ),
-
-            const SizedBox(height: 10),
 
             // EVERYTHING BELOW THIS SCROLLS (but calendar stays fixed)
             Expanded(
@@ -325,7 +318,7 @@ class HomeState extends State<Home> {
                         elevation: 4,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         child: Container(
-                          padding: const EdgeInsets.all(24),
+                          padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(16),
                             gradient: LinearGradient(
@@ -399,7 +392,6 @@ class HomeState extends State<Home> {
                                   ),
                                 ),
                               ),
-                              //_furtherReadingRow(todayReading: todayFurtherReading),
                             ],
                           ),
                         ),
@@ -494,7 +486,7 @@ class HomeState extends State<Home> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: hasReading ? const Color.fromARGB(135, 104, 58, 183) : Colors.transparent,
+                  color: hasReading ? const Color.fromARGB(0, 104, 58, 183) : Colors.transparent,
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),

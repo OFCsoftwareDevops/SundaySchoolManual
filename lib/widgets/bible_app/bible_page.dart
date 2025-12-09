@@ -513,7 +513,7 @@ class ChapterNavigationButtons extends StatelessWidget {
         screen: 'chapter',
       );
 
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (_) => ChapterReader(

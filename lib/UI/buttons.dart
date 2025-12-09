@@ -324,9 +324,14 @@ class _AnimatedPress3DState extends State<AnimatedPress3D>
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTapDown: (_) => _ctrl.forward(),
-      onTapUp: (_) => _ctrl.reverse(),
+      //onTapUp: (_) => _ctrl.reverse(),
       onTapCancel: () => _ctrl.reverse(),
-      onTap: widget.onTap,
+      //onTap: widget.onTap,
+      onTapUp: (_) async {
+        await _ctrl.forward();
+        await _ctrl.reverse();
+        widget.onTap();       // ← Navigation happens AFTER animation
+      },
       child: AnimatedBuilder(
         animation: _ctrl,
         builder: (context, _) {

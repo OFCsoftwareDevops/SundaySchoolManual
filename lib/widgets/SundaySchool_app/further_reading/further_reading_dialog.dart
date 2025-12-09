@@ -1,8 +1,7 @@
 // lib/widgets/further_reading_dialog.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import '../../../UI/timed_button.dart';
 import '../../bible_app/bible.dart';
 import '../../bible_app/highlight/highlight_manager.dart';
 import '../reference_verse_popup.dart';
@@ -63,10 +62,17 @@ void showFurtherReadingDialog({
   // Close loading
   if (Navigator.canPop(context)) Navigator.pop(context);
 
+  // TIMER CALCULATED BASED ON TEXT
+  final wordCount = raw.split(RegExp(r'\s+')).length;
+  int readingSeconds = (wordCount / 3).ceil(); // ~200 wpm
+  readingSeconds = ((readingSeconds + 4) ~/ 5) * 5; // Round up to next multiple of 5
+  if (readingSeconds < 10) readingSeconds = 10; // minimum 5s
+
+
   // Show the beautiful centered dialog
   showDialog(
     context: context,
-    barrierDismissible: true,
+    barrierDismissible: false,
     builder: (context) => AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       backgroundColor: Colors.white,
@@ -82,9 +88,23 @@ void showFurtherReadingDialog({
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text("Close", style: TextStyle(color: Colors.deepPurple)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: SizedBox(
+            width: double.infinity, // full width in actions
+            child: TimedFeedbackButtonStateful(
+              text: "Finish Reading",
+              topColor: Colors.deepPurple,
+              seconds: readingSeconds, // time to wait before enabling
+              onPressed: () {
+                Navigator.of(context).pop(); // close the dialog
+              },
+              borderColor: Colors.deepPurple,
+              borderWidth: 2,
+              backOffset: 4,
+              backDarken: 0.45,
+            ),
+          ),
         ),
       ],
     ),
