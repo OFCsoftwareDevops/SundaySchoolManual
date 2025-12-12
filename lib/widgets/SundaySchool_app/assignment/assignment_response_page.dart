@@ -7,9 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../UI/buttons.dart';
+import '../../../auth/auth_service.dart';
 import '../../../backend_data/assignment_data.dart';
 import '../../../backend_data/firestore_service.dart';
-import '../../current_church.dart';
+import '../../../auth/database/current_church.dart';
 
 class AssignmentResponsePage extends StatefulWidget {
   final DateTime date;
@@ -133,6 +134,13 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
+    final churchId = CurrentChurch().churchId; // Add this
+    if (churchId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select your church first!")));
+      return;
+    }
+
     final responses = _controllers
         .map((c) => c.text.trim())
         .where((t) => t.isNotEmpty)
@@ -142,11 +150,14 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
     final path = 'assignment_responses/${widget.isTeen ? "teen" : "adult"}/$dateStr/users/${user.uid}';
 
     await FirebaseFirestore.instance.doc(path).set({
-      'responses': responses,
+      'churchId': churchId, // ← correct, fast, offline-safe
       'userId': user.uid,
       'userEmail': user.email,
       'date': dateStr,
+      'responses': responses,
       'submittedAt': FieldValue.serverTimestamp(),
+      'grade': null, // Initial, admin sets later
+      'feedback': null,
     }, SetOptions(merge: true));
 
     ScaffoldMessenger.of(context).showSnackBar(

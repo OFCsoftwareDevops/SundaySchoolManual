@@ -1,5 +1,6 @@
 import 'package:app_demo/l10n/fallback_localizations.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -7,20 +8,21 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart'; 
+import 'auth/database/constants.dart';
 import 'widgets/bible_app/highlight/highlight_manager.dart';
 import 'firebase_options.dart';
 import 'l10n/app_localizations.dart';
 import 'widgets/bible_app/bible.dart';
-import 'widgets/current_church.dart';
+import 'auth/database/current_church.dart';
 import 'widgets/intro_page.dart';
 import 'widgets/main_screen.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();  // Required in v15.1.3+
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);  // Required in v15.1.3+
   print("Background: ${message.notification?.title}");
 }
 
-void main() async{
+/*void main() async{
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(
@@ -50,14 +52,41 @@ void main() async{
         final token = await FirebaseMessaging.instance.getToken();
         print("FCM Token: $token");
       }),
-  ]);
+  ]);*/
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: true,
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+  );
+
+  // FCM setup (only mobile)
+  if (!kIsWeb) {
+    await FirebaseMessaging.instance.requestPermission();
+    await FirebaseMessaging.instance.subscribeToTopic("all_users");
+    final token = await FirebaseMessaging.instance.getToken();
+    print("FCM Token: $token");
+  }
 
   // 3. Now safely read SharedPreferences (already loaded above)
   final prefs = await SharedPreferences.getInstance();
   final String savedLang = prefs.getString('language_code') ?? 'en';
-  final String? savedChurchId = prefs.getString('church_id');
-  final String? savedChurchName = prefs.getString('church_name');
+  // Load highlights early
+  await HighlightManager().loadFromPrefs();
 
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  final currentUser = FirebaseAuth.instance.currentUser;
+  if (currentUser != null) {
+    if (ownerEmails.contains(currentUser.email)) {
+      await FirebaseMessaging.instance.subscribeToTopic("owner_notifications");
+    }
+  }
   // 4. Run the app with ALL providers
   runApp(
     MultiProvider(
@@ -101,6 +130,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
     WidgetsBinding.instance.addObserver(this); // Listen for app close
   }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
   // Detect full app close to reset intro
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -120,7 +155,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) {
+      create: (_) => CurrentChurch()..loadFromPrefs(),
+      /*create: (_) {
         final church = CurrentChurch();
         // Load saved church efficiently
         SharedPreferences.getInstance().then((prefs) {
@@ -131,7 +167,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
           }
         });
         return church;
-      },
+      },*/
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         locale: _locale,

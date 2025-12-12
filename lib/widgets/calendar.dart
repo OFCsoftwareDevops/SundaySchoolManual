@@ -75,7 +75,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
     if (FirebaseAuth.instance.currentUser == null) {
       final result = await Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => const LoginPage(),
+          builder: (_) => const AuthScreen(),
           fullscreenDialog: true,
         ),
       );

@@ -1,9 +1,7 @@
 // lib/screens/church_selector.dart
-import 'package:app_demo/widgets/current_church.dart';
+import 'package:app_demo/auth/database/current_church.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'home.dart';
-import 'current_church.dart';
 import 'main_screen.dart';
 
 class ChurchSelector extends StatefulWidget {

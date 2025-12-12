@@ -10,6 +10,18 @@ class CurrentChurch extends ChangeNotifier {
   String? get churchName => _churchName;
   bool get isSet => _churchId != null;
 
+  Future<void> loadFromPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final id = prefs.getString('church_id');
+    final name = prefs.getString('church_name');
+    if (id != null && name != null) {
+      _churchId = id;
+      _churchName = name;
+      notifyListeners();
+    }
+  }
+
+  // To save church Id code
   Future<void> setChurch(String id, String name) async {
     _churchId = id;
     _churchName = name;
@@ -21,6 +33,7 @@ class CurrentChurch extends ChangeNotifier {
     await prefs.setString('church_name', name);
   }
 
+  // To remove church Id code
   Future<void> clear() async {
     _churchId = null;
     _churchName = null;
@@ -34,4 +47,12 @@ class CurrentChurch extends ChangeNotifier {
   static final CurrentChurch instance = CurrentChurch._internal();
   factory CurrentChurch() => instance;
   CurrentChurch._internal();
+  /* SHOW CHURCH NAME IN APP BAR
+    Consumer<CurrentChurch>(
+    builder: (context, church, child) {
+      return AppBar(
+        title: Text(church.churchName ?? "Sunday School Manual"),
+      );
+    },
+  )*/
 }

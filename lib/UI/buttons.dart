@@ -220,6 +220,50 @@ Widget LessonCardButtons({
   );
 }
 
+Widget LoginButtons({
+  required BuildContext context,
+  required VoidCallback onPressed,
+  required Color topColor,
+  required String text,                    // still supported
+  Widget? child,                           // ← NEW
+  Color borderColor = const Color.fromARGB(0, 118, 118, 118),
+  double borderWidth = 2.0,
+  double backOffset = 6.0,
+  double backDarken = 0.5,
+}) {
+  final screenSize = MediaQuery.of(context).size;
+  final double buttonWidth = screenSize.width * 0.6;
+  final double buttonHeight = screenSize.height * 0.05;
+  const double pressDepth = 4.0;
+
+  return SizedBox(
+    height: buttonHeight + backOffset,
+    width: buttonWidth,
+    child: AnimatedPress3D(
+      onTap: onPressed,
+      topColor: topColor,
+      borderColor: borderColor,
+      borderWidth: borderWidth,
+      backOffset: backOffset,
+      backDarken: backDarken,
+      pressDepth: pressDepth,
+      child: Center(
+        child: child ??
+            Text(
+              text,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.2,
+              ),
+            ),
+      ),
+    ),
+  );
+}
+
+
 
 Widget FeedbackPageButton({
   required BuildContext context,

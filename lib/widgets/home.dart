@@ -11,10 +11,9 @@ import '../UI/buttons.dart';
 import '../backend_data/firestore_service.dart';
 import '../backend_data/lesson_data.dart';
 import '../l10n/app_localizations.dart';
-import 'SundaySchool_app/further_reading/further_reading_class.dart';
 import 'SundaySchool_app/further_reading/further_reading_dialog.dart';
 import 'calendar.dart';
-import 'current_church.dart';
+import '../auth/database/current_church.dart';
 import 'SundaySchool_app/lesson_preview.dart';
 
 

@@ -1,6 +1,7 @@
 // NEW: Main screen with bottom navigation bar
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../auth/login_page.dart';
 import 'bible_app/bible_entry_point.dart';
 import 'church_selection.dart';
 import 'home.dart';
@@ -38,10 +39,11 @@ class MainScreenState extends State<MainScreen> {
     return Scaffold(
       body: IndexedStack(
         index: _selectedIndex,
-        children: const [
-          Home(),
-          BibleEntryPoint(),           // ← only this, nothing else
-          ChurchSelector(),
+        children: [
+          const Home(),
+          _selectedIndex == 1 ? const BibleEntryPoint() : const SizedBox.shrink(),           // ← only this, nothing else
+          const AuthScreen(),
+          const ChurchSelector(),
           /*Center(child: Text("Profile", style: TextStyle(fontSize: 24))),
           Center(child: Text("Settings", style: TextStyle(fontSize: 24))),*/
         ],
@@ -55,6 +57,7 @@ class MainScreenState extends State<MainScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: "Lessons"),
           BottomNavigationBarItem(icon: Icon(Icons.book), label: "Bible"),
+          BottomNavigationBarItem(icon: Icon(Icons.login), label: "Login"),
           BottomNavigationBarItem(icon: Icon(Icons.church), label: "My Parish"),
           /*BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
           BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings"),*/

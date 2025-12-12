@@ -1,5 +1,6 @@
 // lib/screens/admin_editor.dart
 
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import '../backend_data/lesson_data.dart';
 import '../backend_data/firestore_service.dart';
@@ -32,6 +33,31 @@ class _AdminEditorPageState extends State<AdminEditorPage> {
     teenNotes = SectionNotes.empty();
     adultNotes = SectionNotes.empty();
     _loadExisting();
+  }
+
+  Future<void> makeAdmin({
+    required String email,
+    required String churchId,
+    String groupId = "",
+  }) async {
+    try {
+      final f = FirebaseFunctions.instance.httpsCallable(
+        'makeChurchOrGroupAdmin',
+        options: HttpsCallableOptions(timeout: const Duration(seconds: 30)),
+      );
+      await f.call({
+        'userEmail': email.trim().toLowerCase(),
+        'churchId': churchId,
+        'groupId': groupId,
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Admin rights granted! $email is now admin"), backgroundColor: Colors.green),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed: $e"), backgroundColor: Colors.red),
+      );
+    }
   }
 
   Future<void> _loadExisting() async {
@@ -158,4 +184,14 @@ class _AdminEditorPageState extends State<AdminEditorPage> {
             ),
     );
   }
+
+  /*ElevatedButton(
+  onPressed: () => makeAdmin(
+    email: "mary@church.com",
+    churchId: "grace_church_2025",
+    groupId: "youth_group",   // remove this line if only church admin
+  ),
+  child: Text("Make Mary Group Admin"),
+)*/
 }
+
