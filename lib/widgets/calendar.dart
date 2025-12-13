@@ -204,14 +204,32 @@ class _MonthCalendarState extends State<MonthCalendar> {
                   Container(
                     margin: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
+                      shape: BoxShape.rectangle,
+                      borderRadius: BorderRadius.circular(10),
                       color: isSelected
                       ? Colors.blue
                       : isToday
                         ? Colors.green
                         : Colors.transparent,
                     ),
-                    child: SizedBox.expand(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final double fontSize = constraints.maxWidth * 0.45;
+                        // or use min(width, height) if not square
+
+                        return Center(
+                          child: Text(
+                            '$day',
+                            style: TextStyle(
+                              fontSize: fontSize,
+                              fontWeight: FontWeight.w500,
+                              color: isSelected || isToday ? Colors.white : null,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    /*child: SizedBox.expand(
                       child: Center(
                         child: Text(
                           '$day',
@@ -222,7 +240,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
                           ),
                         ),
                       ),
-                    ),
+                    ),*/
                   ),
                   if (hasLesson)
                     Positioned(
@@ -260,7 +278,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
 
       if (week.length == 7) {
         rows.add(Row(children: week));
-        rows.add(const SizedBox(height: 2)); // space between weeks
+        rows.add(const SizedBox(height: 1)); // space between weeks
         week = []; // new empty list
       }
     }

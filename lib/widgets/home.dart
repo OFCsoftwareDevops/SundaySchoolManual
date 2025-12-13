@@ -266,10 +266,14 @@ class HomeState extends State<Home> {
                               _loadLesson();
                             },
                           ),
-
+                          const SizedBox(height: 10),
                           // Beautiful Further Reading row — only shows when there is a reading
                           if (todayFurtherReading.isNotEmpty)
-                            _furtherReadingRow(todayReading: todayFurtherReading),
+                            _readingRow(
+                              context: context,
+                              todayReading: todayFurtherReading,
+                            ),
+                            //_furtherReadingRow(todayReading: todayFurtherReading),
                         ],
                       );
                     },
@@ -389,8 +393,8 @@ class HomeState extends State<Home> {
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: hasLesson
-                                  ? [const Color(0xFF5D8668), const Color(0xFF9DC2A6), const Color(0xFFEEFFEE)]
-                                  : [const Color(0xFF9C7171), const Color(0xFFEBcfcf), const Color(0xFFFFF8F8)],
+                                  ? [const Color.fromARGB(186, 93, 134, 104), const Color.fromARGB(195, 157, 194, 166), const Color(0xFFEEFFEE)]
+                                  : [const Color.fromARGB(170, 156, 113, 113), const Color.fromARGB(173, 235, 207, 207), const Color(0xFFFFF8F8)],
                             ),
                           ),
                           child: Column(
@@ -417,44 +421,64 @@ class HomeState extends State<Home> {
                               const SizedBox(height: 15),
 
                               // Teen Row
-                              _lessonRow(
-                                context: context,
-                                icon: Icons.school,
-                                label: lesson?.teenNotes?.topic ?? AppLocalizations.of(context)!.noTeenLesson,
-                                available: lesson?.teenNotes != null,
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => BeautifulLessonPage(
-                                      data: lesson!.teenNotes!,
-                                      title: "Teen Lesson",
-                                      lessonDate: selectedDate,
-                                      isTeen: true,
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  _lessonRow(
+                                    context: context,
+                                    icon: Icons.play_lesson,
+                                    label: lesson?.teenNotes?.topic ?? AppLocalizations.of(context)!.noTeenLesson,
+                                    available: lesson?.teenNotes != null,
+                                    onTap: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => BeautifulLessonPage(
+                                          data: lesson!.teenNotes!,
+                                          title: "Teen Lesson",
+                                          lessonDate: selectedDate,
+                                          isTeen: true,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
+                                  /*const SizedBox(width: 5),
+                                  _readingRow(
+                                    context: context,
+                                    todayReading: todayFurtherReading,
+                                  ),*/
+                                ],
                               ),
 
                               const SizedBox(height: 10),
 
                               // Adult Row — FIXED: was "CadeRow"
-                              _lessonRow(
-                                context: context,
-                                icon: Icons.menu_book_rounded,
-                                label: lesson?.adultNotes?.topic 
-                                  ?? AppLocalizations.of(context)!.noAdultLesson,
-                                available: lesson?.adultNotes != null,
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => BeautifulLessonPage(
-                                      data: lesson!.adultNotes!,
-                                      title: "Adult Lesson",
-                                      lessonDate: selectedDate,
-                                      isTeen: false,
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  _lessonRow(
+                                    context: context,
+                                    icon: Icons.play_lesson,
+                                    label: lesson?.adultNotes?.topic 
+                                      ?? AppLocalizations.of(context)!.noAdultLesson,
+                                    available: lesson?.adultNotes != null,
+                                    onTap: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => BeautifulLessonPage(
+                                          data: lesson!.adultNotes!,
+                                          title: "Adult Lesson",
+                                          lessonDate: selectedDate,
+                                          isTeen: false,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
+                                  /*const SizedBox(width: 5),
+                                  _readingRow(
+                                    context: context,
+                                    todayReading: todayFurtherReading,
+                                  ),*/
+                                ],
                               ),
                             ],
                           ),
@@ -480,10 +504,11 @@ class HomeState extends State<Home> {
     required bool available,
     required VoidCallback onTap,
   }) {
+
     return LessonCardButtons(
       context: context,
       onPressed: available ? onTap : () {},
-      topColor: available ? const Color.fromARGB(255, 36, 116, 47) : const Color.fromARGB(255, 65, 25, 25),
+      topColor: available ? const Color.fromARGB(255, 20, 140, 100) : const Color.fromARGB(255, 33, 32, 32),
       borderColor: Colors.transparent,
       borderWidth: 0,
       text: "",
@@ -498,7 +523,7 @@ class HomeState extends State<Home> {
                 label,
                 style: TextStyle(
                   color: available ? Colors.white : Colors.white70,
-                  fontSize: 18,
+                  fontSize: 15,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.2,
                   fontStyle: available ? FontStyle.normal : FontStyle.italic,
@@ -520,6 +545,83 @@ class HomeState extends State<Home> {
     final key = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
     return furtherReadingMap[key] ?? "";
   }
+
+  Widget _readingRow({
+    required BuildContext context,
+    required String todayReading,
+  }) {
+    final bool hasReading = todayReading.trim().isNotEmpty;
+    final String displayText =
+        hasReading ? todayReading : "No further reading today";
+
+    return furtherReadingButtons(
+      context: context,
+      onPressed: hasReading
+          ? () => showFurtherReadingDialog(
+                context: context,
+                todayReading: todayReading,
+              )
+          : () {},
+      topColor: hasReading ? const Color.fromARGB(255, 20, 140, 100) : Colors.grey.shade300,
+      borderColor:
+          hasReading ? const Color.fromARGB(0, 99, 59, 167) : const Color.fromARGB(0, 224, 224, 224),
+      borderWidth: hasReading ? 0 : 0,
+      text: "",
+      child: Row(
+        children: [
+          Icon(
+            Icons.menu_book_rounded,
+            size: 38,
+            color: hasReading
+                ? const Color.fromARGB(255, 255, 255, 255)
+                : Colors.grey[500],
+          ),
+          const SizedBox(width: 18),
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween, // ✅ prevents height inflation
+              //crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Todays Reading",
+                  style: TextStyle(
+                    fontSize: 17,
+                    color: hasReading
+                        ? const Color.fromARGB(255, 255, 255, 255)
+                        : Colors.grey[600],
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(width: 0),
+                Text(
+                  displayText,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w400,
+                    color: hasReading
+                        ? const Color.fromARGB(255, 255, 255, 255)
+                        : Colors.grey[700],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            hasReading
+                ? Icons.arrow_forward_ios_rounded
+                : Icons.lock_outline,
+            color: hasReading
+                ? const Color.fromARGB(255, 255, 255, 255)
+                : Colors.grey[400],
+            size: 22,
+          ),
+        ],
+      ),
+    );
+  }
+
 
   Widget _furtherReadingRow({
     required String todayReading,
