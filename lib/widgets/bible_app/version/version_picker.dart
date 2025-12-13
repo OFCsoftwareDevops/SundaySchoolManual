@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../UI/linear_progress_bar.dart';
 import '../bible.dart';
 
 class VersionPicker extends StatelessWidget {
@@ -24,10 +25,7 @@ class VersionPicker extends StatelessWidget {
             ? const SizedBox(
                 width: 24,
                 height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  color: Colors.white,
-                ),
+                child: LinearProgressBar(),
               )
             : DropdownButton<String>(
                 value: manager.currentVersion,

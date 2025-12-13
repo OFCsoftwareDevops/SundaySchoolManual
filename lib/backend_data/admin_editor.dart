@@ -1,7 +1,9 @@
 // lib/screens/admin_editor.dart
 
+//MAY DELETE
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
+import '../UI/linear_progress_bar.dart';
 import '../backend_data/lesson_data.dart';
 import '../backend_data/firestore_service.dart';
 import 'lesson_form.dart';
@@ -127,7 +129,7 @@ class _AdminEditorPageState extends State<AdminEditorPage> {
         foregroundColor: Colors.white,
       ),
       body: _isLoading && teenNotes.blocks.isEmpty && adultNotes.blocks.isEmpty
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: LinearProgressBar())
           : ListView(
               padding: const EdgeInsets.all(20),
               children: [
@@ -174,7 +176,7 @@ class _AdminEditorPageState extends State<AdminEditorPage> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                     ),
                     child: _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
+                        ? const LinearProgressBar()
                         : const Text("SAVE BOTH LESSONS", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   ),
                 ),

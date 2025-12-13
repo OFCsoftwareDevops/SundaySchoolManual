@@ -1,0 +1,54 @@
+import 'package:flutter/material.dart';
+
+class LinearProgressBar extends StatelessWidget {
+  final double height;
+  final Color backgroundColor;
+  final Color valueColor;
+  final BorderRadius? borderRadius;
+  final EdgeInsetsGeometry? margin;
+  final String? message; // Optional message below the bar
+
+  const LinearProgressBar({
+    super.key,
+    this.height = 6.0,
+    this.backgroundColor = const Color(0xFFE0E0E0),
+    this.valueColor = const Color(0xFF5D8668), // Your app's green
+    this.borderRadius,
+    this.margin,
+    this.message,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          height: height,
+          margin: margin,
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: borderRadius ?? BorderRadius.circular(height / 2),
+          ),
+          child: ClipRRect(
+            borderRadius: borderRadius ?? BorderRadius.circular(height / 2),
+            child: const LinearProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF5D8668)),
+              backgroundColor: Colors.transparent,
+            ),
+          ),
+        ),
+        if (message != null) ...[
+          const SizedBox(height: 12),
+          Text(
+            message!,
+            style: const TextStyle(
+              color: Colors.grey,
+              fontSize: 15,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ],
+    );
+  }
+}

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../UI/buttons.dart';
+import '../../UI/linear_progress_bar.dart';
 import 'highlight/highlight_manager.dart';
 import 'bible.dart';
 import 'bible_last_position_manager.dart';
@@ -41,7 +42,7 @@ class BiblePage extends StatelessWidget {
                   SizedBox(height: 40),
                   Text("Loading the Holy Bible...", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF5D8668))),
                   SizedBox(height: 30),
-                  CircularProgressIndicator(color: Color(0xFF5D8668)),
+                  LinearProgressBar(),
                 ],
               ),
             ),
@@ -59,7 +60,7 @@ class BiblePage extends StatelessWidget {
                 padding: const EdgeInsets.only(right: 12),
                 child: Center(
                   child: manager.isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
+                    ? const LinearProgressBar()
                     : DropdownButton<String>(
                       value: manager.currentVersion,
                       dropdownColor: const Color(0xFF5D8668),
@@ -163,7 +164,7 @@ class BookReader extends StatelessWidget {
                       ? const SizedBox(
                           width: 24,
                           height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+                          child: LinearProgressBar(),
                         )
                       : DropdownButton<String>(
                           value: manager.currentVersion,
@@ -341,10 +342,7 @@ class _ChapterReaderState extends State<ChapterReader> {
                           ? const SizedBox(
                               width: 24,
                               height: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                                color: Colors.white,
-                              ),
+                              child: LinearProgressBar(),
                             )
                           : DropdownButton<String>(
                               value: manager.currentVersion,

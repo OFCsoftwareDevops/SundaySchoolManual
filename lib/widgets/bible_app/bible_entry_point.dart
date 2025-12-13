@@ -38,19 +38,10 @@ class _BibleEntryPointState extends State<BibleEntryPoint> with AutomaticKeepAli
       _tryResumeLastPosition();
     });
   }
-  /*@override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_hasEnteredBible) _tryResume();
-    });
-  }*/
 
   Future<void> _tryResumeLastPosition() async {
     _hasEnteredBible = true;
 
-    // Load Bible first
-    await context.read<BibleVersionManager>().loadInitialBible();
     if (!mounted) return;
 
     final last = await LastPositionManager.getLast();
@@ -76,22 +67,6 @@ class _BibleEntryPointState extends State<BibleEntryPoint> with AutomaticKeepAli
 
     // Remove any existing Bible routes to avoid duplicates
     Navigator.of(context).popUntil((route) => route.isFirst);
-    /*final prefs = await SharedPreferences.getInstance();
-    final String? screen = prefs.getString('last_screen');
-    final String? bookName = prefs.getString('last_book');
-    final int? chapter = prefs.getInt('last_chapter');
-
-    if (screen != 'chapter' || bookName == null || chapter == null) return;
-
-    final book = context.read<BibleVersionManager>().books.firstWhere(
-          (b) => b['name'] == bookName,
-          orElse: () => context.read<BibleVersionManager>().books[0],
-        );
-
-    final chapters = book['chapters'] as List;
-    if (chapter < 1 || chapter > chapters.length) return;
-
-    if (!mounted) return;*/
 
     // JUST PUSH — never pushReplacement
     Navigator.of(context).push(

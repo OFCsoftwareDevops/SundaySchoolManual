@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:app_demo/auth/login/auth_service.dart';
 import 'package:provider/provider.dart';
 import 'package:app_demo/main.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -8,12 +9,12 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../UI/buttons.dart';
+import '../backend_data/debug.dart';
 import '../backend_data/firestore_service.dart';
 import '../backend_data/lesson_data.dart';
 import '../l10n/app_localizations.dart';
 import 'SundaySchool_app/further_reading/further_reading_dialog.dart';
 import 'calendar.dart';
-import '../auth/database/current_church.dart';
 import 'SundaySchool_app/lesson_preview.dart';
 
 
@@ -36,7 +37,7 @@ class HomeState extends State<Home> {
   void initState() {
     super.initState();
   // This now reads the selected church
-    final churchId = context.read<CurrentChurch>().churchId;
+    final churchId = context.read<AuthService>().churchId;
     _service = FirestoreService(churchId: churchId);
     _loadLesson();
     _loadFurtherReadings();
@@ -127,14 +128,14 @@ class HomeState extends State<Home> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-      title: Consumer<CurrentChurch>(
-        builder: (context, church, child) {
-          final name = church.churchName;
+      title: Consumer<AuthService>(
+        builder: (context, auth, child) {
+          final name = auth.churchName;
           final isGeneral = name == null;
 
           return GestureDetector(
             onLongPress: () async {
-              await context.read<CurrentChurch>().clear();
+              await auth.clearChurch();
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -143,10 +144,16 @@ class HomeState extends State<Home> {
                     duration: Duration(seconds: 2),
                   ),
                 );
+                // Rebuild with general lessons
+                setState(() {
+                  _service = FirestoreService(churchId: null);
+                });
+                _loadLesson();
+                _loadFurtherReadings();
               }
             },
             child: Text(
-              isGeneral ? "RCCG Sunday School (General)" : name!,
+              isGeneral ? "RCCG Sunday School (General)" : name,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -310,6 +317,65 @@ class HomeState extends State<Home> {
                     },
                     child: const Icon(Icons.bug_report),
                   ),*/
+/*
+                  // Global Admin Check Button
+                  ElevatedButton(
+                    onPressed: () async {
+                      await checkGlobalAdmin();
+                    },
+                    child: Text("Check Global Admin Status"),
+                  ),
+
+                  ElevatedButton(
+                    onPressed: () async {
+                      final auth = AuthService.instance;
+                      final churchId = auth.churchId;
+
+                      print("=== LESSON DEBUG ===");
+                      print("Current churchId: ${churchId ?? 'null (global)'}");
+                      print("Selected date: ${selectedDate.toIso8601String().split('T').first}"); // YYYY-MM-DD
+
+                      // List all lesson documents in global collection
+                      final globalSnapshot = await FirebaseFirestore.instance
+                          .collection('lessons')
+                          .limit(10)
+                          .get();
+                      print("Global /lessons count: ${globalSnapshot.docs.length}");
+                      for (var doc in globalSnapshot.docs) {
+                        print("  Global lesson: ${doc.id}");
+                      }
+
+                      if (churchId != null) {
+                        final churchSnapshot = await FirebaseFirestore.instance
+                            .collection('churches')
+                            .doc(churchId)
+                            .collection('lessons')
+                            .limit(10)
+                            .get();
+                        print("Church-specific lessons count: ${churchSnapshot.docs.length}");
+                        for (var doc in churchSnapshot.docs) {
+                          print("  Church lesson: ${doc.id}");
+                        }
+                      }
+
+                      // Try loading today's lesson directly
+                      final path = churchId == null 
+                          ? 'lessons' 
+                          : 'churches/$churchId/lessons';
+                      final dateStr = "${selectedDate.year}-${selectedDate.month.toString().padLeft(2,'0')}-${selectedDate.day.toString().padLeft(2,'0')}";
+                      final doc = await FirebaseFirestore.instance
+                          .collection(path)
+                          .doc(dateStr)
+                          .get();
+
+                      print("Direct load for $dateStr in $path: ${doc.exists ? 'EXISTS' : 'NOT FOUND'}");
+                      if (doc.exists) {
+                        print("Data keys: ${doc.data()?.keys.join(', ')}");
+                      }
+                    },
+                    child: const Text("DEBUG: List Lessons"),
+                  ),*/
+
                     // LESSON CARD
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),

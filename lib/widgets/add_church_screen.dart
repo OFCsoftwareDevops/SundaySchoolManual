@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../UI/linear_progress_bar.dart';
+
 class AddChurchScreen extends StatefulWidget {
   const AddChurchScreen({super.key});
 
@@ -215,7 +217,7 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
                     elevation: 8,
                   ),
                   child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
+                      ? const LinearProgressBar()
                       : const Text("Submit Request", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 ),
               ),

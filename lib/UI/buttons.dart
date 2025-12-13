@@ -232,7 +232,7 @@ Widget LoginButtons({
   double backDarken = 0.5,
 }) {
   final screenSize = MediaQuery.of(context).size;
-  final double buttonWidth = screenSize.width * 0.6;
+  final double buttonWidth = screenSize.width * 0.8;
   final double buttonHeight = screenSize.height * 0.05;
   const double pressDepth = 4.0;
 

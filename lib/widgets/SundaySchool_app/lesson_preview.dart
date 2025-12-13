@@ -245,16 +245,6 @@ class BeautifulLessonPage extends StatelessWidget {
                   'highlighted': isHighlighted,
                 });
               }
-
-              /*showDialog(
-                context: context,
-                barrierColor: Colors.black.withOpacity(0.65), // dark semi-transparent backdrop
-                builder: (context) => VersePopup(
-                  reference: refStr,
-                  verses: verses,
-                  rawText: raw,
-                ),
-              );*/
               showModalBottomSheet(
                 context: context,
                 isScrollControlled: true,
@@ -343,7 +333,6 @@ class BeautifulLessonPage extends StatelessWidget {
                         builder: (_) => AssignmentResponsePage(
                           date: lessonDate,
                           isTeen: title.contains("Teen") || title.contains("teen"),
-                          //lessonTopic: data.topic,
                         ),
                       ),
                     );

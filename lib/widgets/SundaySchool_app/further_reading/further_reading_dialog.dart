@@ -1,6 +1,7 @@
 // lib/widgets/further_reading_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../UI/linear_progress_bar.dart';
 import '../../../UI/timed_button.dart';
 import '../../bible_app/bible.dart';
 import '../../bible_app/highlight/highlight_manager.dart';
@@ -19,7 +20,7 @@ void showFurtherReadingDialog({
   showDialog(
     context: context,
     barrierDismissible: false,
-    builder: (_) => const Center(child: CircularProgressIndicator()),
+    builder: (_) => const Center(child: LinearProgressBar()),
   );
 
   // Clean the reference

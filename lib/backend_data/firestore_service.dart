@@ -7,33 +7,49 @@ class FirestoreService {
   final String? churchId;
 
   /// Pass the current church ID when creating the service
-  /// Example: FirestoreService(churchId: "grace_lagos")
   FirestoreService({this.churchId});
 
-  // Private getter — builds the correct lessons collection path per church
-  CollectionReference get _lessonsCollection {
+  // ── LESSONS COLLECTION ──
+  CollectionReference get churchLessonsCollection {
     if (churchId != null && churchId!.isNotEmpty) {
       return FirebaseFirestore.instance
         .collection('churches')
         .doc(churchId)
         .collection('lessons');
     } else {
-      return FirebaseFirestore.instance.collection('lessons'); // old global path
+      return FirebaseFirestore.instance.collection('lessons');
     }
   }
 
-  // NEW: assignments collection (same structure)
+  CollectionReference get globalLessonsCollection {
+    return FirebaseFirestore.instance.collection('lessons');
+  }
+
+  // ── ASSIGNMENTS COLLECTION ──
   CollectionReference get _assignmentsCollection {
     if (churchId != null && churchId!.isNotEmpty) {
       return FirebaseFirestore.instance
           .collection('churches')
           .doc(churchId)
-          .collection('assignments');  // ← only this line changes
+          .collection('assignments');
     } else {
       return FirebaseFirestore.instance.collection('assignments');
     }
   }
 
+  // ── RESPONSES COLLECTION ──
+  CollectionReference get _responsesCollection {
+    if (churchId != null && churchId!.isNotEmpty) {
+      return FirebaseFirestore.instance
+          .collection('churches')
+          .doc(churchId)
+          .collection('assignment_responses');
+    } else {
+      return FirebaseFirestore.instance.collection('assignment_responses');
+    }
+  }
+
+  // ── FURTHER RESPONSES COLLECTION ──
   CollectionReference get _furtherReadingsCollection {
       if (churchId != null && churchId!.isNotEmpty) {
       return FirebaseFirestore.instance
@@ -46,15 +62,72 @@ class FirestoreService {
   }
 
   // ←←←←← PUBLIC STREAM (this is what home.dart will use)
-  Stream<QuerySnapshot> get lessonsStream => _lessonsCollection.snapshots();
-  Stream<QuerySnapshot> get assignmentsStream => _assignmentsCollection.snapshots(); // ← new!
+  //Stream<QuerySnapshot> get lessonsStream => churchLessonsCollection.snapshots();
+  Stream<QuerySnapshot> get lessonsStream => globalLessonsCollection.snapshots();
+  Stream<QuerySnapshot> get assignmentsStream => _assignmentsCollection.snapshots();
   Stream<QuerySnapshot> get furtherReadingsStream => _furtherReadingsCollection.orderBy('date').snapshots();   // assuming you have a 'date' field (the Sunday)
 
+  // ── READ LESSONS COLLECTION ──
   Future<LessonDay?> loadLesson(DateTime date) async {
+    final String id = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+
+    try {
+      DocumentSnapshot doc;
+
+      // Step 1: Try church-specific lesson first (if church is selected)
+      if (churchId != null && churchId!.isNotEmpty) {
+        doc = await churchLessonsCollection.doc(id).get();
+
+        if (doc.exists && doc.data() != null) {
+          final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+          return _parseLessonData(data, date);
+        }
+        // If not found in church → fall through to global
+      }
+
+      // Step 2: Fallback to global standard lesson
+      doc = await globalLessonsCollection.doc(id).get();
+
+      if (!doc.exists || doc.data() == null) {
+        return null; // No lesson for this date at all
+      }
+
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      return _parseLessonData(data, date);
+
+    } catch (e) {
+      debugPrint("Error loading lesson $id: $e");
+      return null;
+    }
+  }
+
+  LessonDay _parseLessonData(Map<String, dynamic> data, DateTime date) {
+    SectionNotes? teenNotes;
+    SectionNotes? adultNotes;
+
+    if (data.containsKey('teen') && data['teen'] is Map<String, dynamic>) {
+      teenNotes = SectionNotes.fromMap(Map<String, dynamic>.from(data['teen']));
+    } else if (data.containsKey('teenNotes') && data['teenNotes'] is Map<String, dynamic>) {
+      teenNotes = SectionNotes.fromMap(Map<String, dynamic>.from(data['teenNotes']));
+    }
+
+    if (data.containsKey('adult') && data['adult'] is Map<String, dynamic>) {
+      adultNotes = SectionNotes.fromMap(Map<String, dynamic>.from(data['adult']));
+    } else if (data.containsKey('adultNotes') && data['adultNotes'] is Map<String, dynamic>) {
+      adultNotes = SectionNotes.fromMap(Map<String, dynamic>.from(data['adultNotes']));
+    }
+
+    return LessonDay(
+      date: date,
+      teenNotes: teenNotes,
+      adultNotes: adultNotes,
+    );
+  }
+  /*Future<LessonDay?> loadLesson(DateTime date) async {
     final String id = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
     
     try {
-      final doc = await _lessonsCollection.doc(id).get();
+      final doc = await churchLessonsCollection.doc(id).get();
       if (!doc.exists || doc.data() == null) return null;
 
       final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -84,7 +157,7 @@ class FirestoreService {
       debugPrint("Error loading lesson $id: $e");
       return null;
     }
-  }
+  }*/
 
   /// Save or update a lesson
   Future<void> saveLesson({
@@ -116,13 +189,13 @@ class FirestoreService {
       };
     }
 
-    await _lessonsCollection.doc(id).set(updateData, SetOptions(merge: true));
+    await churchLessonsCollection.doc(id).set(updateData, SetOptions(merge: true));
   }
 
-  /// Optional: Get list of all lesson dates (for green dots)
+  /// ── GET ALL LESSON DATES ──
   Future<Set<DateTime>> getAllLessonDates() async {
     try {
-      final snapshot = await _lessonsCollection.get();
+      final snapshot = await churchLessonsCollection.get();
       final Set<DateTime> dates = {};
       for (var doc in snapshot.docs) {
         final parts = doc.id.split('-');
@@ -144,7 +217,7 @@ class FirestoreService {
     }
   }
 
-  // ── LOAD ONE ASSIGNMENT (almost identical to loadLesson)
+  // ── LOAD ASSIGNMENTS COLLECTION ──
   Future<AssignmentDay?> loadAssignment(DateTime date) async {
     final String id = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
 
@@ -201,6 +274,120 @@ class FirestoreService {
       return {};
     }
   }
+
+  /// ── SAVE A USER RESPONSE ──
+  /// Saves a single user's responses for a given date and type (teen/adult)
+  Future<void> saveUserResponse({
+    required DateTime date,
+    required String type, // "teen" or "adult"
+    required String userId,
+    required String userEmail,
+    required String churchId,
+    required List<String> responses,
+  }) async {
+    final String dateStr =
+        "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+
+    final docRef = FirebaseFirestore.instance
+        .collection('assignment_responses')
+        .doc(type)
+        .collection(dateStr)
+        .doc(userId);
+
+    await docRef.set({
+      'userId': userId,
+      'userEmail': userEmail,
+      'churchId': churchId,
+      'responses': responses,
+      'submittedAt': FieldValue.serverTimestamp(),
+      'grade': null,
+      'feedback': null,
+    }, SetOptions(merge: true));
+  }
+
+
+
+  /// ── LOAD ALL RESPONSES FOR AN ADMIN ──
+  /// Admin can see all responses for a given date and type (teen/adult)
+  /// Global admins see everything; church admins see only their church
+  Future<List<Map<String, dynamic>>> loadResponsesForAdmin({
+    required DateTime date,
+    required String type, // "teen" or "adult"
+    required String? adminChurchId, // null if global admin
+  }) async {
+    final String dateStr =
+        "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+
+    final collectionRef = FirebaseFirestore.instance
+        .collection('assignment_responses')
+        .doc(type)
+        .collection(dateStr);
+
+    try {
+      final snapshot = await collectionRef.get();
+
+      // Filter by churchId if not global admin
+      final List<Map<String, dynamic>> responses = snapshot.docs
+          .map((doc) => doc.data() as Map<String, dynamic>)
+          .where((data) {
+            if (adminChurchId == null) return true; // global admin
+            return data['churchId'] == adminChurchId;
+          })
+          .toList();
+
+      return responses;
+    } catch (e) {
+      debugPrint("Error loading admin responses: $e");
+      return [];
+    }
+  }
+
+
+  /// ── LOAD ONE USER RESPONSE ──
+  /// Loads the logged-in user's assignment response for a given date and type (teen/adult)
+  Future<AssignmentResponse?> loadUserResponse({
+    required DateTime date,
+    required String type,   // "teen" or "adult"
+    required String userId,
+  }) async {
+    final String dateStr =
+        "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+
+    try {
+      final docRef = FirebaseFirestore.instance
+          .collection('assignment_responses')
+          .doc(type)
+          .collection(dateStr)
+          .doc('users')
+          .collection('allUsers')
+          .doc(userId);
+
+      final doc = await docRef.get();
+      if (!doc.exists || doc.data() == null) return null;
+
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+      // Optional: You can parse 'responses', 'grade', 'feedback' if you have a model
+      final List<String>? responses = (data['responses'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList();
+
+      return AssignmentResponse(
+        userId: data['userId'] as String,
+        userEmail: data['userEmail'] as String?,
+        churchId: data['churchId'] as String?,
+        date: date,
+        responses: responses ?? [],
+        grade: data['grade'] as String?,
+        feedback: data['feedback'] as String?,
+        submittedAt: (data['submittedAt'] as Timestamp?)?.toDate(),
+      );
+    } catch (e) {
+      debugPrint("Error loading user response for $userId on $dateStr: $e");
+      return null;
+    }
+  }
+
 
   /*Future<void> debugFurtherReadings() async {
     final snapshot = await _furtherReadingsCollection.get();
@@ -294,4 +481,26 @@ class FirestoreService {
     print("ACTUALLY WORKING: ${result.length} days loaded");
     return result;
   }
+}
+
+class AssignmentResponse {
+  final String userId;
+  final String? userEmail;
+  final String? churchId;
+  final DateTime date;
+  final List<String> responses;
+  final String? grade;
+  final String? feedback;
+  final DateTime? submittedAt;
+
+  AssignmentResponse({
+    required this.userId,
+    this.userEmail,
+    this.churchId,
+    required this.date,
+    required this.responses,
+    this.grade,
+    this.feedback,
+    this.submittedAt,
+  });
 }

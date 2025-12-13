@@ -38,10 +38,6 @@ class FurtherReadingRow extends StatelessWidget {
               ? () {
                   // Clean reference
                   String ref = extractBibleReference(todayReading);
-                  /*String ref = todayReading
-                      .replaceAll(RegExp(r'\s*\(KJV\)\.?$'), '')
-                      .replaceAll(RegExp(r'\.+$'), '')
-                      .trim();*/
 
                   final manager = context.read<BibleVersionManager>();
                   final raw = manager.getVerseText(ref) ?? "Verse temporarily unavailable";
