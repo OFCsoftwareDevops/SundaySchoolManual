@@ -20,7 +20,7 @@ import 'widgets/church_selection.dart';
 import 'widgets/intro_page.dart';
 import 'widgets/main_screen.dart';
 
-final GlobalKey<MainScreenState> mainScreenKey = GlobalKey<MainScreenState>();
+//final GlobalKey<MainScreenState> mainScreenKey = GlobalKey<MainScreenState>();
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);  // Required in v15.1.3+
@@ -196,7 +196,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
               return const ChurchOnboardingScreen(); // Your join/create church page
             }
             // Everything ready → go to main app
-            return MainScreen(key: mainScreenKey);
+            //return MainScreen(key: mainScreenKey);
+            return MainScreen();
           },
         ),
       );

@@ -18,11 +18,6 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
   final TextEditingController _codeController = TextEditingController();
   bool _isJoining = false;
 
-  void _goToProfileThenMain() {
-    // Just pop the onboarding screen
-    Navigator.of(context).pop();
-  }
-
   Future<void> _joinWithCode() async {
     final code = _codeController.text.trim().toUpperCase();
     if (code.length != 6) {
@@ -58,7 +53,6 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
         ),
       );
 
-      _goToProfileThenMain();
     } catch (e) {
       String errorMsg = e.toString().replaceFirst('Exception: ', '');
       if (e is FirebaseFunctionsException) {
@@ -165,10 +159,6 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
                       context,
                       MaterialPageRoute(builder: (_) => const AddChurchScreen()),
                     );
-                    // If user successfully created a church (you can return true, or just assume success)
-                    if (result == true || result == null) {
-                      _goToProfileThenMain();
-                    }
                   },
                 ),
 

@@ -4,9 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../UI/buttons.dart';
-import '../../main.dart';
-import '../../widgets/church_selection.dart';
-import '../../widgets/main_screen.dart';
 
 // lib/screens/auth_screen.dart
 class AuthScreen extends StatefulWidget {
@@ -41,13 +38,6 @@ class _AuthScreenState extends State<AuthScreen> {
       await FirebaseAuth.instance.signInWithCredential(credential);
 
       if (!mounted) return;
-
-      /*/ Go to full onboarding screen instead of modal
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => const ChurchOnboardingScreen(),
-        ),
-      );*/
       
     } catch (e) {
       if (mounted) {
@@ -66,10 +56,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
     try {
       await FirebaseAuth.instance.signInAnonymously();
-      /*if (mounted) {
-        // Guest user: go straight to general mode
-        _goToProfileThenMain();
-      }*/
+
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -81,21 +68,11 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
-  /*void _goToProfileThenMain() {
-    // Just pop the onboarding screen
-    Navigator.of(context).pop();
-
-    // Switch to Account tab (index 2)
-    /*mainScreenKey.currentState?.setState(() {
-      mainScreenKey.currentState!.selectedIndex = 2;
-    });*/
-  }*/
-
   @override
   Widget build(BuildContext context) {
-    return Container(
-    //return Scaffold(
-      //body: Container(
+    //return Container(
+    return Scaffold(
+      body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -132,15 +109,24 @@ class _AuthScreenState extends State<AuthScreen> {
                 const SizedBox(height: 20),
 
                 const Text(
-                  "Log-In Page",
+                  "Login",
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
+                  ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 const Text(
                   "Sign in to create or join your church",
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 18, color: Colors.white70),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white70,
+                    height: 1.4,
+                  ),
                 ),
 
                 const Spacer(),
@@ -207,7 +193,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           height: 24,
                           width: 24,
                           child: CircularProgressIndicator(
-                            color: Colors.black87,
+                            color: Color.fromARGB(221, 188, 22, 22),
                             strokeWidth: 3,
                           ),
                         )
@@ -247,7 +233,7 @@ class _AuthScreenState extends State<AuthScreen> {
             ),
           ),
         ),
-      //),
+      ),
     );
   }
 }
