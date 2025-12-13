@@ -75,9 +75,9 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
     // Prepare assignment text
     if (notes != null && notes.blocks.isNotEmpty) {
       _assignmentText = notes.blocks.map((b) => b.text ?? "").join("\n\n").trim();
-      if (_assignmentText.isEmpty) _assignmentText = "No assignment text";
+      if (_assignmentText.isEmpty) _assignmentText = "No assignment text!";
     } else {
-      _assignmentText = "You need to be logged in to view assignment!";
+      _assignmentText = "No assignment text!";
     }
 
     // Load existing user response

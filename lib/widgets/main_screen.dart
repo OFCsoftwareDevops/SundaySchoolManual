@@ -29,7 +29,7 @@ class MainScreenState extends State<MainScreen> {
     selectedIndex = widget.initialTab;
   }
 
-  Widget _buildAccountScreen(AuthService auth) {
+  Widget buildAccountScreen(AuthService auth) {
     final user = FirebaseAuth.instance.currentUser;
 
     // Not signed in → login
@@ -72,7 +72,12 @@ class MainScreenState extends State<MainScreen> {
                 selectedIndex == 1 
                   ? const BibleEntryPoint() 
                   : const SizedBox.shrink(),           // ← only this, nothing else
-                _buildAccountScreen(auth),
+                // index 2 - Account tab: dynamically built using your method
+                Consumer<AuthService>(
+                  builder: (context, auth, child) {
+                    return buildAccountScreen(auth);
+                  },
+                ),
                 //const ChurchSelector(),
                 /*Center(child: Text("Profile", style: TextStyle(fontSize: 24))),
                 Center(child: Text("Settings", style: TextStyle(fontSize: 24))),*/

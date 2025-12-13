@@ -1,5 +1,6 @@
 // lib/screens/lesson_preview.dart
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -277,6 +278,7 @@ class BeautifulLessonPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
     return Scaffold(
       backgroundColor: Colors.white,
       floatingActionButton: FloatingActionButton.extended(
@@ -319,26 +321,36 @@ class BeautifulLessonPage extends StatelessWidget {
               ...data.blocks.map((block) => _buildBlock(context, block)),
               // REAL ASSIGNMENT FROM YOUR NEW COLLECTION
               const SizedBox(height: 20),
-              Center(
-                child: AssignmentWidgetButton(
-                  context: context,
-                  text: "Answer This Week's Assignment",
-                  icon: const Icon(Icons.edit_note_rounded),
-                  topColor: Colors.deepPurple,
-                  borderColor: const Color.fromARGB(0, 0, 0, 0),   // optional
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => AssignmentResponsePage(
-                          date: lessonDate,
-                          isTeen: title.contains("Teen") || title.contains("teen"),
+              if (user != null && !user.isAnonymous)
+                Center(
+                  child: AssignmentWidgetButton(
+                    context: context,
+                    text: "Answer This Week's Assignment",
+                    icon: const Icon(Icons.edit_note_rounded),
+                    topColor: Colors.deepPurple,
+                    borderColor: const Color.fromARGB(0, 0, 0, 0),   // optional
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AssignmentResponsePage(
+                            date: lessonDate,
+                            isTeen: title.contains("Teen") || title.contains("teen"),
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
-              ),
+              if (user == null || user.isAnonymous)
+                Center(
+                  child: const Text(
+                    "Sign in to answer this week's assignment",
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color.fromARGB(244, 107, 36, 36)),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+
               const SizedBox(height: 100),
             ],
           ),

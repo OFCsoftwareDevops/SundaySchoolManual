@@ -139,7 +139,7 @@ Widget AssignmentWidgetButton({
 Widget HomePageButtons({
   required BuildContext context,
   required String text,
-  required VoidCallback onPressed,
+  VoidCallback? onPressed,
   required Color topColor,
   Color borderColor = const Color.fromARGB(0, 118, 118, 118),  // ← NEW: default white outline
   double borderWidth = 2.0,          // ← NEW: thickness of border
@@ -312,7 +312,7 @@ Widget FeedbackPageButton({
 /// ---------------------------------------------------------------------------
 class AnimatedPress3D extends StatefulWidget {
   final Widget child;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final Color topColor;
   final Color borderColor;       // ← NEW
   final double borderWidth;      // ← NEW
@@ -374,7 +374,7 @@ class _AnimatedPress3DState extends State<AnimatedPress3D>
       onTapUp: (_) async {
         await _ctrl.forward();
         await _ctrl.reverse();
-        widget.onTap();       // ← Navigation happens AFTER animation
+        widget.onTap?.call();       // ← Navigation happens AFTER animation
       },
       child: AnimatedBuilder(
         animation: _ctrl,

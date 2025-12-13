@@ -4,17 +4,14 @@ import 'package:flutter/material.dart';
 import '../UI/buttons.dart';
 
 class IntroPage extends StatelessWidget {
-  final VoidCallback onFinish;
-  const IntroPage({super.key, required this.onFinish});
+  final VoidCallback? onFinish;
+  final bool isLoading;
 
-  /*Future<void> _completeIntro(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('hasSeenIntro', true);
-
-    if (context.mounted) {
-      Navigator.of(context).pushReplacementNamed('/home');
-    }
-  }*/
+  const IntroPage({
+    super.key, 
+    required this.onFinish,
+    required this.isLoading,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -49,8 +46,8 @@ class IntroPage extends StatelessWidget {
                 width: double.infinity,
                 child: HomePageButtons(
                   context: context,
-                  text: "Get Started",
-                  topColor: Colors.deepPurple,
+                  text: isLoading ? "Preparing..." : "Get Started",
+                  topColor: isLoading ? const Color.fromARGB(255, 57, 56, 58): Colors.deepPurple,
                   borderColor: const Color.fromARGB(0, 0, 0, 0),   // optional
                   onPressed: onFinish,
                 ),

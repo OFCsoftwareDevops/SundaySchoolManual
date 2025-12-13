@@ -26,7 +26,7 @@ class FirestoreService {
   }
 
   // ── ASSIGNMENTS COLLECTION ──
-  CollectionReference get _assignmentsCollection {
+  CollectionReference get churchAssignmentsCollection {
     if (churchId != null && churchId!.isNotEmpty) {
       return FirebaseFirestore.instance
           .collection('churches')
@@ -35,6 +35,10 @@ class FirestoreService {
     } else {
       return FirebaseFirestore.instance.collection('assignments');
     }
+  }
+
+  CollectionReference get globalAssignmentCollection {
+    return FirebaseFirestore.instance.collection('assignments');
   }
 
   // ── RESPONSES COLLECTION ──
@@ -61,10 +65,14 @@ class FirestoreService {
     }
   }
 
+  CollectionReference get globalFurtherReadingCollection {
+    return FirebaseFirestore.instance.collection('further_readings');
+  }
+
   // ←←←←← PUBLIC STREAM (this is what home.dart will use)
   //Stream<QuerySnapshot> get lessonsStream => churchLessonsCollection.snapshots();
   Stream<QuerySnapshot> get lessonsStream => globalLessonsCollection.snapshots();
-  Stream<QuerySnapshot> get assignmentsStream => _assignmentsCollection.snapshots();
+  Stream<QuerySnapshot> get assignmentsStream => globalAssignmentCollection.snapshots();
   Stream<QuerySnapshot> get furtherReadingsStream => _furtherReadingsCollection.orderBy('date').snapshots();   // assuming you have a 'date' field (the Sunday)
 
   // ── READ LESSONS COLLECTION ──
@@ -218,11 +226,44 @@ class FirestoreService {
   }
 
   // ── LOAD ASSIGNMENTS COLLECTION ──
-  Future<AssignmentDay?> loadAssignment(DateTime date) async {
+    Future<LessonDay?> loadAssignment(DateTime date) async {
     final String id = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
 
     try {
-      final doc = await _assignmentsCollection.doc(id).get();
+      DocumentSnapshot doc;
+
+      // Step 1: Try church-specific lesson first (if church is selected)
+      if (churchId != null && churchId!.isNotEmpty) {
+        doc = await churchAssignmentsCollection.doc(id).get();
+
+        if (doc.exists && doc.data() != null) {
+          final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+          return _parseLessonData(data, date);
+        }
+        // If not found in church → fall through to global
+      }
+
+      // Step 2: Fallback to global standard lesson
+      doc = await globalAssignmentCollection.doc(id).get();
+
+      if (!doc.exists || doc.data() == null) {
+        return null; // No lesson for this date at all
+      }
+
+      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      return _parseLessonData(data, date);
+
+    } catch (e) {
+      debugPrint("Error loading lesson $id: $e");
+      return null;
+    }
+  }
+
+  /*Future<AssignmentDay?> loadAssignment(DateTime date) async {
+    final String id = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+
+    try {
+      final doc = await churchAssignmentsCollection.doc(id).get();
       if (!doc.exists || doc.data() == null) return null;
 
       final data = doc.data()! as Map<String, dynamic>;
@@ -251,12 +292,12 @@ class FirestoreService {
       debugPrint("Error loading assignment $id: $e");
       return null;
     }
-  }
+  }*/
 
   // ── (Optional) Get all dates that have assignments — for green dots on calendar
   Future<Set<DateTime>> getAllAssignmentDates() async {
     try {
-      final snapshot = await _assignmentsCollection.get();
+      final snapshot = await churchAssignmentsCollection.get();
       final Set<DateTime> dates = {};
       for (var doc in snapshot.docs) {
         final parts = doc.id.split('-');

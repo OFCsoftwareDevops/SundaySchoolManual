@@ -21,12 +21,6 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
   void _goToProfileThenMain() {
     // Just pop the onboarding screen
     Navigator.of(context).pop();
-
-    // And switch to the Account tab (profile will show automatically)
-    final mainState = context.findAncestorStateOfType<MainScreenState>();
-    mainState?.setState(() {
-      mainState.selectedIndex = 2;
-    });
   }
 
   Future<void> _joinWithCode() async {

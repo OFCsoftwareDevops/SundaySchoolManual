@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../UI/buttons.dart';
+import '../../main.dart';
 import '../../widgets/church_selection.dart';
 import '../../widgets/main_screen.dart';
 
@@ -41,12 +42,12 @@ class _AuthScreenState extends State<AuthScreen> {
 
       if (!mounted) return;
 
-      // Go to full onboarding screen instead of modal
+      /*/ Go to full onboarding screen instead of modal
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => const ChurchOnboardingScreen(),
         ),
-      );
+      );*/
       
     } catch (e) {
       if (mounted) {
@@ -65,10 +66,10 @@ class _AuthScreenState extends State<AuthScreen> {
 
     try {
       await FirebaseAuth.instance.signInAnonymously();
-      if (mounted) {
+      /*if (mounted) {
         // Guest user: go straight to general mode
         _goToProfileThenMain();
-      }
+      }*/
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -80,17 +81,15 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
-  void _goToProfileThenMain() {
+  /*void _goToProfileThenMain() {
     // Just pop the onboarding screen
     Navigator.of(context).pop();
 
-    // And switch to the Account tab (profile will show automatically)
-    // Add this method to MainScreenState
-    final mainState = context.findAncestorStateOfType<MainScreenState>();
-    mainState?.setState(() {
-      mainState.selectedIndex = 2;
-    });
-  }
+    // Switch to Account tab (index 2)
+    /*mainScreenKey.currentState?.setState(() {
+      mainScreenKey.currentState!.selectedIndex = 2;
+    });*/
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -130,10 +129,10 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 50),
+                const SizedBox(height: 20),
 
                 const Text(
-                  "Sunday School Manual",
+                  "Log-In Page",
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
@@ -241,7 +240,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       ? "Full access: create or join your church"
                       : "Limited access: use general mode only",
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                  style: const TextStyle(color: Color.fromARGB(255, 14, 14, 14), fontSize: 14),
                 ),
                 const SizedBox(height: 40),
               ],

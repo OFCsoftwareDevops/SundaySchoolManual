@@ -41,7 +41,6 @@ class HomeState extends State<Home> {
     _service = FirestoreService(churchId: churchId);
     _loadLesson();
     _loadFurtherReadings();
-    //_loadAllLessonDates();
     // ←←← ADD THIS: Foreground FCM Handler (Safe & Clean)
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       // Only show if notification exists (some messages are data-only)

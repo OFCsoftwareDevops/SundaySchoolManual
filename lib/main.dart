@@ -19,7 +19,8 @@ import 'widgets/bible_app/bible.dart';
 import 'widgets/church_selection.dart';
 import 'widgets/intro_page.dart';
 import 'widgets/main_screen.dart';
-import 'widgets/preload_screen.dart';
+
+final GlobalKey<MainScreenState> mainScreenKey = GlobalKey<MainScreenState>();
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);  // Required in v15.1.3+
@@ -100,11 +101,14 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
   late Locale _locale;
   bool _showIntro = true;
+  bool _isPreloading = false;
+  bool _preloadDone = false;
 
   @override
   void initState() {
     super.initState();
     _locale = widget.initialLocale;
+    _startPreload();
     WidgetsBinding.instance.addObserver(this); // Listen for app close
   }
 
@@ -121,6 +125,19 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
       _showIntro = true;
       print("📴 App fully closed → will show intro next time");
     }
+  }
+
+  Future<void> _startPreload() async {
+    setState(() => _isPreloading = true);
+
+    await context.read<BibleVersionManager>().loadInitialBible();
+    await HighlightManager().loadFromPrefs();
+
+    if (!mounted) return;
+    setState(() {
+      _isPreloading = false;
+      _preloadDone = true;
+    });
   }
 
   void changeLanguage(Locale locale) async {
@@ -152,26 +169,24 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
           fontFamily: 'Roboto', // Set default font family
         ),
         home: Consumer<AuthService>(
-          builder: (context, auth, child) {
+          builder: (context, auth, child) {  
+            // Show intro only on very first app open ever
+            if (_showIntro) {
+              return IntroPage(
+                isLoading: !_preloadDone,
+                onFinish: _preloadDone
+                    ? () => setState(() => _showIntro = false)
+                    : null,
+              );
+            }
+
             // Still loading auth state / church / roles
             if (auth.isLoading) {
               return const Scaffold(
                 body: Center(child: LinearProgressBar()),
               );
             }
-
-            // Show intro only on very first app open ever
-            if (_showIntro) {
-              return IntroPage(
-                onFinish: () {
-                  setState(() => _showIntro = false);
-                  // Go to preload screen instead of directly to MainScreen
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (_) => const PreloadScreen()),
-                  );
-                },
-              );
-            }
+            
             // No user signed in → go to your login / signup flow
             if (auth.currentUser == null) {
               return const AuthScreen();
@@ -181,7 +196,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
               return const ChurchOnboardingScreen(); // Your join/create church page
             }
             // Everything ready → go to main app
-            return const MainScreen();
+            return MainScreen(key: mainScreenKey);
           },
         ),
       );
