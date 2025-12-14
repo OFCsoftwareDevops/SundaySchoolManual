@@ -104,19 +104,21 @@ class MyApp extends StatefulWidget {
 
   // Allow changing language from anywhere in the app
   static void setLocale(BuildContext context, Locale newLocale) {
-    final state = context.findAncestorStateOfType<_MyAppState>();
+    final state = context.findAncestorStateOfType<MyAppState>();
     state?.changeLanguage(newLocale);
   }
 
   @override
-  State<MyApp> createState() => _MyAppState();
+  State<MyApp> createState() => MyAppState();
 }
 
-class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
+class MyAppState extends State<MyApp> with WidgetsBindingObserver{
   late Locale _locale;
   bool _showIntro = true;
   bool _isPreloading = false;
-  bool _preloadDone = false;
+  bool preloadDone = false;
+  int preloadProgress = 0; // 0 to 3
+  static const int totalPreloadSteps = 3;
 
   @override
   void initState() {
@@ -142,16 +144,27 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
   }
 
   Future<void> _startPreload() async {
-    setState(() => _isPreloading = true);
+    setState(() {
+      _isPreloading = true;
+      preloadProgress = 0; // reset just in case
+    });
 
+    // Step 1
     await context.read<FirestoreService>().preload();
-    await context.read<BibleVersionManager>().loadInitialBible();
+    setState(() => preloadProgress = 1);
+
+    // Step 2
     await HighlightManager().loadFromPrefs();
+    setState(() => preloadProgress = 2);
+
+    // Step 3
+    await context.read<BibleVersionManager>().loadInitialBible();
+    setState(() => preloadProgress = 3);
 
     if (!mounted) return;
     setState(() {
       _isPreloading = false;
-      _preloadDone = true;
+      preloadDone = true;
     });
   }
 
@@ -191,10 +204,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
             // Show intro only on very first app open ever
             if (_showIntro) {
               return IntroPage(
-                isLoading: !_preloadDone,
-                onFinish: _preloadDone
+                preloadDone: preloadDone,
+                isLoading: !preloadDone,
+                preloadProgress: preloadProgress,
+                onFinish: preloadDone
                     ? () => setState(() => _showIntro = false)
-                    : null,
+                    : null, 
               );
             }
 
@@ -210,8 +225,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
               return const AuthScreen();
             }
             // User signed in but no church selected yet
-            if (!auth.hasChurch) {
-              return const ChurchOnboardingScreen(); // Your join/create church page
+            // Skip church selection if user is anonymous (guest mode)
+            final user = auth.currentUser!;
+            if (!auth.hasChurch && !user.isAnonymous) {
+              return const ChurchOnboardingScreen();
             }
             // Everything ready → go to main app
             //return MainScreen(key: mainScreenKey);

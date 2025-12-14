@@ -69,7 +69,6 @@ void showFurtherReadingDialog({
   readingSeconds = ((readingSeconds + 4) ~/ 5) * 5; // Round up to next multiple of 5
   if (readingSeconds < 10) readingSeconds = 10; // minimum 5s
 
-
   // Show the beautiful centered dialog
   showDialog(
     context: context,

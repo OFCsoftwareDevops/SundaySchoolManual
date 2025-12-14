@@ -9,7 +9,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../UI/buttons.dart';
-import '../backend_data/debug.dart';
 import '../backend_data/firestore_service.dart';
 import '../backend_data/lesson_data.dart';
 import '../l10n/app_localizations.dart';

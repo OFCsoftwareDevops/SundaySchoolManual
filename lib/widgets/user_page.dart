@@ -3,6 +3,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../UI/buttons.dart';
 import '../auth/login/login_page.dart';
 import 'main_screen.dart';
 
@@ -181,7 +182,38 @@ class UserProfileScreen extends StatelessWidget {
               const Spacer(),
 
               // Sign Out Button
+
+              // Sign Out Button
               Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: LoginButtons(
+                  context: context,
+                  topColor: Colors.red.shade600,        // Red for "danger" action
+                  borderColor: Colors.transparent,
+                  backOffset: 6.0,
+                  backDarken: 0.5,
+                  onPressed: () async {
+                    await FirebaseAuth.instance.signOut();
+                    // No need for manual navigation — your root Consumer handles it!
+                  },
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.logout, color: Colors.white, size: 24),
+                      SizedBox(width: 12),
+                      Text(
+                        "Sign Out",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ), text: '',
+                ),
+              ),
+              /*Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: SizedBox(
                   width: double.infinity,
@@ -204,7 +236,7 @@ class UserProfileScreen extends StatelessWidget {
                     child: const Text("Sign Out", style: TextStyle(fontSize: 18)),
                   ),
                 ),
-              ),
+              ),*/
 
               const SizedBox(height: 40),
             ],

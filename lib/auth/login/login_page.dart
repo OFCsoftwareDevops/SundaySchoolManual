@@ -1,9 +1,12 @@
 // lib/screens/auth_screen.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../UI/buttons.dart';
+import 'auth_service.dart';
+import '../../UI/loading_overlay.dart';
 
 // lib/screens/auth_screen.dart
 class AuthScreen extends StatefulWidget {
@@ -17,6 +20,25 @@ class _AuthScreenState extends State<AuthScreen> {
   bool _isLoading = false;
   int _selectedTab = 0; // 0 = Google, 1 = Guest
 
+  @override
+  void initState() {
+    super.initState();
+    lifecycleListener; // Activate the listener (just by referencing it)
+  }
+
+  @override
+  void dispose() {
+    lifecycleListener.dispose();
+    super.dispose();
+  }
+
+  late final AppLifecycleListener lifecycleListener = AppLifecycleListener(  // ← No underscore!
+    onResume: () {
+      // Optional: Force notify if needed (usually not required)
+      AuthService.instance.notifyListeners();
+    },
+  );
+
   Future<void> _handleGoogleSignIn() async {
     if (_isLoading) return;
     setState(() => _isLoading = true);
@@ -25,11 +47,11 @@ class _AuthScreenState extends State<AuthScreen> {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       if (googleUser == null) {
         setState(() => _isLoading = false);
+        LoadingOverlay.hide();
         return; // User cancelled
       }
 
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
@@ -40,6 +62,7 @@ class _AuthScreenState extends State<AuthScreen> {
       if (!mounted) return;
       
     } catch (e) {
+      LoadingOverlay.hide();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Sign-in failed: $e"), backgroundColor: Colors.red),
@@ -47,17 +70,20 @@ class _AuthScreenState extends State<AuthScreen> {
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
+      LoadingOverlay.hide();
     }
   }
 
   Future<void> _handleAnonymousLogin() async {
     if (_isLoading) return;
     setState(() => _isLoading = true);
+    LoadingOverlay.hide();
 
     try {
       await FirebaseAuth.instance.signInAnonymously();
 
     } catch (e) {
+      LoadingOverlay.hide();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Guest mode failed: $e"), backgroundColor: Colors.red),
@@ -65,6 +91,7 @@ class _AuthScreenState extends State<AuthScreen> {
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
+      LoadingOverlay.hide();
     }
   }
 

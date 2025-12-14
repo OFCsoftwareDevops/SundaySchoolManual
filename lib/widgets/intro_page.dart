@@ -2,15 +2,20 @@
 import 'package:flutter/material.dart';
 
 import '../UI/buttons.dart';
+import '../UI/timed_button.dart';
 
 class IntroPage extends StatelessWidget {
   final VoidCallback? onFinish;
+  final bool preloadDone;
   final bool isLoading;
+  final int preloadProgress;
 
   const IntroPage({
     super.key, 
     required this.onFinish,
-    required this.isLoading,
+    required this.isLoading, 
+    required this.preloadDone, 
+    required this.preloadProgress,
   });
 
   @override
@@ -44,13 +49,22 @@ class IntroPage extends StatelessWidget {
               const Spacer(),
               SizedBox(
                 width: double.infinity,
-                child: HomePageButtons(
+                child: PreloadProgressButton(
                   context: context,
-                  text: isLoading ? "Preparing..." : "Get Started",
+                  text: "Get Started",
+                  preloadDone: preloadDone,
+                  progress: preloadProgress,
+                  totalSteps: 3,
+                  activeColor: Colors.deepPurple,
+                  onPressed: onFinish, // your original function
+                ),
+                /*child: HomePageButtons(
+                  context: context,
+                  text: isLoading ? "Preparing..."  : "Get Started",
                   topColor: isLoading ? const Color.fromARGB(255, 57, 56, 58): Colors.deepPurple,
                   borderColor: const Color.fromARGB(0, 0, 0, 0),   // optional
                   onPressed: onFinish,
-                ),
+                ),*/
               ),
               const SizedBox(height: 30),
             ],
