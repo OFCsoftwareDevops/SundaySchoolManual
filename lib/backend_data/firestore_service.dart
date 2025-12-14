@@ -9,6 +9,15 @@ class FirestoreService {
   /// Pass the current church ID when creating the service
   FirestoreService({this.churchId});
 
+  /// FOR PRELOAD ALL in main.dart
+  Future<void> preload() async {
+    await Future.wait([
+      getAllLessonDates(),
+      getAllAssignmentDates(),
+      getFurtherReadingsWithText(),
+    ]);
+  }
+
   // ── LESSONS COLLECTION ──
   CollectionReference get churchLessonsCollection {
     if (churchId != null && churchId!.isNotEmpty) {
@@ -131,41 +140,6 @@ class FirestoreService {
       adultNotes: adultNotes,
     );
   }
-  /*Future<LessonDay?> loadLesson(DateTime date) async {
-    final String id = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
-    
-    try {
-      final doc = await churchLessonsCollection.doc(id).get();
-      if (!doc.exists || doc.data() == null) return null;
-
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-
-      SectionNotes? teenNotes;
-      SectionNotes? adultNotes;
-
-      // Support both new format (direct teen/adult) and old format (teenNotes/adultNotes)
-      if (data.containsKey('teen') && data['teen'] is Map<String, dynamic>) {
-        teenNotes = SectionNotes.fromMap(Map<String, dynamic>.from(data['teen']));
-      } else if (data.containsKey('teenNotes') && data['teenNotes'] is Map<String, dynamic>) {
-        teenNotes = SectionNotes.fromMap(Map<String, dynamic>.from(data['teenNotes']));
-      }
-
-      if (data.containsKey('adult') && data['adult'] is Map<String, dynamic>) {
-        adultNotes = SectionNotes.fromMap(Map<String, dynamic>.from(data['adult']));
-      } else if (data.containsKey('adultNotes') && data['adultNotes'] is Map<String, dynamic>) {
-        adultNotes = SectionNotes.fromMap(Map<String, dynamic>.from(data['adultNotes']));
-      }
-
-      return LessonDay(
-        date: date,
-        teenNotes: teenNotes,
-        adultNotes: adultNotes,
-      );
-    } catch (e) {
-      debugPrint("Error loading lesson $id: $e");
-      return null;
-    }
-  }*/
 
   /// Save or update a lesson
   Future<void> saveLesson({
@@ -226,7 +200,7 @@ class FirestoreService {
   }
 
   // ── LOAD ASSIGNMENTS COLLECTION ──
-    Future<LessonDay?> loadAssignment(DateTime date) async {
+  Future<LessonDay?> loadAssignment(DateTime date) async {
     final String id = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
 
     try {
@@ -258,41 +232,6 @@ class FirestoreService {
       return null;
     }
   }
-
-  /*Future<AssignmentDay?> loadAssignment(DateTime date) async {
-    final String id = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
-
-    try {
-      final doc = await churchAssignmentsCollection.doc(id).get();
-      if (!doc.exists || doc.data() == null) return null;
-
-      final data = doc.data()! as Map<String, dynamic>;
-
-      SectionNotes? teenNotes;
-      SectionNotes? adultNotes;
-
-      if (data.containsKey('teen') && data['teen'] is Map) {
-        teenNotes = SectionNotes.fromMap(Map<String, dynamic>.from(data['teen']));
-      } else if (data.containsKey('teenNotes') && data['teenNotes'] is Map) {
-        teenNotes = SectionNotes.fromMap(Map<String, dynamic>.from(data['teenNotes']));
-      }
-
-      if (data.containsKey('adult') && data['adult'] is Map) {
-        adultNotes = SectionNotes.fromMap(Map<String, dynamic>.from(data['adult']));
-      } else if (data.containsKey('adultNotes') && data['adultNotes'] is Map) {
-        adultNotes = SectionNotes.fromMap(Map<String, dynamic>.from(data['adultNotes']));
-      }
-
-      return AssignmentDay(
-        date: date,
-        teenNotes: teenNotes,
-        adultNotes: adultNotes,
-      );
-    } catch (e) {
-      debugPrint("Error loading assignment $id: $e");
-      return null;
-    }
-  }*/
 
   // ── (Optional) Get all dates that have assignments — for green dots on calendar
   Future<Set<DateTime>> getAllAssignmentDates() async {

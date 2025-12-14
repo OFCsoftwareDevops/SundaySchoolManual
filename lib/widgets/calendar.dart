@@ -214,7 +214,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
                     ),
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        final double fontSize = constraints.maxWidth * 0.45;
+                        final double fontSize = constraints.maxWidth * 0.40;
                         // or use min(width, height) if not square
 
                         return Center(

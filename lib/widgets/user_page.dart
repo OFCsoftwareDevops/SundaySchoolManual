@@ -3,6 +3,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../auth/login/login_page.dart';
 import 'main_screen.dart';
 
 class UserProfileScreen extends StatelessWidget {
@@ -194,7 +195,10 @@ class UserProfileScreen extends StatelessWidget {
                     onPressed: () async {
                       await FirebaseAuth.instance.signOut();
                       if (context.mounted) {
-                        Navigator.of(context).pushNamedAndRemoveUntil('/',(route) => route.isFirst);
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(builder: (_) => AuthScreen()), 
+                          (route) => false,
+                        );
                       }
                     },
                     child: const Text("Sign Out", style: TextStyle(fontSize: 18)),

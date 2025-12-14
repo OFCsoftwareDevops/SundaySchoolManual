@@ -38,7 +38,7 @@ class BiblePage extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: const [
-                  Icon(Icons.menu_book_rounded, size: 100, color: Color(0xFF5D8668)),
+                  Icon(Icons.menu_book_rounded, size: 100, color: Color.fromARGB(255, 20, 140, 100)),
                   SizedBox(height: 40),
                   Text("Loading the Holy Bible...", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF5D8668))),
                   SizedBox(height: 30),
@@ -52,7 +52,7 @@ class BiblePage extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             title: const Text("Holy Bible", style: TextStyle(fontWeight: FontWeight.bold)),
-            backgroundColor: const Color(0xFF5D8668),
+            backgroundColor: const Color.fromARGB(255, 20, 140, 100),
             foregroundColor: Colors.white,
             centerTitle: true,
             actions: [
@@ -63,7 +63,7 @@ class BiblePage extends StatelessWidget {
                     ? const LinearProgressBar()
                     : DropdownButton<String>(
                       value: manager.currentVersion,
-                      dropdownColor: const Color(0xFF5D8668),
+                      dropdownColor: const Color.fromARGB(255, 20, 140, 100),
                       icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
                       underline: const SizedBox(),
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -98,7 +98,7 @@ class BiblePage extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-          child: Text(title, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF5D8668))),
+          child: Text(title, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 20, 140, 100))),
         ),
         ...items.map((book) => Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
@@ -107,7 +107,7 @@ class BiblePage extends StatelessWidget {
             child: BibleBooksButtons(
               context: context,
               text: book['name'],
-              topColor: const Color(0xFF5D8668),  // same color you used in ElevatedButton
+              topColor: const Color.fromARGB(255, 20, 140, 100),  // same color you used in ElevatedButton
               onPressed: () {
                 LastPositionManager.save(
                   bookName: book['name'],
@@ -151,7 +151,7 @@ class BookReader extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(book['name']),
-        backgroundColor: const Color(0xFF5D8668),
+        backgroundColor: const Color.fromARGB(255, 20, 140, 100),
         foregroundColor: Colors.white,
         //leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: onBack),
         actions: [
@@ -168,7 +168,7 @@ class BookReader extends StatelessWidget {
                         )
                       : DropdownButton<String>(
                           value: manager.currentVersion,
-                          dropdownColor: const Color(0xFF5D8668),
+                          dropdownColor: const Color.fromARGB(255, 20, 140, 100),
                           icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
                           underline: const SizedBox(),
                           style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -201,7 +201,7 @@ class BookReader extends StatelessWidget {
             child: BibleChaptersButtons(
               context: context,
               text: "${i + 1}",
-              topColor: const Color(0xFF5D8668),
+              topColor: const Color.fromARGB(255, 20, 140, 100),
               borderColor: const Color.fromARGB(0, 0, 0, 0),   // optional
               onPressed: () {
                 LastPositionManager.save(
@@ -324,7 +324,7 @@ class _ChapterReaderState extends State<ChapterReader> {
         return Scaffold(
           appBar: AppBar(
             title: Text("${widget.bookName} ${widget.chapterNum}"),
-            backgroundColor: const Color(0xFF5D8668),
+            backgroundColor: const Color.fromARGB(255, 20, 140, 100),
             foregroundColor: Colors.white,
             actions: [
               if (_selectedVerses.isNotEmpty)
@@ -346,7 +346,7 @@ class _ChapterReaderState extends State<ChapterReader> {
                             )
                           : DropdownButton<String>(
                               value: manager.currentVersion,
-                              dropdownColor: const Color(0xFF5D8668),
+                              dropdownColor: const Color.fromARGB(255, 20, 140, 100),
                               icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
                               underline: const SizedBox(),
                               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),

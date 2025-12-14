@@ -268,11 +268,15 @@ class HomeState extends State<Home> {
                           ),
                           const SizedBox(height: 10),
                           // Beautiful Further Reading row — only shows when there is a reading
-                          if (todayFurtherReading.isNotEmpty)
+                          _readingRow(
+                            context: context,
+                            todayReading: todayFurtherReading,
+                          ),
+                          /*if (todayFurtherReading.isNotEmpty)
                             _readingRow(
                               context: context,
                               todayReading: todayFurtherReading,
-                            ),
+                            ),*/
                             //_furtherReadingRow(todayReading: todayFurtherReading),
                         ],
                       );
@@ -286,7 +290,7 @@ class HomeState extends State<Home> {
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.only(bottom: 100),
+                padding: const EdgeInsets.only(bottom: 0),
                 child: Column(
                   children: [
 
@@ -405,7 +409,7 @@ class HomeState extends State<Home> {
                                   Icon(
                                     hasLesson ? Icons.menu_book_rounded : Icons.event_busy,
                                     size: 40,
-                                    color: Colors.white,
+                                    color: hasLesson ? Colors.white : const Color.fromARGB(255, 62, 62, 62),
                                   ),
                                   const SizedBox(width: 10),
                                   Expanded(
@@ -413,7 +417,7 @@ class HomeState extends State<Home> {
                                       hasLesson
                                           ? AppLocalizations.of(context)!.sundaySchoolLesson
                                           : AppLocalizations.of(context)!.noLessonToday,
-                                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: hasLesson ? Colors.white : const Color.fromARGB(255, 62, 62, 62),),
                                     ),
                                   ),
                                 ],
@@ -562,7 +566,7 @@ class HomeState extends State<Home> {
                 todayReading: todayReading,
               )
           : () {},
-      topColor: hasReading ? const Color.fromARGB(255, 20, 140, 100) : Colors.grey.shade300,
+      topColor: hasReading ? const Color.fromARGB(255, 20, 140, 100) : const Color.fromARGB(255, 174, 174, 174),
       borderColor:
           hasReading ? const Color.fromARGB(0, 99, 59, 167) : const Color.fromARGB(0, 224, 224, 224),
       borderWidth: hasReading ? 0 : 0,
@@ -571,12 +575,12 @@ class HomeState extends State<Home> {
         children: [
           Icon(
             Icons.menu_book_rounded,
-            size: 38,
+            size: 30,
             color: hasReading
                 ? const Color.fromARGB(255, 255, 255, 255)
-                : Colors.grey[500],
+                : const Color.fromARGB(255, 39, 39, 39),
           ),
-          const SizedBox(width: 18),
+          const SizedBox(width: 10),
           Expanded(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween, // ✅ prevents height inflation
@@ -588,7 +592,7 @@ class HomeState extends State<Home> {
                     fontSize: 17,
                     color: hasReading
                         ? const Color.fromARGB(255, 255, 255, 255)
-                        : Colors.grey[600],
+                        : Color.fromARGB(255, 39, 39, 39),
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -598,11 +602,11 @@ class HomeState extends State<Home> {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 17,
+                    fontSize: 15,
                     fontWeight: FontWeight.w400,
                     color: hasReading
                         ? const Color.fromARGB(255, 255, 255, 255)
-                        : Colors.grey[700],
+                        : Color.fromARGB(255, 39, 39, 39),
                   ),
                 ),
               ],
@@ -614,7 +618,7 @@ class HomeState extends State<Home> {
                 : Icons.lock_outline,
             color: hasReading
                 ? const Color.fromARGB(255, 255, 255, 255)
-                : Colors.grey[400],
+                : Color.fromARGB(255, 39, 39, 39),
             size: 22,
           ),
         ],

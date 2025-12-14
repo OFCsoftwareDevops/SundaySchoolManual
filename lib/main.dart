@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,6 +13,7 @@ import 'UI/linear_progress_bar.dart';
 import 'auth/database/constants.dart';
 import 'auth/login/auth_service.dart';
 import 'auth/login/login_page.dart';
+import 'backend_data/firestore_service.dart';
 import 'widgets/bible_app/highlight/highlight_manager.dart';
 import 'firebase_options.dart';
 import 'l10n/app_localizations.dart';
@@ -34,6 +36,14 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   //await CurrentChurch.instance.loadFromPrefs();
+
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
+  // ✅ Fit the entire screen
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
   FirebaseFirestore.instance.settings = const Settings(
     persistenceEnabled: true,
@@ -72,6 +82,10 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => HighlightManager()), // Already loaded!
         // AuthService now provides church + roles + loading state
         ChangeNotifierProvider<AuthService>(create: (_) => AuthService.instance),
+        // Load Firestore
+        Provider<FirestoreService>(
+          create: (_) => FirestoreService(churchId: null),
+        ),
         // Add more providers here later (ThemeManager, UserManager, etc.)
       ],
       child: MyApp(
@@ -130,6 +144,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
   Future<void> _startPreload() async {
     setState(() => _isPreloading = true);
 
+    await context.read<FirestoreService>().preload();
     await context.read<BibleVersionManager>().loadInitialBible();
     await HighlightManager().loadFromPrefs();
 
@@ -168,6 +183,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
           colorSchemeSeed: Color.fromARGB(255, 255, 255, 255).withOpacity(0.3), // APP THEME COLOR
           fontFamily: 'Roboto', // Set default font family
         ),
+        /*routes: {
+          '/': (context) => MainScreen(),
+        },*/
         home: Consumer<AuthService>(
           builder: (context, auth, child) {  
             // Show intro only on very first app open ever
