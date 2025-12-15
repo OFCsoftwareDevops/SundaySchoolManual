@@ -268,11 +268,17 @@ class FirestoreService {
     final String dateStr =
         "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
 
-    final docRef = FirebaseFirestore.instance
-        .collection('assignment_responses')
+    // ← Use _responsesCollection for church/global fallback
+    final docRef = _responsesCollection
         .doc(type)
         .collection(dateStr)
         .doc(userId);
+
+    /*final docRef = FirebaseFirestore.instance
+        .collection('assignment_responses')
+        .doc(type)
+        .collection(dateStr)
+        .doc(userId);*/
 
     await docRef.set({
       'userId': userId,
@@ -325,7 +331,7 @@ class FirestoreService {
 
   /// ── LOAD ONE USER RESPONSE ──
   /// Loads the logged-in user's assignment response for a given date and type (teen/adult)
-  Future<AssignmentResponse?> loadUserResponse({
+  /*Future<AssignmentResponse?> loadUserResponse({
     required DateTime date,
     required String type,   // "teen" or "adult"
     required String userId,
@@ -364,6 +370,41 @@ class FirestoreService {
       );
     } catch (e) {
       debugPrint("Error loading user response for $userId on $dateStr: $e");
+      return null;
+    }
+  }*/
+
+  Future<AssignmentResponse?> loadUserResponse({
+    required DateTime date,
+    required String type,
+    required String userId,
+  }) async {
+    final String dateStr = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+
+    try {
+      // ← Same path as save
+      final docRef = _responsesCollection
+          .doc(type)
+          .collection(dateStr)
+          .doc(userId);
+
+      final doc = await docRef.get();
+      if (!doc.exists || doc.data() == null) return null;
+
+      final Map<String, dynamic> data = doc.data()!;
+
+      return AssignmentResponse(
+        userId: data['userId'] as String,
+        userEmail: data['userEmail'] as String?,
+        churchId: data['churchId'] as String?,
+        date: date,
+        responses: List<String>.from(data['responses'] ?? []),
+        grade: data['grade'] as String?,
+        feedback: data['feedback'] as String?,
+        submittedAt: (data['submittedAt'] as Timestamp?)?.toDate(),
+      );
+    } catch (e) {
+      debugPrint("Error loading user response: $e");
       return null;
     }
   }

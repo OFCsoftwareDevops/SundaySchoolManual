@@ -124,9 +124,9 @@ class _MonthCalendarState extends State<MonthCalendar> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+      margin: const EdgeInsets.all(0),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(10),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -149,7 +149,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
               children: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
                 .map((d) => Expanded(
                   child: Center(
-                    child: Text(d, style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w600)),
+                    child: Text(d, style: const TextStyle(color: Color.fromARGB(255, 109, 109, 109), fontWeight: FontWeight.w600)),
                   ),
                 ))
               .toList(),
@@ -229,18 +229,6 @@ class _MonthCalendarState extends State<MonthCalendar> {
                         );
                       },
                     ),
-                    /*child: SizedBox.expand(
-                      child: Center(
-                        child: Text(
-                          '$day',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: isSelected || isToday ? Colors.white : null,
-                          ),
-                        ),
-                      ),
-                    ),*/
                   ),
                   if (hasLesson)
                     Positioned(

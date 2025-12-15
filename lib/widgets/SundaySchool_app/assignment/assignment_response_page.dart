@@ -11,6 +11,7 @@ import '../../../UI/linear_progress_bar.dart';
 import '../../../auth/login/auth_service.dart';
 import '../../../backend_data/assignment_data.dart';
 import '../../../backend_data/firestore_service.dart';
+import '../../../backend_data/lesson_data.dart';
 
 class AssignmentResponsePage extends StatefulWidget {
   final DateTime date;
@@ -31,7 +32,7 @@ class AssignmentResponsePage extends StatefulWidget {
 class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
   final List<TextEditingController> _controllers = [];
   bool _isLoading = true;
-  String _assignmentText = "Loading assignment...";
+  String _currentQuestion = "Loading assignment...";
 
   late final FirestoreService _service;
 
@@ -43,7 +44,138 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
     _loadAssignmentAndResponses();
   }
 
+    String extractSingleQuestionFromSection(Map<String, dynamic>? sectionMap) {
+    if (sectionMap == null) return "No question available.";
+
+    final List<dynamic>? blocks = sectionMap['blocks'] as List<dynamic>?;
+    if (blocks == null || blocks.isEmpty) return "No question available.";
+
+    for (final block in blocks) {
+      final map = block as Map<String, dynamic>;
+      final String? text = map['text'] as String?;
+
+      if (text != null) {
+        final trimmed = text.trim();
+        if (trimmed.isNotEmpty) {
+          // Look for common question patterns
+          if (trimmed.endsWith('?') ||
+              trimmed.contains(RegExp(r'\(\d+\s*marks?\)', caseSensitive: false)) ||
+              trimmed.contains('List') ||
+              trimmed.contains('Explain') ||
+              trimmed.contains('Discuss') ||
+              trimmed.contains('Question')) {
+            return trimmed;
+          }
+        }
+      }
+
+      // Check numbered list — first item is often the question
+      if (map['type'] == 'numbered_list') {
+        final List<dynamic>? items = map['items'] as List<dynamic>?;
+        if (items != null && items.isNotEmpty) {
+          final first = items.first as String;
+          final trimmed = first.trim();
+          if (trimmed.endsWith('?') || trimmed.contains(RegExp(r'\(\d+\s*marks?\)')))
+            return trimmed;
+        }
+      }
+    }
+
+    // Fallback: first heading or text block
+    for (final block in blocks) {
+      final map = block as Map<String, dynamic>;
+      if ((map['type'] == 'heading' || map['type'] == 'text') && map['text'] != null) {
+        return (map['text'] as String).trim();
+      }
+    }
+
+    return "No question available.";
+  }
+
   Future<void> _loadAssignmentAndResponses() async {
+    print(">>> ENTERED _loadAssignmentAndResponses");
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
+
+    // ── Load the assignment (contains the question) ──
+    AssignmentDay? assignmentDay;
+    try {
+      assignmentDay = await _service.loadAssignment(widget.date).timeout(
+        const Duration(seconds: 6),
+        onTimeout: () {
+          print("loadAssignment TIMEOUT");
+          return null;
+        },
+      );
+    } catch (e, st) {
+      print("Error during loadAssignment: $e\n$st");
+      assignmentDay = null;
+    }
+
+    print("Assignment loaded: $assignmentDay");
+
+    // ── Extract the single question from teen or adult section ──
+    String currentQuestion = "No question available for this day.";
+
+    if (assignmentDay != null) {
+      final SectionNotes? sectionNotes = widget.isTeen
+          ? assignmentDay.teenNotes
+          : assignmentDay.adultNotes;
+
+      if (sectionNotes != null) {
+        currentQuestion = extractSingleQuestionFromSection(sectionNotes.toMap());
+      }
+    }
+
+    // ── Load existing user responses (multiple answers to the one question) ──
+    List<String> savedResponses = [];
+    try {
+      final AssignmentResponse? response = await _service.loadUserResponse(
+        date: widget.date,
+        type: widget.isTeen ? "teen" : "adult",
+        userId: user.uid,
+      );
+
+      if (response != null && response.responses.isNotEmpty) {
+        savedResponses = response.responses;
+      }
+    } catch (e, st) {
+      print("Error loading user response: $e\n$st");
+    }
+
+    // ── Dispose old controllers ──
+    for (final controller in _controllers) {
+      controller.dispose();
+    }
+    _controllers.clear();
+
+    // ── Create controllers: one per saved answer, or at least one empty ──
+    if (savedResponses.isEmpty) {
+      _controllers.add(TextEditingController());
+    } else {
+      for (final answer in savedResponses) {
+        _controllers.add(TextEditingController(text: answer.trim()));
+      }
+    }
+
+    // ── Update state with the question ──
+    if (mounted) {
+      setState(() {
+        _currentQuestion = currentQuestion;
+        _isLoading = false;
+      });
+    }
+
+    print(">>> FINISHED _loadAssignmentAndResponses");
+    print(">>> Question: $_currentQuestion");
+    print(">>> Number of answer boxes: ${_controllers.length}");
+  }
+
+  /*Future<void> _loadAssignmentAndResponses() async {
     print(">>> ENTERED _loadAssignmentAndResponses");
 
     final user = FirebaseAuth.instance.currentUser;
@@ -74,10 +206,10 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
 
     // Prepare assignment text
     if (notes != null && notes.blocks.isNotEmpty) {
-      _assignmentText = notes.blocks.map((b) => b.text ?? "").join("\n\n").trim();
-      if (_assignmentText.isEmpty) _assignmentText = "No assignment text!";
+      _currentQuestion = notes.blocks.map((b) => b.text ?? "").join("\n\n").trim();
+      if (_currentQuestion.isEmpty) _currentQuestion = "No assignment text!";
     } else {
-      _assignmentText = "No assignment text!";
+      _currentQuestion = "No assignment text!";
     }
 
     // Load existing user response
@@ -117,10 +249,67 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
     if (!mounted) return;
     setState(() => _isLoading = false);
     print(">>> FINISHED _loadAssignmentAndResponses");
-  }
+  }*/
 
 
   Future<void> _saveResponses() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final churchId = context.read<AuthService>().churchId;
+    if (churchId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please select your church first!"),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // Collect all non-empty answers
+    final List<String> responses = _controllers
+        .map((controller) => controller.text.trim())
+        .where((answer) => answer.isNotEmpty)
+        .toList();
+
+    if (responses.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please enter at least one answer to the question."),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    try {
+      await _service.saveUserResponse(
+        date: widget.date,
+        type: widget.isTeen ? "teen" : "adult",
+        userId: user.uid,
+        userEmail: user.email ?? "anonymous@user.com",
+        churchId: churchId,
+        responses: responses,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Your answers have been saved successfully!"),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e, st) {
+      print("Error saving responses: $e\n$st");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Failed to save your answers. Please try again."),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+  /*Future<void> _saveResponses() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
@@ -174,7 +363,7 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
         ),
       );
     }
-  }
+  }*/
 
 
   void _addResponseBox() {
@@ -221,7 +410,7 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            _assignmentText,
+                            _currentQuestion,
                             style: const TextStyle(fontSize: 17, height: 1.6),
                           ),
                           const SizedBox(height: 12),

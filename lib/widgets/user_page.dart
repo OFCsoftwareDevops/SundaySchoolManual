@@ -21,16 +21,6 @@ class UserProfileScreen extends StatelessWidget {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-              Navigator.push(
-                context,
-              MaterialPageRoute(builder: (_) => const MainScreen()),
-            );
-          }
-        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined, color: Colors.white),
@@ -112,12 +102,11 @@ class UserProfileScreen extends StatelessWidget {
               ),
 
               const SizedBox(height: 10),
-
               // Church Info Card (Placeholder)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: Card(
-                  elevation: 2,
+                  elevation: 1,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   child: Padding(
                     padding: const EdgeInsets.all(10),
@@ -159,21 +148,25 @@ class UserProfileScreen extends StatelessWidget {
 
               // Menu Items (Placeholder)
               _profileMenuItem(
+                context: context,
                 icon: Icons.history,
                 title: "Lesson History",
                 onTap: () {},
               ),
               _profileMenuItem(
+                context: context,
                 icon: Icons.bookmark_border,
                 title: "Saved Lessons",
                 onTap: () {},
               ),
               _profileMenuItem(
+                context: context,
                 icon: Icons.share,
                 title: "Invite Friends",
                 onTap: () {},
               ),
               _profileMenuItem(
+                context: context,
                 icon: Icons.help_outline,
                 title: "Help & Support",
                 onTap: () {},
@@ -182,13 +175,11 @@ class UserProfileScreen extends StatelessWidget {
               const Spacer(),
 
               // Sign Out Button
-
-              // Sign Out Button
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: LoginButtons(
                   context: context,
-                  topColor: Colors.red.shade600,        // Red for "danger" action
+                  topColor: const Color.fromARGB(255, 209, 76, 73),        // Red for "danger" action
                   borderColor: Colors.transparent,
                   backOffset: 6.0,
                   backDarken: 0.5,
@@ -213,31 +204,6 @@ class UserProfileScreen extends StatelessWidget {
                   ), text: '',
                 ),
               ),
-              /*Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Colors.white70),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                    ),
-                    onPressed: () async {
-                      await FirebaseAuth.instance.signOut();
-                      if (context.mounted) {
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(builder: (_) => AuthScreen()), 
-                          (route) => false,
-                        );
-                      }
-                    },
-                    child: const Text("Sign Out", style: TextStyle(fontSize: 18)),
-                  ),
-                ),
-              ),*/
-
               const SizedBox(height: 40),
             ],
           ),
@@ -246,7 +212,7 @@ class UserProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _profileMenuItem({
+  /*Widget _profileMenuItem({
     required IconData icon,
     required String title,
     required VoidCallback onTap,
@@ -256,6 +222,41 @@ class UserProfileScreen extends StatelessWidget {
       title: Text(title, style: const TextStyle(fontSize: 18, color: Colors.white)),
       trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 18),
       onTap: onTap,
+    );
+  }*/
+  Widget _profileMenuItem({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return PressInButtons(
+      context: context,
+      onPressed: onTap,
+      topColor: const Color.fromARGB(255, 255, 255, 255),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            Icon(icon, color: const Color.fromARGB(179, 0, 0, 0), size: 28),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: Color.fromARGB(255, 0, 0, 0),
+                ),
+              ),
+            ),
+            const Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.white54,
+              size: 18,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

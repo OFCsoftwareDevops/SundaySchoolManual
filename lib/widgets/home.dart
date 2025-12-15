@@ -227,61 +227,65 @@ class HomeState extends State<Home> {
             // FIXED CALENDAR — NEVER SCROLLS AWAY
             // CALENDAR WITH BOTH LESSONS + FURTHER READINGS MARKERS
             Padding(
-              padding: const EdgeInsets.all(10),
-              child: StreamBuilder<QuerySnapshot>(
-                stream: _service.lessonsStream,
-                builder: (context, lessonSnapshot) {
-                  // 1. Green dots — your original code, untouched
-                  Set<DateTime> datesWithLessons = {};
-                  if (lessonSnapshot.hasData) {
-                    for (final doc in lessonSnapshot.data!.docs) {
-                      final parts = doc.id.split('-');
-                      if (parts.length == 3) {
-                        try {
-                          final date = DateTime(
-                            int.parse(parts[0]),
-                            int.parse(parts[1]),
-                            int.parse(parts[2]),
-                          );
-                          datesWithLessons.add(DateTime(date.year, date.month, date.day));
-                        } catch (_) {}
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  StreamBuilder<QuerySnapshot>(
+                    stream: _service.lessonsStream,
+                    builder: (context, lessonSnapshot) {
+                      // 1. Green dots — your original code, untouched
+                      Set<DateTime> datesWithLessons = {};
+                      if (lessonSnapshot.hasData) {
+                        for (final doc in lessonSnapshot.data!.docs) {
+                          final parts = doc.id.split('-');
+                          if (parts.length == 3) {
+                            try {
+                              final date = DateTime(
+                                int.parse(parts[0]),
+                                int.parse(parts[1]),
+                                int.parse(parts[2]),
+                              );
+                              datesWithLessons.add(DateTime(date.year, date.month, date.day));
+                            } catch (_) {}
+                          }
+                        }
                       }
-                    }
-                  }
-
-                  // 2. Purple dots + today’s reading — from your existing method
-                  return FutureBuilder<Map<DateTime, String>>(
-                    future: _service.getFurtherReadingsWithText(),
-                    builder: (context, readingSnapshot) {
-
-                      return Column(
-                        children: [
-                          MonthCalendar(
-                            selectedDate: selectedDate,
-                            datesWithLessons: datesWithLessons,
-                            datesWithFurtherReadings: furtherReadingMap.keys.toSet(), // purple dots
-                            onDateSelected: (date) {
-                              setState(() => selectedDate = date);
-                              _loadLesson();
-                            },
-                          ),
-                          const SizedBox(height: 10),
-                          // Beautiful Further Reading row — only shows when there is a reading
-                          _readingRow(
-                            context: context,
-                            todayReading: todayFurtherReading,
-                          ),
-                          /*if (todayFurtherReading.isNotEmpty)
-                            _readingRow(
-                              context: context,
-                              todayReading: todayFurtherReading,
-                            ),*/
-                            //_furtherReadingRow(todayReading: todayFurtherReading),
-                        ],
+                  
+                      // 2. Purple dots + today’s reading — from your existing method
+                      return FutureBuilder<Map<DateTime, String>>(
+                        future: _service.getFurtherReadingsWithText(),
+                        builder: (context, readingSnapshot) {
+                  
+                          return Column(
+                            children: [
+                              MonthCalendar(
+                                selectedDate: selectedDate,
+                                datesWithLessons: datesWithLessons,
+                                datesWithFurtherReadings: furtherReadingMap.keys.toSet(), // purple dots
+                                onDateSelected: (date) {
+                                  setState(() => selectedDate = date);
+                                  _loadLesson();
+                                },
+                              ),
+                              const SizedBox(height: 10),
+                              // Beautiful Further Reading row — only shows when there is a reading
+                              _readingRow(
+                                context: context,
+                                todayReading: todayFurtherReading,
+                              ),
+                              /*if (todayFurtherReading.isNotEmpty)
+                                _readingRow(
+                                  context: context,
+                                  todayReading: todayFurtherReading,
+                                ),*/
+                                //_furtherReadingRow(todayReading: todayFurtherReading),
+                            ],
+                          );
+                        },
                       );
                     },
-                  );
-                },
+                  ),
+                ],
               ),
             ),
 
@@ -384,9 +388,10 @@ class HomeState extends State<Home> {
 
                     // LESSON CARD
                     Padding(
+                      //padding: const EdgeInsets.fromLTRB(15,0,15,0),
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Card(
-                        elevation: 4,
+                        elevation: 1,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         child: Container(
                           padding: const EdgeInsets.all(20),
@@ -444,11 +449,6 @@ class HomeState extends State<Home> {
                                       ),
                                     ),
                                   ),
-                                  /*const SizedBox(width: 5),
-                                  _readingRow(
-                                    context: context,
-                                    todayReading: todayFurtherReading,
-                                  ),*/
                                 ],
                               ),
 
@@ -476,11 +476,6 @@ class HomeState extends State<Home> {
                                       ),
                                     ),
                                   ),
-                                  /*const SizedBox(width: 5),
-                                  _readingRow(
-                                    context: context,
-                                    todayReading: todayFurtherReading,
-                                  ),*/
                                 ],
                               ),
                             ],
@@ -488,7 +483,6 @@ class HomeState extends State<Home> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 80),
                   ],
                 ),

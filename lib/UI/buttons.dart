@@ -232,7 +232,53 @@ Widget furtherReadingButtons({
   double backDarken = 0.45,
 }) {
   final screenSize = MediaQuery.of(context).size;
-  final double buttonWidth = screenSize.width * 0.91;
+  final double buttonHeight = screenSize.height * 0.06;
+  const double pressDepth = 4.0;
+
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      final double buttonWidth = constraints.maxWidth;
+      return SizedBox(
+        height: buttonHeight + backOffset,
+        width: buttonWidth,
+        child: AnimatedPress3D(
+          onTap: onPressed,
+          topColor: topColor,
+          borderColor: borderColor,
+          borderWidth: borderWidth,
+          backOffset: backOffset,
+          backDarken: backDarken,
+          pressDepth: pressDepth,
+          child: Center(
+            child: child ??
+                Text(
+                  text,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+          ),
+        ),
+      );
+    }
+  );
+}
+
+Widget PressInButtons({
+  required BuildContext context,
+  required VoidCallback onPressed,
+  required Color topColor,
+  required Widget child, // ← NEW
+  Color borderColor = const Color.fromARGB(0, 118, 118, 118),
+  double borderWidth = 2.0,
+  double backOffset = 3.0,
+  double backDarken = 0.45,
+}) {
+  final screenSize = MediaQuery.of(context).size;
+  final double buttonWidth = screenSize.width * 0.925;
   final double buttonHeight = screenSize.height * 0.06;
   const double pressDepth = 4.0;
 
@@ -247,18 +293,7 @@ Widget furtherReadingButtons({
       backOffset: backOffset,
       backDarken: backDarken,
       pressDepth: pressDepth,
-      child: Center(
-        child: child ??
-            Text(
-              text,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.2,
-              ),
-            ),
-      ),
+      child: child,
     ),
   );
 }
