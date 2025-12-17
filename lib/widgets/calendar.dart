@@ -230,30 +230,44 @@ class _MonthCalendarState extends State<MonthCalendar> {
                       },
                     ),
                   ),
-                  if (hasLesson)
+                  //if (hasLesson)
+                    /*Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Container(
+                        width: 16,
+                        height: 4,
+                        decoration: const BoxDecoration(
+                          color: Color.fromARGB(255, 74, 196, 78),
+                          shape: BoxShape.rectangle,
+                        ),
+                      ),
+                    ),*/
+
                     Positioned(
-                      bottom: 16,
-                      right: 4,
+                      bottom: 0,
+                      left: 6,
+                      right: 26,
                       child: Container(
                         width: 8,
-                        height: 8,
+                        height: 4,
                         decoration: BoxDecoration(
-                          color: const Color.fromARGB(255, 74, 196, 78),
-                          shape: BoxShape.circle,
+                          color: hasLesson? Color.fromARGB(255, 74, 196, 78) : Color.fromARGB(132, 203, 203, 203),
+                          shape: BoxShape.rectangle,
                         ),
                       ),
                     ),
                   // ←←←←← NEW: Purple dot for Further Readings
-                  if (hasReading)
+                  //if (hasReading)
                     Positioned(
-                      bottom: 4,
-                      right: 4,
+                      bottom: 0,
+                      left: 26,
+                      right: 6,
                       child: Container(
                         width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Color.fromARGB(255, 113, 9, 193),
-                          shape: BoxShape.circle,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: hasReading? Color.fromARGB(255, 249, 81, 25) : Color.fromARGB(132, 203, 203, 203),
+                          shape: BoxShape.rectangle,
                         ),
                       ),
                     ),

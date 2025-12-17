@@ -1,7 +1,6 @@
 // lib/screens/assignment_response_page.dart
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -44,7 +43,7 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
     _loadAssignmentAndResponses();
   }
 
-    String extractSingleQuestionFromSection(Map<String, dynamic>? sectionMap) {
+  String extractSingleQuestionFromSection(Map<String, dynamic>? sectionMap) {
     if (sectionMap == null) return "No question available.";
 
     final List<dynamic>? blocks = sectionMap['blocks'] as List<dynamic>?;
@@ -175,83 +174,6 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
     print(">>> Number of answer boxes: ${_controllers.length}");
   }
 
-  /*Future<void> _loadAssignmentAndResponses() async {
-    print(">>> ENTERED _loadAssignmentAndResponses");
-
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      setState(() => _isLoading = false);
-      return;
-    }
-
-    // Load assignment
-    AssignmentDay? assignmentDay;
-    try {
-      assignmentDay = await _service
-          .loadAssignment(widget.date)
-          .timeout(const Duration(seconds: 6), onTimeout: () {
-        print("loadAssignment TIMEOUT");
-        return null;
-      });
-    } catch (e, st) {
-      print("Error during loadAssignment: $e\n$st");
-      assignmentDay = null;
-    }
-
-    print("Assignment loaded: $assignmentDay");
-
-    // Pick teen or adult notes
-    final notes = widget.isTeen ? assignmentDay?.teenNotes : assignmentDay?.adultNotes;
-    print("isTeen: ${widget.isTeen}");
-
-    // Prepare assignment text
-    if (notes != null && notes.blocks.isNotEmpty) {
-      _currentQuestion = notes.blocks.map((b) => b.text ?? "").join("\n\n").trim();
-      if (_currentQuestion.isEmpty) _currentQuestion = "No assignment text!";
-    } else {
-      _currentQuestion = "No assignment text!";
-    }
-
-    // Load existing user response
-    List<String> responses = [];
-    try {
-      final AssignmentResponse? response = await _service.loadUserResponse(
-        date: widget.date,
-        type: widget.isTeen ? "teen" : "adult",
-        userId: user.uid,
-      );
-
-      if (response != null && response.responses.isNotEmpty) {
-        responses = response.responses;
-      }
-    } catch (e, st) {
-      print("Error loading user response: $e\n$st");
-      responses = [];
-    }
-
-    // Dispose any old controllers
-    for (final c in _controllers) {
-      try {
-        c.dispose();
-      } catch (_) {}
-    }
-    _controllers.clear();
-
-    // Create new controllers based on existing responses or at least one empty box
-    if (responses.isEmpty) {
-      _controllers.add(TextEditingController());
-    } else {
-      for (final resp in responses) {
-        _controllers.add(TextEditingController(text: resp));
-      }
-    }
-
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-    print(">>> FINISHED _loadAssignmentAndResponses");
-  }*/
-
-
   Future<void> _saveResponses() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -309,62 +231,6 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
       );
     }
   }
-  /*Future<void> _saveResponses() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    final churchId = context.read<AuthService>().churchId;
-    if (churchId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please select your church first!"),
-        ),
-      );
-      return;
-    }
-
-    final responses = _controllers
-        .map((c) => c.text.trim())
-        .where((t) => t.isNotEmpty)
-        .toList();
-
-    if (responses.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please enter at least one response."),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    try {
-      await _service.saveUserResponse(
-        date: widget.date,
-        type: widget.isTeen ? "teen" : "adult",
-        userId: user.uid,
-        userEmail: user.email ?? "",
-        churchId: churchId,
-        responses: responses,
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Responses saved!"),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e, st) {
-      print("Error saving responses: $e\n$st");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Failed to save responses."),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }*/
-
 
   void _addResponseBox() {
     setState(() => _controllers.add(TextEditingController()));

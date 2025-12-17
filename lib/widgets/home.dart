@@ -9,6 +9,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../UI/buttons.dart';
+import '../backend_data/debug.dart';
 import '../backend_data/firestore_service.dart';
 import '../backend_data/lesson_data.dart';
 import '../l10n/app_localizations.dart';
@@ -292,7 +293,7 @@ class HomeState extends State<Home> {
             // EVERYTHING BELOW THIS SCROLLS (but calendar stays fixed)
             Expanded(
               child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
+                //physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.only(bottom: 0),
                 child: Column(
                   children: [
@@ -327,8 +328,8 @@ class HomeState extends State<Home> {
                     },
                     child: const Icon(Icons.bug_report),
                   ),*/
-/*
-                  // Global Admin Check Button
+
+                  /*/ Global Admin Check Button
                   ElevatedButton(
                     onPressed: () async {
                       await checkGlobalAdmin();
@@ -549,7 +550,7 @@ class HomeState extends State<Home> {
   }) {
     final bool hasReading = todayReading.trim().isNotEmpty;
     final String displayText =
-        hasReading ? todayReading : "No further reading today";
+        hasReading ? todayReading : "Apply yourself!";
 
     return furtherReadingButtons(
       context: context,
@@ -582,7 +583,7 @@ class HomeState extends State<Home> {
                 Text(
                   "Todays Reading",
                   style: TextStyle(
-                    fontSize: 17,
+                    fontSize: 16,
                     color: hasReading
                         ? const Color.fromARGB(255, 255, 255, 255)
                         : Color.fromARGB(255, 39, 39, 39),
@@ -595,7 +596,7 @@ class HomeState extends State<Home> {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: 14,
                     fontWeight: FontWeight.w400,
                     color: hasReading
                         ? const Color.fromARGB(255, 255, 255, 255)

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:app_demo/l10n/fallback_localizations.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -13,6 +15,7 @@ import 'UI/linear_progress_bar.dart';
 import 'auth/database/constants.dart';
 import 'auth/login/auth_service.dart';
 import 'auth/login/login_page.dart';
+import 'backend_data/assignment_dates_provider.dart';
 import 'backend_data/firestore_service.dart';
 import 'widgets/bible_app/highlight/highlight_manager.dart';
 import 'firebase_options.dart';
@@ -51,7 +54,7 @@ Future<void> main() async {
   );
 
   // FCM setup (only mobile)
-  if (!kIsWeb) {
+  if (!kIsWeb /*&& (Platform.isAndroid || Platform.isIOS)*/) {
     await FirebaseMessaging.instance.requestPermission();
     await FirebaseMessaging.instance.subscribeToTopic("all_users");
     final token = await FirebaseMessaging.instance.getToken();
@@ -83,10 +86,17 @@ Future<void> main() async {
         // AuthService now provides church + roles + loading state
         ChangeNotifierProvider<AuthService>(create: (_) => AuthService.instance),
         // Load Firestore
-        Provider<FirestoreService>(
-          create: (_) => FirestoreService(churchId: null),
-        ),
+        Provider<FirestoreService>(create: (_) => FirestoreService(churchId: null)),
         // Add more providers here later (ThemeManager, UserManager, etc.)
+        // NEW: Assignment Dates for Admin
+        ChangeNotifierProvider<AssignmentDatesProvider>(
+          create: (context) {
+            final service = Provider.of<FirestoreService>(context, listen: false);
+            final provider = AssignmentDatesProvider();
+            provider.load(service); // Load instantly from preload
+            return provider;
+          },
+        ),
       ],
       child: MyApp(
         initialLocale: Locale(savedLang),
@@ -150,11 +160,11 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver{
     });
 
     // Step 1
-    await context.read<FirestoreService>().preload();
+    await HighlightManager().loadFromPrefs();
     setState(() => preloadProgress = 1);
 
     // Step 2
-    await HighlightManager().loadFromPrefs();
+    await context.read<FirestoreService>().preload();
     setState(() => preloadProgress = 2);
 
     // Step 3

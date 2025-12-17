@@ -9,7 +9,7 @@ import '../../UI/buttons.dart';
 import '../../backend_data/lesson_data.dart';
 import '../bible_app/bible.dart';
 import '../bible_app/highlight/highlight_manager.dart';
-import 'assignment/assignment_response_page.dart';
+import 'assignment/assignment_response_page_user.dart';
 import 'bible_ref_parser.dart';
 import 'reference_verse_popup.dart';
 

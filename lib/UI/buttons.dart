@@ -278,8 +278,8 @@ Widget PressInButtons({
   double backDarken = 0.45,
 }) {
   final screenSize = MediaQuery.of(context).size;
-  final double buttonWidth = screenSize.width * 0.925;
-  final double buttonHeight = screenSize.height * 0.06;
+  final double buttonWidth = screenSize.width * 0.40;
+  final double buttonHeight = screenSize.height * 0.08;
   const double pressDepth = 4.0;
 
   return SizedBox(
@@ -306,7 +306,7 @@ Widget LoginButtons({
   Widget? child,                           // ← NEW
   Color borderColor = const Color.fromARGB(0, 118, 118, 118),
   double borderWidth = 2.0,
-  double backOffset = 6.0,
+  double backOffset = 4.0,
   double backDarken = 0.5,
 }) {
   final screenSize = MediaQuery.of(context).size;

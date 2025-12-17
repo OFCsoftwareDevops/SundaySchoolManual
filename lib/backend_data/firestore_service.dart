@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'assignment_data.dart';
 import 'lesson_data.dart';
@@ -11,10 +12,19 @@ class FirestoreService {
 
   /// FOR PRELOAD ALL in main.dart
   Future<void> preload() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return; // No user → skip
+
+    final userId = user.uid;
+
     await Future.wait([
       getAllLessonDates(),
       getAllAssignmentDates(),
       getFurtherReadingsWithText(),
+      getAllAssignmentDates(),
+      getloadUserResponses(userId, "adult"),
+      getloadUserResponses(userId, "teen"),
+      
     ]);
   }
 
@@ -51,7 +61,7 @@ class FirestoreService {
   }
 
   // ── RESPONSES COLLECTION ──
-  CollectionReference get _responsesCollection {
+  CollectionReference get responsesCollection {
     if (churchId != null && churchId!.isNotEmpty) {
       return FirebaseFirestore.instance
           .collection('churches')
@@ -235,23 +245,44 @@ class FirestoreService {
 
   // ── (Optional) Get all dates that have assignments — for green dots on calendar
   Future<Set<DateTime>> getAllAssignmentDates() async {
+    final Set<DateTime> dates = {};
+
     try {
-      final snapshot = await churchAssignmentsCollection.get();
-      final Set<DateTime> dates = {};
-      for (var doc in snapshot.docs) {
-        final parts = doc.id.split('-');
-        if (parts.length == 3) {
-          dates.add(DateTime(
-            int.parse(parts[0]),
-            int.parse(parts[1]),
-            int.parse(parts[2]),
-          ));
+      // 1. Load church-specific assignments (if church selected)
+      if (churchId != null && churchId!.isNotEmpty) {
+        final churchSnap = await churchAssignmentsCollection.get();
+        for (var doc in churchSnap.docs) {
+          final date = _parseDateFromId(doc.id);
+          if (date != null) dates.add(date);
         }
       }
+
+      // 2. Always load global assignments as fallback
+      final globalSnap = await globalAssignmentCollection.get();
+      for (var doc in globalSnap.docs) {
+        final date = _parseDateFromId(doc.id);
+        if (date != null) dates.add(date);
+      }
+
       return dates;
     } catch (e) {
       debugPrint("Error loading assignment dates: $e");
       return {};
+    }
+  }
+
+  // Helper to avoid duplication
+  DateTime? _parseDateFromId(String id) {
+    final parts = id.split('-');
+    if (parts.length != 3) return null;
+    try {
+      return DateTime(
+        int.parse(parts[0]),
+        int.parse(parts[1]),
+        int.parse(parts[2]),
+      );
+    } catch (_) {
+      return null;
     }
   }
 
@@ -268,8 +299,8 @@ class FirestoreService {
     final String dateStr =
         "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
 
-    // ← Use _responsesCollection for church/global fallback
-    final docRef = _responsesCollection
+    // ← Use responsesCollection for church/global fallback
+    final docRef = responsesCollection
         .doc(type)
         .collection(dateStr)
         .doc(userId);
@@ -296,7 +327,7 @@ class FirestoreService {
   /// ── LOAD ALL RESPONSES FOR AN ADMIN ──
   /// Admin can see all responses for a given date and type (teen/adult)
   /// Global admins see everything; church admins see only their church
-  Future<List<Map<String, dynamic>>> loadResponsesForAdmin({
+  /*Future<List<Map<String, dynamic>>> loadResponsesForAdmin({
     required DateTime date,
     required String type, // "teen" or "adult"
     required String? adminChurchId, // null if global admin
@@ -326,52 +357,6 @@ class FirestoreService {
       debugPrint("Error loading admin responses: $e");
       return [];
     }
-  }
-
-
-  /// ── LOAD ONE USER RESPONSE ──
-  /// Loads the logged-in user's assignment response for a given date and type (teen/adult)
-  /*Future<AssignmentResponse?> loadUserResponse({
-    required DateTime date,
-    required String type,   // "teen" or "adult"
-    required String userId,
-  }) async {
-    final String dateStr =
-        "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
-
-    try {
-      final docRef = FirebaseFirestore.instance
-          .collection('assignment_responses')
-          .doc(type)
-          .collection(dateStr)
-          .doc('users')
-          .collection('allUsers')
-          .doc(userId);
-
-      final doc = await docRef.get();
-      if (!doc.exists || doc.data() == null) return null;
-
-      final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-
-      // Optional: You can parse 'responses', 'grade', 'feedback' if you have a model
-      final List<String>? responses = (data['responses'] as List<dynamic>?)
-          ?.map((e) => e.toString())
-          .toList();
-
-      return AssignmentResponse(
-        userId: data['userId'] as String,
-        userEmail: data['userEmail'] as String?,
-        churchId: data['churchId'] as String?,
-        date: date,
-        responses: responses ?? [],
-        grade: data['grade'] as String?,
-        feedback: data['feedback'] as String?,
-        submittedAt: (data['submittedAt'] as Timestamp?)?.toDate(),
-      );
-    } catch (e) {
-      debugPrint("Error loading user response for $userId on $dateStr: $e");
-      return null;
-    }
   }*/
 
   Future<AssignmentResponse?> loadUserResponse({
@@ -383,7 +368,7 @@ class FirestoreService {
 
     try {
       // ← Same path as save
-      final docRef = _responsesCollection
+      final docRef = responsesCollection
           .doc(type)
           .collection(dateStr)
           .doc(userId);
@@ -409,37 +394,17 @@ class FirestoreService {
     }
   }
 
-
-  /*Future<void> debugFurtherReadings() async {
-    final snapshot = await _furtherReadingsCollection.get();
-    
-    if (snapshot.docs.isEmpty) {
-      print("No documents in further_readings collection");
-      return;
+  /// Internal: Preload all user responses for a given type (adult/teen)
+  Future<void> getloadUserResponses(String userId, String type) async {
+    final allDates = await getAllAssignmentDates();
+    for (final date in allDates) {
+      await loadUserResponse(
+        date: date,
+        type: type,
+        userId: userId,
+      );
     }
-
-    for (final doc in snapshot.docs) {
-      final data = doc.data() as Map<String, dynamic>?;
-
-      print("=== DOCUMENT ID: ${doc.id} ===");
-      print("Full raw data: $data");
-
-      final text = data?['text']?.toString() ?? '';
-      
-      print("text field value: >>>$text<<<");
-      print("text length: ${text.length}");
-      print("Contains 'SUN:' → ${text.contains('SUN:')}");
-      print("Contains newline → ${text.contains('\n')}");
-      print("Contains ' (KJV) ' → ${text.contains(' (KJV) ')}");
-
-      if (text.isNotEmpty) {
-        print("First 300 characters:");
-        print(text.substring(0, text.length > 300 ? 300 : text.length));
-        print("---");
-      }
-      print("=== END OF ${doc.id} ===\n");
-    }
-  }*/
+  }
 
   /// Parses all weekly further_readings documents into a daily map
   // ──────────────────────────────────────────────────────────────
