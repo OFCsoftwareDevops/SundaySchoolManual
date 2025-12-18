@@ -305,12 +305,6 @@ class FirestoreService {
         .collection(dateStr)
         .doc(userId);
 
-    /*final docRef = FirebaseFirestore.instance
-        .collection('assignment_responses')
-        .doc(type)
-        .collection(dateStr)
-        .doc(userId);*/
-
     await docRef.set({
       'userId': userId,
       'userEmail': userEmail,

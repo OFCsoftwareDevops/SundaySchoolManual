@@ -26,8 +26,10 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
   late final FirestoreService _service;
   String _question = "Loading question...";
   bool _loading = true;
+  Map<String, bool> _userGradedStatus = {}; // userId → feedback
   Map<String, List<int>> userScores = {}; // userId → list of scores
-  Map<String, String> userFeedback = {}; // userId → feedback
+  Map<String, String> userFeedback = {};
+
 
   @override
   void initState() {
@@ -389,7 +391,7 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(Icons.error, color: Colors.red, size: 48),
-                const SizedBox(height: 16),
+                const SizedBox(height: 10),
                 Text("Error loading members: ${memberSnapshot.error}"),
                 ElevatedButton(onPressed: () => setState(() {}), child: const Text("Retry")),
               ],
@@ -441,27 +443,37 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
                 final hasSubmitted = responses.isNotEmpty;
 
                 return Card(
-                  color: hasSubmitted ? Colors.white : Colors.grey.shade100,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              hasSubmitted ? Icons.check_circle : Icons.pending,
-                              color: hasSubmitted ? Colors.green : Colors.orange,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
+                  margin: const EdgeInsets.only(bottom: 10),
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: ExpansionTile(
+                      // Collapsed title: shows email + status icon
+                      title: Row(
+                        children: [
+                          Icon(
+                            hasSubmitted ? Icons.check_circle : Icons.pending,
+                            color: hasSubmitted ? Colors.green : Colors.orange,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
                               userEmail,
                               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
+                          ),
+                          if (hasSubmitted)
+                            Text(
+                              "${scores.reduce((a, b) => a + b)} / ${responses.length * 5}",
+                              style: const TextStyle(fontSize: 16, color: Colors.deepPurple),
+                            ),
+                        ],
+                      ),
+                      tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      childrenPadding: const EdgeInsets.all(16),
+                      initiallyExpanded: false, // Starts minimized
+                      expandedAlignment: Alignment.topLeft,
+                      expandedCrossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         if (hasSubmitted) ...[
                           ...responses.asMap().entries.map((entry) {
                             final int ansIndex = entry.key;
@@ -469,12 +481,12 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
                             final int currentScore = scores[ansIndex];
 
                             return Padding(
-                              padding: const EdgeInsets.only(bottom: 24),
+                              padding: const EdgeInsets.only(bottom: 10),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text("• Answer ${ansIndex + 1}: $answer", style: const TextStyle(fontSize: 16)),
-                                  const SizedBox(height: 12),
+                                  const SizedBox(height: 8),
                                   // 5-star rating scale
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
@@ -502,7 +514,7 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
                                             child: Text(
                                               "$score",
                                               style: TextStyle(
-                                                fontSize: 24,
+                                                fontSize: 20,
                                                 fontWeight: FontWeight.bold,
                                                 color: isSelected ? Colors.white : _getColorForScore(score),
                                               ),
@@ -516,27 +528,27 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
                               ),
                             );
                           }),
-                          const Divider(height: 40),
+                          const Divider(height: 10),
                           // Total score
                           Text(
                             "Total: ${scores.reduce((a, b) => a + b)} / ${responses.length * 5}",
                             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.deepPurple),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 5),
                           // Feedback
                           TextField(
                             decoration: const InputDecoration(
                               labelText: "Feedback (optional)",
                               border: OutlineInputBorder(),
                             ),
-                            maxLines: 3,
+                            maxLines: 2,
                             controller: TextEditingController(text: feedback),
                             onChanged: (val) {
                               // Store locally until save
                               responseData?['feedback'] = val;
                             },
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 10),
                           // Save button
                           SizedBox(
                             width: double.infinity,
@@ -557,19 +569,55 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
                                   'feedback': feedback?.trim().isEmpty ?? true ? null : feedback,
                                 }, SetOptions(merge: true));
 
+                                setState(() {
+                                  _userGradedStatus[userId] = scores.every((score) => score != 0);
+                                });
+
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text("Grading saved!"), backgroundColor: Colors.green),
+                                  SnackBar(
+                                    content: Text("Grading saved! ${_userGradedStatus[userId]! ? 'Fully Marked' : 'Unmarked'}"),
+                                    backgroundColor: _userGradedStatus[userId]! ? Colors.green : Colors.orange,
+                                  ),
                                 );
                               },
-                              child: const Text("Save Grading", style: TextStyle(fontSize: 18, color: Colors.white)),
+                              child: const Text("Complete Grading", style: TextStyle(fontSize: 18, color: Colors.white)),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          // Status icon + text (bottom right)
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  _userGradedStatus[userId]! ? Icons.verified : Icons.pending,
+                                  color: _userGradedStatus[userId]! ? Colors.green : Colors.orange,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  _userGradedStatus[userId]! ? "Graded" : "Ungraded",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: _userGradedStatus[userId]! ? Colors.green : Colors.orange,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ] else
-                          const Text("Not submitted yet", style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic)),
+                          const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Text(
+                              "Not submitted yet",
+                              style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+                            ),
+                          ),
                       ],
                     ),
-                  ),
-                );
+                  );
               },
             );
           },
@@ -602,6 +650,8 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
           if (!userFeedback.containsKey(userId)) {
             userFeedback[userId] = data['feedback'] as String? ?? "";
           }
+          // Initialize per-user grading status
+        _userGradedStatus.putIfAbsent(userId, () => data['isGraded'] ?? false);
         }
 
         return ListView.builder(
@@ -616,99 +666,205 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
             final scores = userScores[userId]!;
             final feedback = userFeedback[userId]!;
 
+            // Get or initialize grading status for this user
+            final isGraded = _userGradedStatus[userId]!;
+
             return Card(
-              margin: const EdgeInsets.only(bottom: 16),
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              margin: const EdgeInsets.only(bottom: 10),
+              elevation: 2,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                child: Stack(
                   children: [
-                    Text(userEmail, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 16),
-                    ...responses.asMap().entries.map((entry) {
-                      final ansIndex = entry.key;
-                      final answer = entry.value;
-                      final currentScore = scores[ansIndex];
-
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text("• Answer ${ansIndex + 1}: $answer"),
-                            const SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: List.generate(2, (starIndex) {
-                                final score = starIndex;
-                                final isSelected = currentScore == score;
-
-                                return GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      scores[ansIndex] = score;
-                                    });
-                                  },
-                                  child: Container(
-                                    margin: const EdgeInsets.symmetric(horizontal: 8),
-                                    width: 40,
-                                    height: 30,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.rectangle,
-                                      color: isSelected ? _getColorForScore(score) : _getColorForScore(score).withOpacity(0.3),
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        "$score",
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                          color: isSelected ? Colors.white : _getColorForScore(score).withOpacity(0.8),
+                    ExpansionTile(
+                      title: Row(
+                        children: [
+                          Icon(
+                            isGraded ? Icons.check_circle : Icons.pending,
+                            size: 16.0,
+                            color: isGraded ? Colors.green : const Color.fromARGB(255, 140, 140, 140),
+                          ),
+                          const SizedBox(width: 5),
+                          Expanded(
+                            child: Text(
+                              userEmail,
+                              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                          if (isGraded)
+                            Text(
+                              "${scores.reduce((a, b) => a + b)} / ${responses.length}",
+                              style: const TextStyle(fontSize: 16, color: Colors.deepPurple),
+                            ),
+                        ],
+                      ),
+                      tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                      childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16 ,0),
+                      initiallyExpanded: false, // Starts minimized
+                      expandedAlignment: Alignment.topLeft,
+                      expandedCrossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(userEmail, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 10),
+                        ...responses.asMap().entries.map((entry) {
+                          final ansIndex = entry.key;
+                          final answer = entry.value;
+                          final currentScore = scores[ansIndex];
+                    
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text("• Answer ${ansIndex + 1}: $answer"),
+                                const SizedBox(height: 10),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: List.generate(2, (starIndex) {
+                                    final score = starIndex;
+                                    final isSelected = currentScore == score;
+                    
+                                    return GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          scores[ansIndex] = score;
+                                        });
+                                      },
+                                      child: Container(
+                                        margin: const EdgeInsets.symmetric(horizontal: 8),
+                                        width: 40,
+                                        height: 30,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.rectangle,
+                                          color: isSelected ? _getColorForScore(score) : _getColorForScore(score).withOpacity(0.3),
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            "$score",
+                                            style: TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                              color: isSelected ? Colors.white : _getColorForScore(score).withOpacity(0.8),
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ),
-                                );
-                              }),
+                                    );
+                                  }),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                        const Divider(height: 10),
+                        Text(
+                          "Total: ${scores.reduce((a, b) => a + b)} / ${responses.length * 1}",
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+                        ),
+                        const SizedBox(height: 5),
+                        TextField(
+                          decoration: const InputDecoration(
+                            labelText: "Feedback (optional)", 
+                            border: OutlineInputBorder(),
+                          ),
+                          maxLines: 2,
+                          controller: TextEditingController(text: feedback),
+                          onChanged: (val) => userFeedback[userId] = val,
+                        ),
+                        const SizedBox(height: 10),
+                        // SAVE BOX
+                        // Buttons Row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            // Complete Grading Button (disabled if graded)
+                            Expanded(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: _userGradedStatus[userId]! ? Colors.grey : const Color.fromARGB(255, 83, 222, 162),
+                                  padding: const EdgeInsets.symmetric(vertical: 15),
+                                ),
+                                onPressed: _userGradedStatus[userId]!
+                                    ? null // Disabled
+                                    : () async {
+                                        await doc.reference.set({
+                                          'scores': scores,
+                                          'totalScore': scores.reduce((a, b) => a + b),
+                                          'feedback': userFeedback[userId]!.trim().isEmpty ? null : userFeedback[userId],
+                                          'isGraded': true,
+                                        }, SetOptions(merge: true));
+                    
+                                        setState(() {
+                                          _userGradedStatus[userId] = true;
+                                        });
+                    
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text("Grading saved!"), backgroundColor: Colors.green),
+                                        );
+                                      },
+                                child: const Text("Grade", style: TextStyle(fontSize: 18, color: Colors.white)),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            // Reset Grading Button (disabled if not graded)
+                            Expanded(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: _userGradedStatus[userId]! ? const Color.fromARGB(255, 227, 127, 127) : Colors.grey,
+                                  padding: const EdgeInsets.symmetric(vertical: 15),
+                                ),
+                                onPressed: _userGradedStatus[userId]!
+                                    ? () async {
+                                        await doc.reference.update({
+                                          'isGraded': false,
+                                          'scores': null, // Optional: clear scores
+                                          'totalScore': null,
+                                          'feedback': null,
+                                        });
+                    
+                                        setState(() {
+                                          _userGradedStatus[userId] = false;
+                                        });
+                    
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text("Grading reset!"), backgroundColor: Color.fromARGB(255, 220, 97, 88)),
+                                        );
+                                      }
+                                    : null, // Disabled
+                                child: const Text("Reset", style: TextStyle(fontSize: 18, color: Colors.white)),
+                              ),
                             ),
                           ],
                         ),
-                      );
-                    }),
-                    const Divider(height: 40),
-                    Text(
-                      "Total: ${scores.reduce((a, b) => a + b)} / ${responses.length * 1}",
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+                        const Divider(height: 10),
+                        const SizedBox(height: 30),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      decoration: const InputDecoration(labelText: "Feedback (optional)", border: OutlineInputBorder()),
-                      maxLines: 3,
-                      controller: TextEditingController(text: feedback),
-                      onChanged: (val) => userFeedback[userId] = val,
-                    ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple, padding: const EdgeInsets.symmetric(vertical: 16)),
-                        onPressed: () async {
-                          await doc.reference.set({
-                            'scores': scores,
-                            'totalScore': scores.reduce((a, b) => a + b),
-                            'feedback': userFeedback[userId]!.trim().isEmpty ? null : userFeedback[userId],
-                          }, SetOptions(merge: true));
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Grading saved!"), backgroundColor: Colors.green),
-                          );
-                        },
-                        child: const Text("Save Grading", style: TextStyle(fontSize: 18, color: Colors.white)),
+                    if (_userGradedStatus[userId]!)
+                      Positioned(
+                        bottom: 4,
+                        right: 4,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: Colors.green,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: const [
+                              Icon(Icons.verified, color: Colors.white, size: 8),
+                              SizedBox(width: 4),
+                              Text(
+                                "Graded",
+                                style: TextStyle(fontSize: 8, color: Colors.white, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
                   ],
                 ),
-              ),
             );
           },
         );
@@ -729,4 +885,42 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
       default: return Colors.grey;
     }
   }
+
+  /*
+  How to Sum Up All Scores Later (Future-Proof)
+You can query all the user's responses and sum the totalScore (or scores array if you prefer).
+Example: Sum All Scores for a User (Future Code)
+DartFuture<int> getUserTotalScore(String userId) async {
+  int total = 0;
+
+  // Query all assignment responses for this user
+  final snapshot = await _service.responsesCollection
+      .where('userId', isEqualTo: userId)
+      .get();
+
+  for (var doc in snapshot.docs) {
+    final data = doc.data() as Map<String, dynamic>;
+    final score = data['totalScore'] as int? ?? 0;
+    total += score;
+  }
+
+  return total;
+}
+Or sum per assignment type/date if needed:
+DartFuture<Map<String, int>> getUserScoresByDate(String userId) async {
+  final Map<String, int> scoresByDate = {};
+
+  final snapshot = await _service.responsesCollection
+      .where('userId', isEqualTo: userId)
+      .get();
+
+  for (var doc in snapshot.docs) {
+    final data = doc.data() as Map<String, dynamic>;
+    final date = doc.reference.parent.parent!.id; // e.g., "2025-12-28"
+    final score = data['totalScore'] as int? ?? 0;
+    scoresByDate[date] = score;
+  }
+
+  return scoresByDate;
+}*/
 }

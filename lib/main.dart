@@ -241,7 +241,6 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver{
               return const ChurchOnboardingScreen();
             }
             // Everything ready → go to main app
-            //return MainScreen(key: mainScreenKey);
             return MainScreen();
           },
         ),

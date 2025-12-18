@@ -495,54 +495,57 @@ class UserProfileScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 10),
                       // Row 2: Groups + Assignment Dashboard / Teachers Dashboard
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _profileGridButton(
-                              context: context,
-                              icon: Icons.group,
-                              title: "Groups",
-                              onPressed: () {
-                                // Navigate to groups page
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Consumer<AuthService>(
-                              builder: (context, auth, child) {
-                                final bool isAdmin = auth.isGlobalAdmin ||
-                                    auth.hasChurch && auth.adminStatus.isChurchAdmin ||
-                                    auth.adminStatus.isGroupAdmin;
 
-                                return _profileGridButton(
-                                  context: context,
-                                  icon: isAdmin ? Icons.grading : Icons.assignment,
-                                  title: isAdmin ? "Teachers" : "Assignments",
-                                  onPressed: () {
-                                    if (isAdmin) {
-                                      // Admin view (your existing page)
-                                      final today = DateTime.now();
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => AdminResponsesGradingPage(),
-                                        ),
-                                      );
-                                    } else {
-                                      // Normal user assignments view (add your page here)
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (_) => const UserAssignmentsPage()),
-                                      );
-                                    }
-                                  },
-                                );
-                              },
+                      if (user?.isAnonymous != true) ...[
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _profileGridButton(
+                                context: context,
+                                icon: Icons.group,
+                                title: "Groups",
+                                onPressed: () {
+                                  // Navigate to groups page
+                                },
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Consumer<AuthService>(
+                                builder: (context, auth, child) {
+                                  final bool isAdmin = auth.isGlobalAdmin ||
+                                      auth.hasChurch && auth.adminStatus.isChurchAdmin ||
+                                      auth.adminStatus.isGroupAdmin;
+
+                                  return _profileGridButton(
+                                    context: context,
+                                    icon: isAdmin ? Icons.grading : Icons.assignment,
+                                    title: isAdmin ? "Teachers" : "Assignments",
+                                    onPressed: () {
+                                      if (isAdmin) {
+                                        // Admin view (your existing page)
+                                        final today = DateTime.now();
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => AdminResponsesGradingPage(),
+                                          ),
+                                        );
+                                      } else {
+                                        // Normal user assignments view (add your page here)
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (_) => const UserAssignmentsPage()),
+                                        );
+                                      }
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ]
                     ],
                   ),
                 ),
