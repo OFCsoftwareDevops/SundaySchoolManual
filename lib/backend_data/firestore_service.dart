@@ -311,8 +311,10 @@ class FirestoreService {
       'churchId': churchId,
       'responses': responses,
       'submittedAt': FieldValue.serverTimestamp(),
-      'grade': null,
+      'scores': null,
+      'totalScore': null,
       'feedback': null,
+      'isGraded': false,
     }, SetOptions(merge: true));
   }
 
@@ -339,15 +341,31 @@ class FirestoreService {
 
       final Map<String, dynamic> data = doc.data()!;
 
+      // Parse scores array (may be null) and totalScore
+      List<int>? scores;
+      if (data['scores'] is List) {
+        try {
+          scores = List<int>.from(data['scores']);
+        } catch (_) {
+          // If items are strings, try parsing
+          final raw = List.of(data['scores']);
+          scores = raw.map<int>((e) => e is int ? e : int.tryParse(e.toString()) ?? 0).toList();
+        }
+      }
+
+      final int? totalScore = data['totalScore'] is int ? data['totalScore'] as int : (data['totalScore'] is String ? int.tryParse(data['totalScore']) : null);
+
       return AssignmentResponse(
         userId: data['userId'] as String,
         userEmail: data['userEmail'] as String?,
         churchId: data['churchId'] as String?,
         date: date,
         responses: List<String>.from(data['responses'] ?? []),
-        grade: data['grade'] as String?,
+        scores: scores,
+        totalScore: totalScore,
         feedback: data['feedback'] as String?,
         submittedAt: (data['submittedAt'] as Timestamp?)?.toDate(),
+        isGraded: data['isGraded'] as bool?,
       );
     } catch (e) {
       debugPrint("Error loading user response: $e");
@@ -436,9 +454,11 @@ class AssignmentResponse {
   final String? churchId;
   final DateTime date;
   final List<String> responses;
-  final String? grade;
+  final List<int>? scores;
+  final int? totalScore;
   final String? feedback;
   final DateTime? submittedAt;
+  final bool? isGraded;
 
   AssignmentResponse({
     required this.userId,
@@ -446,8 +466,10 @@ class AssignmentResponse {
     this.churchId,
     required this.date,
     required this.responses,
-    this.grade,
+    this.scores,
+    this.totalScore,
     this.feedback,
     this.submittedAt,
+    this.isGraded,
   });
 }

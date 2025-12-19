@@ -98,7 +98,7 @@ Widget BibleChaptersButtons({
 Widget AssignmentWidgetButton({
   required BuildContext context,
   required String text,
-  required VoidCallback onPressed,
+  required VoidCallback? onPressed,
   required Color topColor,
   Color borderColor = const Color.fromARGB(0, 118, 118, 118),  // ← NEW: default white outline
   double borderWidth = 2.0,          // ← NEW: thickness of border

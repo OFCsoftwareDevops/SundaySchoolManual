@@ -32,7 +32,15 @@ class AssignmentResponsePage extends StatefulWidget {
 class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
   final List<TextEditingController> _controllers = [];
   bool _isLoading = true;
+  bool _isSubmitted = false;
+  bool _isEditing = false;
+  bool _isGradedByAdmin = false;
   String _currentQuestion = "Loading assignment...";
+  // Stored response data loaded from Firestore so the UI can access them
+  List<String> _savedResponses = [];
+  List<int> _scores = [];
+  String? _feedback;
+  AssignmentResponse? _loadedResponse;
 
   late final FirestoreService _service;
 
@@ -132,7 +140,6 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
     }
 
     // ── Load existing user responses (multiple answers to the one question) ──
-    List<String> savedResponses = [];
     try {
       final AssignmentResponse? response = await _service.loadUserResponse(
         date: widget.date,
@@ -141,7 +148,34 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
       );
 
       if (response != null && response.responses.isNotEmpty) {
-        savedResponses = response.responses;
+        // Save into state fields so `build` can access them
+        final loadedResponses = response.responses.map((s) => s.trim()).toList();
+
+        // Parse scores from the loaded response (admin stores `scores` as List<int>)
+        List<int> parsedScores = [];
+        if (response.scores != null && response.scores!.isNotEmpty) {
+          parsedScores = List<int>.from(response.scores!);
+        }
+
+        // If no scores present, default to zeros matching responses length
+        if (parsedScores.isEmpty) parsedScores = List.filled(loadedResponses.length, 0);
+
+        // Ensure scores list matches responses length (pad or trim)
+        if (parsedScores.length < loadedResponses.length) {
+          parsedScores.addAll(List.filled(loadedResponses.length - parsedScores.length, 0));
+        } else if (parsedScores.length > loadedResponses.length) {
+          parsedScores = parsedScores.sublist(0, loadedResponses.length);
+        }
+
+        setState(() {
+          _savedResponses = loadedResponses;
+          _feedback = response.feedback;
+          _scores = parsedScores;
+          _loadedResponse = response;
+          _isSubmitted = _savedResponses.isNotEmpty;
+          _isEditing = false;
+          _isGradedByAdmin = response.isGraded ?? false;
+        });
       }
     } catch (e, st) {
       print("Error loading user response: $e\n$st");
@@ -154,10 +188,10 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
     _controllers.clear();
 
     // ── Create controllers: one per saved answer, or at least one empty ──
-    if (savedResponses.isEmpty) {
+    if (_savedResponses.isEmpty) {
       _controllers.add(TextEditingController());
     } else {
-      for (final answer in savedResponses) {
+      for (final answer in _savedResponses) {
         _controllers.add(TextEditingController(text: answer.trim()));
       }
     }
@@ -216,12 +250,19 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
         responses: responses,
       );
 
+      // SUCCESS → mark as submitted
+      setState(() {
+        _isSubmitted = true;
+        _isEditing = false;
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Your answers have been saved successfully!"),
-          backgroundColor: Colors.green,
+          content: Text("Your answers have been submitted successfully!"),
+          backgroundColor: Color.fromARGB(255, 84, 155, 86),
         ),
       );
+
       // Refresh the submitted-dates provider so the calendar shows the update immediately
       try {
         final submittedProvider = Provider.of<SubmittedDatesProvider>(context, listen: false);
@@ -230,12 +271,13 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
         // Swallow any errors here - not critical for user save flow
         debugPrint('Error refreshing submitted dates: $e');
       }
+      
     } catch (e, st) {
       print("Error saving responses: $e\n$st");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Failed to save your answers. Please try again."),
-          backgroundColor: Colors.red,
+          backgroundColor: Color.fromARGB(255, 176, 91, 84),
         ),
       );
     }
@@ -298,16 +340,114 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
                     ),
                   ),
 
-                  const SizedBox(height: 30),
-                  const Text(
+                  const SizedBox(height: 20),
+                  /*const Text(
                     "My Responses:",
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),*/
+                  // After the assignment question card
+
+                  if (_isGradedByAdmin)
+                    Card(
+                      color: Colors.green.shade50,
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(Icons.verified, color: Colors.green.shade700),
+                                const SizedBox(width: 10),
+                                Text(
+                                  "Graded by Teacher",
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green.shade800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            // Total Score — now uses saved totalScore if available, falls back to calculated
+                            Text(
+                              "Your Score: ${_loadedResponse?.totalScore ?? _scores.fold(0, (a, b) => a! + b)} / ${_savedResponses.length}",
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.deepPurple,
+                              ),
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            // Teacher Feedback
+                            if (_feedback != null && _feedback!.trim().isNotEmpty)
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Teacher's Feedback:",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey.shade800,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: Colors.green.shade300, width: 1.5),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.green.shade100,
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Text(
+                                      _feedback!,
+                                      style: const TextStyle(fontSize: 16, height: 1.6),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            else
+                              Text(
+                                "No feedback provided.",
+                                style: TextStyle(fontSize: 16, color: Colors.grey.shade600, fontStyle: FontStyle.italic),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  Text(
+                    _isGradedByAdmin 
+                        ? "This assignment has been graded" 
+                        : (_isSubmitted && !_isEditing ? "Your submitted responses" : "My Responses:"),
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: _isGradedByAdmin ? Colors.grey : null,
+                    ),
                   ),
                   const SizedBox(height: 16),
 
                   ..._controllers.asMap().entries.map((entry) {
                     final index = entry.key;
                     final controller = entry.value;
+
+                    final bool isFieldLocked = _isSubmitted && !_isEditing || _isGradedByAdmin;
+
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 16),
                       child: Row(
@@ -317,49 +457,76 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
                             child: TextField(
                               controller: controller,
                               maxLines: null,
+                              readOnly: isFieldLocked,
                               decoration: InputDecoration(
-                                hintText: "Write your response #${index + 1} here...",
+                                hintText: isFieldLocked
+                                  ? (_isGradedByAdmin ? "Graded — cannot edit" : "Submitted — tap Edit to change")
+                                  : "Write your response #${index + 1} here...",
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 filled: true,
-                                fillColor: Colors.grey[50],
+                                fillColor: isFieldLocked 
+                                  ? Colors.grey.shade200 
+                                  : Colors.grey[50],
                               ),
                             ),
                           ),
                           const SizedBox(width: 8),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.grey),
-                            onPressed: () {
-                              setState(() {
-                                controller.dispose();
-                                _controllers.removeAt(index);
-                              });
-                            },
-                          ),
+                          if (!isFieldLocked)
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.grey),
+                              onPressed: () {
+                                setState(() {
+                                  controller.dispose();
+                                  _controllers.removeAt(index);
+                                });
+                              },
+                            ),
                         ],
                       ),
                     );
                   }),
 
-                  Center(
-                    child: IconButton(
-                      onPressed: _addResponseBox,
-                      icon: const Icon(Icons.add_circle_outline, size: 48),
-                      color: Colors.grey[600],
-                      tooltip: "Add another response",
+                  // Hide "Add response" when locked
+                  if (!_isSubmitted || _isEditing)
+                    Center(
+                      child: IconButton(
+                        onPressed: _addResponseBox,
+                        icon: const Icon(Icons.add_circle_outline, size: 48),
+                        color: Colors.grey[600],
+                        tooltip: "Add another response",
+                      ),
                     ),
-                  ),
 
                   const SizedBox(height: 30),
                   SizedBox(
                     width: double.infinity,
                     child: AssignmentWidgetButton(
                       context: context,
-                      text: "Save All Responses",
-                      icon: const Icon(Icons.save_rounded),
-                      topColor: Colors.deepPurple,
-                      onPressed: _saveResponses,
+                      text: _isGradedByAdmin 
+                        ? "Graded by Teacher" 
+                        : (_isSubmitted && !_isEditing ? "Edit Responses" : "Submit"),
+                      icon: Icon(_isGradedByAdmin 
+                        ? Icons.verified 
+                        : (_isSubmitted && !_isEditing ? Icons.edit : Icons.save_rounded),
+                      ),
+                      topColor: _isGradedByAdmin 
+                        ? const Color.fromARGB(255, 76, 112, 175) 
+                        : (_isSubmitted && !_isEditing ? const Color.fromARGB(255, 62, 134, 71) : Colors.deepPurple),
+                      onPressed: _isGradedByAdmin
+                        ? null // Fully disabled
+                        : () {
+                            if (_isSubmitted && !_isEditing) {
+                              // Unlock for editing
+                              setState(() {
+                                _isEditing = true;
+                              });
+                            } else {
+                              // Submit (new or update)
+                              _saveResponses();
+                            }
+                          },
                     ),
                   ),
                 ],

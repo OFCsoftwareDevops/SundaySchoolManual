@@ -142,16 +142,53 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
 
                   // Use the preloaded submitted dates
                   final submittedProvider = Provider.of<SubmittedDatesProvider>(context, listen: false);
-                  final isSubmitted = _isTeen
+                  /*final isSubmitted = _isTeen
                       ? submittedProvider.teenSubmitted.contains(normalized)
-                      : submittedProvider.adultSubmitted.contains(normalized);
+                      : submittedProvider.adultSubmitted.contains(normalized);*/
+
+                  final Set<DateTime> submittedSet = _isTeen
+                      ? submittedProvider.teenSubmitted
+                      : submittedProvider.adultSubmitted;
+
+                  final Set<DateTime> gradedSet = _isTeen
+                      ? submittedProvider.teenGraded
+                      : submittedProvider.adultGraded;
+
+                  final bool isSubmitted = submittedSet.contains(normalized);
+                  final bool isGraded = gradedSet.contains(normalized);
 
                   // <--- ADD THIS DEBUG PRINT
                   // debugPrint('Checking ${normalized.toIso8601String()} - isTeen: $_isTeen - Submitted? $isSubmitted');
 
-                  final Color cardColor = isSubmitted ? Colors.green.shade100 : Colors.grey.shade100;
+                  /*final Color cardColor = isSubmitted ? Colors.green.shade100 : Colors.grey.shade100;
                   final Color textColor = isSubmitted ? Colors.green.shade800 : Colors.grey;
-                  final IconData icon = isSubmitted ? Icons.check_circle : Icons.pending;
+                  final IconData icon = isSubmitted ? Icons.check_circle : Icons.pending;*/
+
+                  // Determine card style based on state
+                  Color cardColor;
+                  Color textColor;
+                  IconData icon;
+                  String? statusText;
+
+                  if (isGraded) {
+                    // GRADED: Blue
+                    cardColor = Colors.blue.shade200;
+                    textColor = Colors.blue.shade800;
+                    icon = Icons.verified;
+                    statusText = null;
+                  } else if (isSubmitted) {
+                    // SUBMITTED BUT NOT GRADED: Green
+                    cardColor = Colors.green.shade100;
+                    textColor = Colors.green.shade800;
+                    icon = Icons.check_circle;
+                    statusText = null;
+                  } else {
+                    // UNANSWERED: Gray
+                    cardColor = const Color.fromARGB(255, 226, 226, 226);
+                    textColor = Colors.grey.shade700;
+                    icon = Icons.pending;
+                    statusText = null;
+                  }
 
                   return Material(
                     color: cardColor,
@@ -187,6 +224,18 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
                               color: textColor,
                               size: 24,
                             ),
+                            if (statusText != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  statusText,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: textColor,
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                       ),
