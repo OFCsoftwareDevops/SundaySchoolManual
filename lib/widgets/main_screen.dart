@@ -2,6 +2,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../backend_data/firestore_service.dart';
+import '../backend_data/submitted_dates_provider.dart';
 import '../auth/login/auth_service.dart';
 import '../auth/login/login_page.dart';
 import 'bible_app/bible_entry_point.dart';
@@ -29,23 +31,6 @@ class MainScreenState extends State<MainScreen> {
     selectedIndex = widget.initialTab;
   }
 
-  Widget buildAccountScreen(AuthService auth) {
-    final user = FirebaseAuth.instance.currentUser;
-
-    // Not signed in → login
-    if (user == null) {
-      return const AuthScreen();
-    }
-
-    // Signed in: has church OR guest → profile
-    if (auth.hasChurch || user.isAnonymous) {
-      return const UserProfileScreen();
-    }
-
-    // Signed in but no church decision yet → onboarding
-    return const ChurchOnboardingScreen();
-  }
-
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -64,6 +49,16 @@ class MainScreenState extends State<MainScreen> {
               body: Center(child: CircularProgressIndicator()),
             );
           }
+          final user = FirebaseAuth.instance.currentUser;
+          // If no user → go to login screen (same as main.dart)
+          if (user == null) {
+            return const AuthScreen();
+          }
+          // If user is signed in but no church and not anonymous → onboarding
+          if (!auth.hasChurch && !user.isAnonymous) {
+            return const ChurchOnboardingScreen();
+          }
+          
           return Scaffold(
             body: IndexedStack(
               index: selectedIndex,
@@ -72,15 +67,7 @@ class MainScreenState extends State<MainScreen> {
                 selectedIndex == 1 
                   ? const BibleEntryPoint() 
                   : const SizedBox.shrink(),           // ← only this, nothing else
-                // index 2 - Account tab: dynamically built using your method
-                Consumer<AuthService>(
-                  builder: (context, auth, child) {
-                    return buildAccountScreen(auth);
-                  },
-                ),
-                //const ChurchSelector(),
-                /*Center(child: Text("Profile", style: TextStyle(fontSize: 24))),
-                Center(child: Text("Settings", style: TextStyle(fontSize: 24))),*/
+                const UserProfileScreen(),
               ],
             ),
             bottomNavigationBar: BottomNavigationBar(
@@ -104,3 +91,4 @@ class MainScreenState extends State<MainScreen> {
     );
   }
 }
+

@@ -1,7 +1,5 @@
 // lib/widgets/intro_page.dart
 import 'package:flutter/material.dart';
-
-import '../UI/buttons.dart';
 import '../UI/timed_button.dart';
 
 class IntroPage extends StatelessWidget {
@@ -9,6 +7,7 @@ class IntroPage extends StatelessWidget {
   final bool preloadDone;
   final bool isLoading;
   final int preloadProgress;
+  final int totalPreloadSteps;
 
   const IntroPage({
     super.key, 
@@ -16,6 +15,7 @@ class IntroPage extends StatelessWidget {
     required this.isLoading, 
     required this.preloadDone, 
     required this.preloadProgress,
+    required this.totalPreloadSteps,
   });
 
   @override
@@ -54,17 +54,10 @@ class IntroPage extends StatelessWidget {
                   text: "Get Started",
                   preloadDone: preloadDone,
                   progress: preloadProgress,
-                  totalSteps: 3,
+                  totalSteps: totalPreloadSteps,
                   activeColor: Colors.deepPurple,
                   onPressed: onFinish, // your original function
                 ),
-                /*child: HomePageButtons(
-                  context: context,
-                  text: isLoading ? "Preparing..."  : "Get Started",
-                  topColor: isLoading ? const Color.fromARGB(255, 57, 56, 58): Colors.deepPurple,
-                  borderColor: const Color.fromARGB(0, 0, 0, 0),   // optional
-                  onPressed: onFinish,
-                ),*/
               ),
               const SizedBox(height: 30),
             ],

@@ -1,7 +1,5 @@
 // lib/providers/assignment_dates_provider.dart
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
 import '../backend_data/firestore_service.dart';
 
 class AssignmentDatesProvider with ChangeNotifier {

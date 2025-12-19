@@ -10,6 +10,7 @@ import '../../../UI/linear_progress_bar.dart';
 import '../../../auth/login/auth_service.dart';
 import '../../../backend_data/assignment_data.dart';
 import '../../../backend_data/firestore_service.dart';
+import '../../../backend_data/submitted_dates_provider.dart';
 import '../../../backend_data/lesson_data.dart';
 
 class AssignmentResponsePage extends StatefulWidget {
@@ -221,6 +222,14 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
           backgroundColor: Colors.green,
         ),
       );
+      // Refresh the submitted-dates provider so the calendar shows the update immediately
+      try {
+        final submittedProvider = Provider.of<SubmittedDatesProvider>(context, listen: false);
+        await submittedProvider.refresh(_service, user.uid);
+      } catch (e) {
+        // Swallow any errors here - not critical for user save flow
+        debugPrint('Error refreshing submitted dates: $e');
+      }
     } catch (e, st) {
       print("Error saving responses: $e\n$st");
       ScaffoldMessenger.of(context).showSnackBar(

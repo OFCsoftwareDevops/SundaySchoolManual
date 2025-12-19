@@ -17,6 +17,7 @@ import 'auth/login/auth_service.dart';
 import 'auth/login/login_page.dart';
 import 'backend_data/assignment_dates_provider.dart';
 import 'backend_data/firestore_service.dart';
+import 'backend_data/submitted_dates_provider.dart';
 import 'widgets/bible_app/highlight/highlight_manager.dart';
 import 'firebase_options.dart';
 import 'l10n/app_localizations.dart';
@@ -25,7 +26,6 @@ import 'widgets/church_selection.dart';
 import 'widgets/intro_page.dart';
 import 'widgets/main_screen.dart';
 
-//final GlobalKey<MainScreenState> mainScreenKey = GlobalKey<MainScreenState>();
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);  // Required in v15.1.3+
@@ -88,15 +88,8 @@ Future<void> main() async {
         // Load Firestore
         Provider<FirestoreService>(create: (_) => FirestoreService(churchId: null)),
         // Add more providers here later (ThemeManager, UserManager, etc.)
-        // NEW: Assignment Dates for Admin
-        ChangeNotifierProvider<AssignmentDatesProvider>(
-          create: (context) {
-            final service = Provider.of<FirestoreService>(context, listen: false);
-            final provider = AssignmentDatesProvider();
-            provider.load(service); // Load instantly from preload
-            return provider;
-          },
-        ),
+        ChangeNotifierProvider(create: (_) => AssignmentDatesProvider()),
+        ChangeNotifierProvider(create: (_) => SubmittedDatesProvider()),
       ],
       child: MyApp(
         initialLocale: Locale(savedLang),
@@ -127,8 +120,8 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver{
   bool _showIntro = true;
   bool _isPreloading = false;
   bool preloadDone = false;
-  int preloadProgress = 0; // 0 to 3
-  static const int totalPreloadSteps = 3;
+  int preloadProgress = 0; // 0 to 4
+  static const int totalPreloadSteps = 4;
 
   @override
   void initState() {
@@ -163,13 +156,17 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver{
     await HighlightManager().loadFromPrefs();
     setState(() => preloadProgress = 1);
 
-    // Step 2
-    await context.read<FirestoreService>().preload();
+    // Step 2: preload returns submitted-date sets (adult/teen)
+    final preloadResult = await context.read<FirestoreService>().preload();
     setState(() => preloadProgress = 2);
 
-    // Step 3
-    await context.read<BibleVersionManager>().loadInitialBible();
+    final service = context.read<FirestoreService>();
+    await Provider.of<AssignmentDatesProvider>(context, listen: false).load(service);
     setState(() => preloadProgress = 3);
+
+    // Step 5
+    await context.read<BibleVersionManager>().loadInitialBible();
+    setState(() => preloadProgress = 4);
 
     if (!mounted) return;
     setState(() {
@@ -206,9 +203,6 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver{
           colorSchemeSeed: Color.fromARGB(255, 255, 255, 255).withOpacity(0.3), // APP THEME COLOR
           fontFamily: 'Roboto', // Set default font family
         ),
-        /*routes: {
-          '/': (context) => MainScreen(),
-        },*/
         home: Consumer<AuthService>(
           builder: (context, auth, child) {  
             // Show intro only on very first app open ever
@@ -217,6 +211,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver{
                 preloadDone: preloadDone,
                 isLoading: !preloadDone,
                 preloadProgress: preloadProgress,
+                totalPreloadSteps: totalPreloadSteps,
                 onFinish: preloadDone
                     ? () => setState(() => _showIntro = false)
                     : null, 

@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import '../backend_data/firestore_service.dart';
 
 class SubmittedDatesProvider with ChangeNotifier {
-  Set<DateTime> _adult = {};
-  Set<DateTime> _teen = {};
+  Set<DateTime> _adultSubmitted = {};
+  Set<DateTime> _teenSubmitted = {};
   bool _isLoading = true;
 
-  Set<DateTime> get adult => _adult;
-  Set<DateTime> get teen => _teen;
+  Set<DateTime> get adultSubmitted => _adultSubmitted;
+  Set<DateTime> get teenSubmitted => _teenSubmitted;
   bool get isLoading => _isLoading;
 
   Future<void> load(FirestoreService service, String userId) async {
@@ -19,16 +19,36 @@ class SubmittedDatesProvider with ChangeNotifier {
     final teen = <DateTime>{};
 
     for (final date in allDates) {
-      final adultResp = await service.loadUserResponse(date: date, type: 'adult', userId: userId);
-      if (adultResp != null && adultResp.responses.isNotEmpty) adult.add(date);
+      final normalized = DateTime(date.year, date.month, date.day);  // already good
 
-      final teenResp = await service.loadUserResponse(date: date, type: 'teen', userId: userId);
-      if (teenResp != null && teenResp.responses.isNotEmpty) teen.add(date);
+      final adultResp = await service.loadUserResponse(
+        date: normalized,
+        type: 'adult',
+        userId: userId,
+      );
+      if (adultResp != null && adultResp.responses.isNotEmpty) {
+        adult.add(normalized);
+      }
+
+      final teenResp = await service.loadUserResponse(
+        date: normalized,
+        type: 'teen',
+        userId: userId,
+      );
+      if (teenResp != null && teenResp.responses.isNotEmpty) {
+        teen.add(normalized);
+      }
     }
 
-    _adult = adult;
-    _teen = teen;
+    _adultSubmitted = adult;
+    _teenSubmitted = teen;
     _isLoading = false;
     notifyListeners();
+
+    debugPrint('SubmittedDatesProvider LOADED: Adult=${adult.length}, Teen=${teen.length}');
+  }
+
+  Future<void> refresh(FirestoreService service, userId) async {
+    await load(service, userId);
   }
 }

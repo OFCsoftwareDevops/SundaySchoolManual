@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'assignment_data.dart';
 import 'lesson_data.dart';
 
 class FirestoreService {
@@ -11,9 +10,11 @@ class FirestoreService {
   FirestoreService({this.churchId});
 
   /// FOR PRELOAD ALL in main.dart
+  //Future<Map<String, Set<DateTime>>> preload() async {
   Future<void> preload() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return; // No user → skip
+    //if (user == null) return {'adult': {}, 'teen': {}};
 
     final userId = user.uid;
 
@@ -23,8 +24,7 @@ class FirestoreService {
       getFurtherReadingsWithText(),
       getAllAssignmentDates(),
       getloadUserResponses(userId, "adult"),
-      getloadUserResponses(userId, "teen"),
-      
+      getloadUserResponses(userId, "teen") 
     ]);
   }
 
@@ -320,39 +320,6 @@ class FirestoreService {
 
   /// ── LOAD ALL RESPONSES FOR AN ADMIN ──
   /// Admin can see all responses for a given date and type (teen/adult)
-  /// Global admins see everything; church admins see only their church
-  /*Future<List<Map<String, dynamic>>> loadResponsesForAdmin({
-    required DateTime date,
-    required String type, // "teen" or "adult"
-    required String? adminChurchId, // null if global admin
-  }) async {
-    final String dateStr =
-        "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
-
-    final collectionRef = FirebaseFirestore.instance
-        .collection('assignment_responses')
-        .doc(type)
-        .collection(dateStr);
-
-    try {
-      final snapshot = await collectionRef.get();
-
-      // Filter by churchId if not global admin
-      final List<Map<String, dynamic>> responses = snapshot.docs
-          .map((doc) => doc.data() as Map<String, dynamic>)
-          .where((data) {
-            if (adminChurchId == null) return true; // global admin
-            return data['churchId'] == adminChurchId;
-          })
-          .toList();
-
-      return responses;
-    } catch (e) {
-      debugPrint("Error loading admin responses: $e");
-      return [];
-    }
-  }*/
-
   Future<AssignmentResponse?> loadUserResponse({
     required DateTime date,
     required String type,

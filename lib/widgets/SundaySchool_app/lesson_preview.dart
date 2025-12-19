@@ -9,6 +9,7 @@ import '../../UI/buttons.dart';
 import '../../backend_data/lesson_data.dart';
 import '../bible_app/bible.dart';
 import '../bible_app/highlight/highlight_manager.dart';
+import '../main_screen.dart';
 import 'assignment/assignment_response_page_user.dart';
 import 'bible_ref_parser.dart';
 import 'reference_verse_popup.dart';
@@ -321,15 +322,22 @@ class BeautifulLessonPage extends StatelessWidget {
               ...data.blocks.map((block) => _buildBlock(context, block)),
               // REAL ASSIGNMENT FROM YOUR NEW COLLECTION
               const SizedBox(height: 20),
-              if (user != null && !user.isAnonymous)
-                Center(
-                  child: AssignmentWidgetButton(
-                    context: context,
-                    text: "Answer This Week's Assignment",
-                    icon: const Icon(Icons.edit_note_rounded),
-                    topColor: Colors.deepPurple,
-                    borderColor: const Color.fromARGB(0, 0, 0, 0),   // optional
-                    onPressed: () {
+
+              Center(
+                child: AssignmentWidgetButton(
+                  context: context,
+                  text: user != null && !user.isAnonymous
+                      ? "Answer This Week's Assignment"
+                      : "Login to access assignment",
+                  icon: Icon(
+                    user != null && !user.isAnonymous ? Icons.edit_note_rounded : Icons.login,
+                    color: Colors.white,
+                  ),
+                  topColor: Colors.deepPurple,
+                  borderColor: const Color.fromARGB(0, 0, 0, 0),
+                  onPressed: () async {
+                    if (user != null && !user.isAnonymous) {
+                      // Normal logged-in user → go to assignment
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -339,18 +347,17 @@ class BeautifulLessonPage extends StatelessWidget {
                           ),
                         ),
                       );
-                    },
-                  ),
+                    } else {
+                      await FirebaseAuth.instance.signOut();
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (_) => MainScreen()),
+                          (route) => false,
+                        );
+                    }
+                  },
                 ),
-              if (user == null || user.isAnonymous)
-                Center(
-                  child: const Text(
-                    "Sign in to answer this week's assignment",
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color.fromARGB(244, 107, 36, 36)),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-
+              ),
               const SizedBox(height: 100),
             ],
           ),

@@ -118,14 +118,14 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
     final String dateStr = "${widget.date.year}-${widget.date.month.toString().padLeft(2, '0')}-${widget.date.day.toString().padLeft(2, '0')}";
 
     // If no church, show message
-    if (!isGlobalAdmin && churchId == null) {
+    if ((!isGlobalAdmin || !isGroupAdmin) && churchId == null) {
       return Scaffold(
         appBar: AppBar(title: const Text("Responses")),
         body: const Center(child: Text("Global admins only — no church selected.")),
       );
     }
 
-    final membersCollection = isGlobalAdmin
+    final membersCollection = isGlobalAdmin || isGroupAdmin
         ? null // Global admin sees all — we'll load responses directly
         : FirebaseFirestore.instance.collection('churches').doc(churchId).collection('members');
 
@@ -201,297 +201,129 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
     );
   }
 
-  /*Widget _buildChurchAdminView(CollectionReference membersCollection, String type, String dateStr) {
-    return FutureBuilder<QuerySnapshot>(
-      future: membersCollection.get(),
-      builder: (context, memberSnapshot) {
-        // ← ADD ERROR HANDLING
-        if (memberSnapshot.hasError) {
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.error, color: Colors.red, size: 48),
-                const SizedBox(height: 16),
-                Text("Error loading members: ${memberSnapshot.error}"),
-                ElevatedButton(
-                  onPressed: () => setState(() {}), // retry
-                  child: const Text("Retry"),
-                ),
-              ],
-            ),
-          );
-        }
-        if (!memberSnapshot.hasData) return const Center(child: CircularProgressIndicator());
-
-        final memberDocs = memberSnapshot.data!.docs;
-        if (memberDocs.isEmpty) return const Center(child: Text("No members in church."));
-
-        return StreamBuilder<QuerySnapshot>(
-        stream: _service.responsesCollection
-            .doc(type)
-            .collection(dateStr)
-            .snapshots(),
-          builder: (context, responseSnapshot) {
-            final responseMap = <String, Map<String, dynamic>>{};
-            if (responseSnapshot.hasData) {
-              for (var doc in responseSnapshot.data!.docs) {
-                responseMap[doc.id] = doc.data() as Map<String, dynamic>;
-              }
-            }
-
-            return ListView.builder(
-              itemCount: memberDocs.length,
-              itemBuilder: (context, index) {
-                final memberDoc = memberDocs[index];
-                final userId = memberDoc.id;
-                final memberData = memberDoc.data() as Map<String, dynamic>;
-                final userEmail = memberData['email'] ?? "No email";
-
-                final responseData = responseMap[userId];
-                final responses = responseData != null
-                    ? List<String>.from(responseData['responses'] ?? [])
-                    : <String>[];
-                final grade = responseData?['grade'] as String?;
-                final feedback = responseData?['feedback'] as String?;
-
-                final hasSubmitted = responses.isNotEmpty;
-
-                return Card(
-                  color: hasSubmitted ? Colors.white : Colors.grey.shade100,
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              hasSubmitted ? Icons.check_circle : Icons.pending,
-                              color: hasSubmitted ? Colors.green : Colors.orange,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              userEmail,
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        if (hasSubmitted) ...[
-                          ...responses.asMap().entries.map((e) => Padding(
-                                padding: const EdgeInsets.only(bottom: 8),
-                                child: Text("• Answer ${e.key + 1}: ${e.value}"),
-                              )),
-                          const Divider(height: 32),
-                          TextField(
-                            decoration: InputDecoration(labelText: "Grade", hintText: grade ?? "e.g. 8/10"),
-                            controller: TextEditingController(text: grade),
-                            onSubmitted: (val) {
-                              final trimmed = val.trim();
-                              _service.responsesCollection  // or responsesCollection if public
-                                  .doc(type)
-                                  .collection(dateStr)
-                                  .doc(userId)
-                                  .set({'grade': trimmed.isEmpty ? null : trimmed}, SetOptions(merge: true));
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          TextField(
-                            decoration: const InputDecoration(labelText: "Feedback"),
-                            maxLines: 3,
-                            controller: TextEditingController(text: feedback),
-                            onSubmitted: (val) {
-                              final trimmed = val.trim();
-                              _service.responsesCollection  // or responsesCollection if public
-                                  .doc(type)
-                                  .collection(dateStr)
-                                  .doc(userId)
-                                  .set({'grade': trimmed.isEmpty ? null : trimmed}, SetOptions(merge: true));
-                            },
-                          ),
-                        ] else
-                          const Text("Not submitted yet", style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic)),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            );
-          },
+Widget _buildChurchAdminView(CollectionReference membersCollection, String type, String dateStr) {
+  return FutureBuilder<QuerySnapshot>(
+    future: membersCollection.get(),
+    builder: (context, memberSnapshot) {
+      if (memberSnapshot.hasError) {
+        return Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.error, color: Colors.red, size: 48),
+              const SizedBox(height: 10),
+              Text("Error loading members: ${memberSnapshot.error}"),
+              ElevatedButton(onPressed: () => setState(() {}), child: const Text("Retry")),
+            ],
+          ),
         );
-      },
-    );
-  }
+      }
+      if (!memberSnapshot.hasData) return const Center(child: CircularProgressIndicator());
+      if (memberSnapshot.data!.docs.isEmpty) return const Center(child: Text("No members in church."));
 
-  Widget _buildGlobalAdminView(String type, String dateStr) {
-    return StreamBuilder<QuerySnapshot>(
-    stream: _service.responsesCollection
-        .doc(type)
-        .collection(dateStr)
-        .snapshots(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-        if (snapshot.data!.docs.isEmpty) return const Center(child: Text("No submissions yet."));
-
-        return ListView.builder(
-          itemCount: snapshot.data!.docs.length,
-          itemBuilder: (context, index) {
-            final doc = snapshot.data!.docs[index];
-            final data = doc.data() as Map<String, dynamic>;
-            final userEmail = data['userEmail'] ?? "Unknown";
-            final responses = List<String>.from(data['responses'] ?? []);
-            final grade = data['grade'] as String?;
-            final feedback = data['feedback'] as String?;
-
-            return Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(userEmail, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 12),
-                    ...responses.asMap().entries.map((e) => Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Text("• Answer ${e.key + 1}: ${e.value}"),
-                        )),
-                    const Divider(height: 32),
-                    TextField(
-                      decoration: InputDecoration(labelText: "Grade", hintText: grade ?? "e.g. 8/10"),
-                      controller: TextEditingController(text: grade),
-                      onSubmitted: (val) => doc.reference.update({'grade': val.trim().isEmpty ? null : val}),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      decoration: const InputDecoration(labelText: "Feedback"),
-                      maxLines: 3,
-                      controller: TextEditingController(text: feedback),
-                      onSubmitted: (val) => doc.reference.update({'feedback': val.trim().isEmpty ? null : val}),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }*/
-
-  Widget _buildChurchAdminView(CollectionReference membersCollection, String type, String dateStr) {
-    return FutureBuilder<QuerySnapshot>(
-      future: membersCollection.get(),
-      builder: (context, memberSnapshot) {
-        if (memberSnapshot.hasError) {
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.error, color: Colors.red, size: 48),
-                const SizedBox(height: 10),
-                Text("Error loading members: ${memberSnapshot.error}"),
-                ElevatedButton(onPressed: () => setState(() {}), child: const Text("Retry")),
-              ],
-            ),
-          );
-        }
-        if (!memberSnapshot.hasData) return const Center(child: CircularProgressIndicator());
-        if (memberSnapshot.data!.docs.isEmpty) return const Center(child: Text("No members in church."));
-
-        return StreamBuilder<QuerySnapshot>(
-          stream: _service.responsesCollection.doc(type).collection(dateStr).snapshots(),
-          builder: (context, responseSnapshot) {
-            final responseMap = <String, Map<String, dynamic>>{};
-            if (responseSnapshot.hasData) {
-              for (var doc in responseSnapshot.data!.docs) {
-                responseMap[doc.id] = doc.data() as Map<String, dynamic>;
-              }
+      return StreamBuilder<QuerySnapshot>(
+        stream: _service.responsesCollection.doc(type).collection(dateStr).snapshots(),
+        builder: (context, responseSnapshot) {
+          final responseMap = <String, Map<String, dynamic>>{};
+          if (responseSnapshot.hasData) {
+            for (var doc in responseSnapshot.data!.docs) {
+              responseMap[doc.id] = doc.data() as Map<String, dynamic>;
             }
+          }
 
-            return ListView.builder(
-              itemCount: memberSnapshot.data!.docs.length,
-              itemBuilder: (context, index) {
-                final memberDoc = memberSnapshot.data!.docs[index];
-                final userId = memberDoc.id;
-                final memberData = memberDoc.data() as Map<String, dynamic>;
-                final userEmail = memberData['email'] ?? "No email";
+          return ListView.builder(
+            itemCount: memberSnapshot.data!.docs.length,
+            itemBuilder: (context, index) {
+              final memberDoc = memberSnapshot.data!.docs[index];
+              final userId = memberDoc.id;
+              final memberData = memberDoc.data() as Map<String, dynamic>;
+              final userEmail = memberData['email'] ?? "No email";
 
-                final responseData = responseMap[userId];
-                final responses = responseData != null
-                    ? List<String>.from(responseData['responses'] ?? [])
-                    : <String>[];
+              final responseData = responseMap[userId];
+              final responses = responseData != null
+                  ? List<String>.from(responseData['responses'] ?? [])
+                  : <String>[];
 
-                // Load existing scores (array of int, same length as responses)
-                List<int> scores = [];
-                if (responseData != null && responseData['scores'] is List) {
-                  scores = List<int>.from(responseData['scores']);
-                  // Pad or trim to match responses length
-                  if (scores.length < responses.length) {
-                    scores.addAll(List.filled(responses.length - scores.length, 0));
-                  } else if (scores.length > responses.length) {
-                    scores = scores.sublist(0, responses.length);
-                  }
-                } else {
-                  scores = List.filled(responses.length, 0);
+              final hasSubmitted = responses.isNotEmpty;
+
+              // Initialize scores
+              List<int> scores = [];
+              if (responseData != null && responseData['scores'] is List) {
+                scores = List<int>.from(responseData['scores']);
+                if (scores.length < responses.length) {
+                  scores.addAll(List.filled(responses.length - scores.length, 0));
+                } else if (scores.length > responses.length) {
+                  scores = scores.sublist(0, responses.length);
                 }
+              } else {
+                scores = List.filled(responses.length, 0);
+              }
 
-                final feedback = responseData?['feedback'] as String?;
+              // Initialize feedback
+              final feedback = responseData?['feedback'] as String? ?? "";
 
-                final hasSubmitted = responses.isNotEmpty;
+              // Initialize or load grading status
+              _userGradedStatus.putIfAbsent(userId, () => responseData?['isGraded'] ?? false);
+              final isGraded = _userGradedStatus[userId]!;
 
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 10),
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    child: ExpansionTile(
-                      // Collapsed title: shows email + status icon
+              return Card(
+                margin: const EdgeInsets.only(bottom: 10),
+                elevation: 2,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                child: Stack(
+                  children: [
+                    ExpansionTile(
                       title: Row(
                         children: [
                           Icon(
-                            hasSubmitted ? Icons.check_circle : Icons.pending,
-                            color: hasSubmitted ? Colors.green : Colors.orange,
+                            hasSubmitted
+                                ? (isGraded ? Icons.verified : Icons.check_circle)
+                                : Icons.pending,
+                            size: 16.0,
+                            color: hasSubmitted
+                                ? (isGraded ? Colors.green : Colors.green)
+                                : const Color.fromARGB(255, 140, 140, 140),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 5),
                           Expanded(
                             child: Text(
                               userEmail,
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                             ),
                           ),
+                          const SizedBox(width: 5),
                           if (hasSubmitted)
                             Text(
-                              "${scores.reduce((a, b) => a + b)} / ${responses.length * 5}",
+                              "${scores.reduce((a, b) => a + b)} / ${responses.length}",
                               style: const TextStyle(fontSize: 16, color: Colors.deepPurple),
                             ),
                         ],
                       ),
-                      tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      childrenPadding: const EdgeInsets.all(16),
-                      initiallyExpanded: false, // Starts minimized
+                      tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                      childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                      initiallyExpanded: false,
                       expandedAlignment: Alignment.topLeft,
                       expandedCrossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Text(userEmail, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 10),
                         if (hasSubmitted) ...[
                           ...responses.asMap().entries.map((entry) {
-                            final int ansIndex = entry.key;
-                            final String answer = entry.value;
-                            final int currentScore = scores[ansIndex];
+                            final ansIndex = entry.key;
+                            final answer = entry.value;
+                            final currentScore = scores[ansIndex];
 
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 10),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text("• Answer ${ansIndex + 1}: $answer", style: const TextStyle(fontSize: 16)),
-                                  const SizedBox(height: 8),
-                                  // 5-star rating scale
+                                  Text("• Answer ${ansIndex + 1}: $answer"),
+                                  const SizedBox(height: 10),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: List.generate(2, (starIndex) {
-                                      final score = starIndex + 1;
+                                      final score = starIndex;
                                       final isSelected = currentScore == score;
 
                                       return GestureDetector(
@@ -506,9 +338,7 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
                                           height: 30,
                                           decoration: BoxDecoration(
                                             shape: BoxShape.rectangle,
-                                            color: isSelected
-                                                ? _getColorForScore(score)
-                                                : _getColorForScore(score).withOpacity(0.3),
+                                            color: isSelected ? _getColorForScore(score) : _getColorForScore(score).withOpacity(0.3),
                                           ),
                                           child: Center(
                                             child: Text(
@@ -516,7 +346,7 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
                                               style: TextStyle(
                                                 fontSize: 20,
                                                 fontWeight: FontWeight.bold,
-                                                color: isSelected ? Colors.white : _getColorForScore(score),
+                                                color: isSelected ? Colors.white : _getColorForScore(score).withOpacity(0.8),
                                               ),
                                             ),
                                           ),
@@ -529,13 +359,11 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
                             );
                           }),
                           const Divider(height: 10),
-                          // Total score
                           Text(
-                            "Total: ${scores.reduce((a, b) => a + b)} / ${responses.length * 5}",
+                            "Total: ${scores.reduce((a, b) => a + b)} / ${responses.length * 1}",
                             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.deepPurple),
                           ),
                           const SizedBox(height: 5),
-                          // Feedback
                           TextField(
                             decoration: const InputDecoration(
                               labelText: "Feedback (optional)",
@@ -543,70 +371,72 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
                             ),
                             maxLines: 2,
                             controller: TextEditingController(text: feedback),
-                            onChanged: (val) {
-                              // Store locally until save
-                              responseData?['feedback'] = val;
-                            },
+                            onChanged: (val) => userFeedback[userId] = val,
                           ),
                           const SizedBox(height: 10),
-                          // Save button
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.deepPurple,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          // Grade & Reset Buttons
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: isGraded ? Colors.grey : const Color.fromARGB(255, 83, 222, 162),
+                                    padding: const EdgeInsets.symmetric(vertical: 15),
+                                  ),
+                                  onPressed: isGraded
+                                      ? null
+                                      : () async {
+                                          await memberDoc.reference.set({
+                                            'scores': scores,
+                                            'totalScore': scores.reduce((a, b) => a + b),
+                                            'feedback': userFeedback[userId]!.trim().isEmpty ? null : userFeedback[userId],
+                                            'isGraded': true,
+                                          }, SetOptions(merge: true));
+
+                                          setState(() {
+                                            _userGradedStatus[userId] = true;
+                                          });
+
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text("Grading saved!"), backgroundColor: Colors.green),
+                                          );
+                                        },
+                                  child: const Text("Grade", style: TextStyle(fontSize: 18, color: Colors.white)),
+                                ),
                               ),
-                              onPressed: () async {
-                                await _service.responsesCollection
-                                    .doc(type)
-                                    .collection(dateStr)
-                                    .doc(userId)
-                                    .set({
-                                  'scores': scores,
-                                  'totalScore': scores.reduce((a, b) => a + b),
-                                  'feedback': feedback?.trim().isEmpty ?? true ? null : feedback,
-                                }, SetOptions(merge: true));
-
-                                setState(() {
-                                  _userGradedStatus[userId] = scores.every((score) => score != 0);
-                                });
-
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text("Grading saved! ${_userGradedStatus[userId]! ? 'Fully Marked' : 'Unmarked'}"),
-                                    backgroundColor: _userGradedStatus[userId]! ? Colors.green : Colors.orange,
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: isGraded ? const Color.fromARGB(255, 227, 127, 127) : Colors.grey,
+                                    padding: const EdgeInsets.symmetric(vertical: 15),
                                   ),
-                                );
-                              },
-                              child: const Text("Complete Grading", style: TextStyle(fontSize: 18, color: Colors.white)),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          // Status icon + text (bottom right)
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  _userGradedStatus[userId]! ? Icons.verified : Icons.pending,
-                                  color: _userGradedStatus[userId]! ? Colors.green : Colors.orange,
-                                  size: 20,
+                                  onPressed: isGraded
+                                      ? () async {
+                                          await memberDoc.reference.update({
+                                            'isGraded': false,
+                                            'scores': null,
+                                            'totalScore': null,
+                                            'feedback': null,
+                                          });
+
+                                          setState(() {
+                                            _userGradedStatus[userId] = false;
+                                          });
+
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text("Grading reset!"), backgroundColor: Color.fromARGB(255, 220, 97, 88)),
+                                          );
+                                        }
+                                      : null,
+                                  child: const Text("Reset", style: TextStyle(fontSize: 18, color: Colors.white)),
                                 ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  _userGradedStatus[userId]! ? "Graded" : "Ungraded",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: _userGradedStatus[userId]! ? Colors.green : Colors.orange,
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
+                          const Divider(height: 10),
+                          const SizedBox(height: 30),
                         ] else
                           const Padding(
                             padding: EdgeInsets.all(16),
@@ -617,14 +447,41 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
                           ),
                       ],
                     ),
-                  );
-              },
-            );
-          },
-        );
-      },
-    );
-  }
+
+                    // Graded badge (visible when minimized)
+                    if (isGraded)
+                      Positioned(
+                        bottom: 4,
+                        right: 4,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: Colors.green,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: const [
+                              Icon(Icons.verified, color: Colors.white, size: 8),
+                              SizedBox(width: 4),
+                              Text(
+                                "Graded",
+                                style: TextStyle(fontSize: 8, color: Colors.white, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      );
+    },
+  );
+}
 
   Widget _buildGlobalAdminView(String type, String dateStr) {
     return StreamBuilder<QuerySnapshot>(

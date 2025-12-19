@@ -9,7 +9,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../UI/buttons.dart';
-import '../backend_data/debug.dart';
 import '../backend_data/firestore_service.dart';
 import '../backend_data/lesson_data.dart';
 import '../l10n/app_localizations.dart';
@@ -36,7 +35,7 @@ class HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-  // This now reads the selected church
+    // This now reads the selected church
     final churchId = context.read<AuthService>().churchId;
     _service = FirestoreService(churchId: churchId);
     _loadLesson();
@@ -274,12 +273,6 @@ class HomeState extends State<Home> {
                                 context: context,
                                 todayReading: todayFurtherReading,
                               ),
-                              /*if (todayFurtherReading.isNotEmpty)
-                                _readingRow(
-                                  context: context,
-                                  todayReading: todayFurtherReading,
-                                ),*/
-                                //_furtherReadingRow(todayReading: todayFurtherReading),
                             ],
                           );
                         },
@@ -616,65 +609,6 @@ class HomeState extends State<Home> {
             size: 22,
           ),
         ],
-      ),
-    );
-  }
-
-
-  Widget _furtherReadingRow({
-    required String todayReading,
-  }) {
-    final bool hasReading = todayReading.trim().isNotEmpty;
-    final String displayText = hasReading ? todayReading : "No further reading today";
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: hasReading
-            ? () => showFurtherReadingDialog(
-                  context: context,
-                  todayReading: todayReading,
-                )
-            : null,
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: hasReading ? Colors.deepPurple : Colors.grey.shade300,
-                width: hasReading ? 2.5 : 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: hasReading ? const Color.fromARGB(0, 104, 58, 183) : Colors.transparent,
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.menu_book_rounded, size: 38, color: hasReading ? Colors.deepPurple.shade700 : Colors.grey[500]),
-                const SizedBox(width: 18),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Further Reading", style: TextStyle(fontSize: 13.5, color: hasReading ? Colors.deepPurple.shade600 : Colors.grey[600], fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 6),
-                      Text(displayText, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: hasReading ? Colors.deepPurple.shade900 : Colors.grey[700]), maxLines: 2, overflow: TextOverflow.ellipsis),
-                    ],
-                  ),
-                ),
-                Icon(hasReading ? Icons.arrow_forward_ios_rounded : Icons.lock_outline, color: hasReading ? Colors.deepPurple.shade600 : Colors.grey[400], size: 22),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }
