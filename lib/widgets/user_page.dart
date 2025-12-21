@@ -9,6 +9,7 @@ import '../backend_data/submitted_dates_provider.dart';
 import '../backend_data/firestore_service.dart';
 import 'SundaySchool_app/assignment/assignment_home_admin.dart';
 import 'SundaySchool_app/assignment/assignment_home_user.dart';
+import 'leaderboard.dart';
 
 class UserProfileScreen extends StatelessWidget {
   const UserProfileScreen({super.key});
@@ -192,9 +193,13 @@ class UserProfileScreen extends StatelessWidget {
                               child: _profileGridButton(
                                 context: context,
                                 icon: Icons.group,
-                                title: "Groups",
+                                title: "Leaderboard",
                                 onPressed: () {
-                                  // Navigate to groups page
+                                  // Normal user assignments view
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const LeaderboardPage()),
+                                  );
                                 },
                               ),
                             ),
@@ -307,7 +312,6 @@ class UserProfileScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 40),
               ],
             ),
