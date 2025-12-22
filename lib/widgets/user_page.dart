@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../UI/buttons.dart';
 import '../auth/login/auth_service.dart';
-import '../backend_data/submitted_dates_provider.dart';
-import '../backend_data/firestore_service.dart';
 import 'SundaySchool_app/assignment/assignment_home_admin.dart';
 import 'SundaySchool_app/assignment/assignment_home_user.dart';
 import 'leaderboard.dart';
+import 'saved_items_page.dart';
+import '../auth/database/streak_page.dart';
 
 class UserProfileScreen extends StatelessWidget {
   const UserProfileScreen({super.key});
@@ -164,9 +164,13 @@ class UserProfileScreen extends StatelessWidget {
                             child: _profileGridButton(
                               context: context,
                               icon: Icons.bookmark_border,
-                              title: "Saved Lessons",
+                              title: "BookMarks",
                               onPressed: () {
-                                // Navigate to saved/bookmarked lessons page
+                                // Normal user assignments view
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const SavedItemsPage()),
+                                );
                               },
                             ),
                           ),
@@ -177,7 +181,10 @@ class UserProfileScreen extends StatelessWidget {
                               icon: Icons.local_fire_department,
                               title: "Reading Streak",
                               onPressed: () {
-                                // Navigate to streak/badges page
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const StreakPage()),
+                                );
                               },
                             ),
                           ),

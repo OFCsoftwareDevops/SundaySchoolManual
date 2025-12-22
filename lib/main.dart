@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart'; 
 import 'UI/linear_progress_bar.dart';
+import 'UI/app_theme.dart';
 import 'auth/database/constants.dart';
 import 'auth/login/auth_service.dart';
 import 'auth/login/login_page.dart';
@@ -198,11 +199,14 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver{
           FallbackCupertinoLocalizationsDelegate(),
         ],
         supportedLocales: AppLocalizations.supportedLocales, // en, fr, yo
-        theme: ThemeData(
+        /*theme: ThemeData(
           useMaterial3: true,
           colorSchemeSeed: Color.fromARGB(255, 255, 255, 255).withOpacity(0.3), // APP THEME COLOR
           fontFamily: 'Roboto', // Set default font family
-        ),
+        ),*/
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.system,
         home: Consumer<AuthService>(
           builder: (context, auth, child) {  
             // Show intro only on very first app open ever

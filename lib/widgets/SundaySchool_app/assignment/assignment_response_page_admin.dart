@@ -129,7 +129,6 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
         ? null // Global admin sees all — we'll load responses directly
         : FirebaseFirestore.instance.collection('churches').doc(churchId).collection('members');
 
-
     return Scaffold(
       appBar: AppBar(
         title: Text("${widget.isTeen ? 'Teen' : 'Adult'} Responses — $dateStr"),

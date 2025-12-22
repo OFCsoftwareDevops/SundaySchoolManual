@@ -4,6 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'highlight/highlight_manager.dart';
+import '../../../auth/login/auth_service.dart';
+import '../../../backend_data/saved_items_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 
 class VerseActionSheet extends StatefulWidget {
@@ -86,8 +89,38 @@ class _VerseActionSheetState extends State<VerseActionSheet> {
                 label: currentColor != null ? "Highlighted" : "Highlight",
                 onTap: () => setState(() => _showColorPicker = !_showColorPicker),
               ),
-              _Action(icon: Icons.bookmark_border, label: "Bookmark", onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Bookmark coming soon")));
+              _Action(
+                icon: Icons.bookmark_border, 
+                label: "Bookmark", 
+                onTap: () async {
+                final auth = Provider.of<AuthService>(context, listen: false);
+                final user = FirebaseAuth.instance.currentUser ?? auth.currentUser;
+                final churchId = auth.churchId;
+
+                if (user == null || churchId == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Sign in and select a church to save bookmarks")));
+                  return;
+                }
+
+                final service = SavedItemsService();
+
+                // Build a stable refId for this selection (book-chapter-verses)
+                final refId = '${widget.bookName.toLowerCase().replaceAll(' ', '_')}_${widget.chapter}_${sorted.join('-')}';
+
+                try {
+                  await service.addBookmark(
+                    churchId,
+                    user.uid,
+                    refId: refId,
+                    title: reference,
+                    text: fullText,
+                  );
+
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Bookmarked")));
+                  //Navigator.pop(context); // close sheet
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save bookmark: $e')));
+                }
               }),
             ],
           ),

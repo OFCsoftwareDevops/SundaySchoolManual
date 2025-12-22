@@ -1,6 +1,10 @@
 // lib/widgets/further_reading_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../auth/login/auth_service.dart';
+import '../../../backend_data/saved_items_service.dart';
+import '../../../backend_data/streak_service.dart';
 import '../../../UI/linear_progress_bar.dart';
 import '../../../UI/timed_button.dart';
 import '../../bible_app/bible.dart';
@@ -80,11 +84,59 @@ void showFurtherReadingDialog({
       contentPadding: EdgeInsets.zero,
       content: SizedBox(
         width: double.maxFinite,
-        child: VersePopup(
-          reference: ref,
-          verses: verses,
-          rawText: raw,
-          heightFraction: 0.85, // tall dialog
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Top row with reference and save icon
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(ref, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
+                  IconButton(
+                    tooltip: 'Save reading',
+                    icon: const Icon(Icons.bookmark_add, color: Color.fromARGB(255, 100, 13, 74)),
+                    onPressed: () async {
+                      final auth = context.read<AuthService>();
+                      final currentUser = FirebaseAuth.instance.currentUser;
+                      final churchId = auth.churchId;
+
+                      if (currentUser == null || churchId == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sign in and select a church to save readings')));
+                        return;
+                      }
+
+                      try {
+                        await SavedItemsService().addFurtherReading(
+                          churchId,
+                          currentUser.uid,
+                          title: ref,
+                          reading: todayReading,
+                        
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reading saved')));
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save reading: $e')));
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+
+            // The verse popup
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.72,
+              child: VersePopup(
+                reference: ref,
+                verses: verses,
+                rawText: raw,
+                heightFraction: 0.85, // tall dialog
+              ),
+            ),
+          ],
         ),
       ),
       actions: [
@@ -92,11 +144,21 @@ void showFurtherReadingDialog({
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: SizedBox(
             width: double.infinity, // full width in actions
-            child: TimedFeedbackButtonStateful(
-              text: "Finish Reading",
+              child: TimedFeedbackButtonStateful(
+              text: "Complete Reading",
               topColor: Colors.deepPurple,
               seconds: readingSeconds, // time to wait before enabling
-              onPressed: () {
+              onPressed: () async {
+                final currentUser = FirebaseAuth.instance.currentUser;
+
+                if (currentUser != null) {
+                  try {
+                    await StreakService().updateReadingStreak(currentUser.uid);
+                  } catch (e) {
+                    // ignore streak update errors for now
+                  }
+                }
+
                 Navigator.of(context).pop(); // close the dialog
               },
               borderColor: Colors.deepPurple,

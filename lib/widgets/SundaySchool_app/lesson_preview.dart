@@ -13,6 +13,8 @@ import '../main_screen.dart';
 import 'assignment/assignment_response_page_user.dart';
 import 'bible_ref_parser.dart';
 import 'reference_verse_popup.dart';
+import '../../auth/login/auth_service.dart';
+import '../../backend_data/saved_items_service.dart';
 
 class BeautifulLessonPage extends StatelessWidget {
   final SectionNotes data;
@@ -280,11 +282,63 @@ class BeautifulLessonPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
+    final auth = Provider.of<AuthService>(context, listen: false);
+    final service = SavedItemsService();
+
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, size: 20, color: Colors.black87),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(title, style: const TextStyle(color: Colors.black87, fontSize: 20, fontWeight: FontWeight.w600)),
+        actions: [
+          IconButton(
+            tooltip: 'Save lesson',
+            icon: const Icon(Icons.bookmark_add, color: Color.fromARGB(255, 100, 13, 74)),
+            onPressed: () async {
+              final currentUser = FirebaseAuth.instance.currentUser ?? auth.currentUser;
+              final churchId = auth.churchId;
+
+              if (currentUser == null || churchId == null) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sign in and select a church to save lessons')));
+                return;
+              }
+
+              final lessonId = '${lessonDate.year}-${lessonDate.month}-${lessonDate.day}';
+              final lessonType = isTeen ? 'teen' : 'adult';
+              final preview = data.blocks.isNotEmpty ? (data.blocks.first.text ?? '') : '';
+
+              try {
+                final exists = await service.isLessonSaved(churchId, currentUser.uid, lessonId);
+                if (exists) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lesson already saved')));
+                  return;
+                }
+
+                await service.saveLessonFromDate(
+                  churchId,
+                  currentUser.uid,
+                  lessonId: lessonId,
+                  lessonType: lessonType,
+                  title: title,
+                  preview: preview,
+                );
+
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lesson saved')));
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save lesson: $e')));
+              }
+            },
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _shareLesson,
-        backgroundColor: Color.fromARGB(255, 100, 13, 74),
+        backgroundColor: const Color.fromARGB(255, 100, 13, 74),
           icon: const Icon(
             Icons.ios_share,
             color: Colors.white, // <-- makes the icon white
@@ -303,15 +357,6 @@ class BeautifulLessonPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_ios, size: 20), 
-                    onPressed: () => Navigator.pop(context)),
-                  Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
-                ],
-              ),
               const SizedBox(height: 10),
               Text(data.topic, style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w300, height: 1.2)),
               if (data.biblePassage.isNotEmpty) ...[
