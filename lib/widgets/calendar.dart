@@ -1,10 +1,6 @@
 // lib/widgets/month_calendar.dart
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
-import '../auth/login/login_page.dart';
-import '../backend_data/admin_editor.dart';
-import 'home.dart';
 
 class MonthCalendar extends StatefulWidget {
   final Function(DateTime) onDateSelected;
@@ -42,83 +38,6 @@ class _MonthCalendarState extends State<MonthCalendar> {
     setState(() {
       currentMonth = DateTime(currentMonth.year, currentMonth.month + offset);
     });
-  }
-
-  // SECRET ADMIN TRIGGER: Tap day 13 exactly 7 times
-  void _checkForAdminTrigger(int day) {
-    final now = DateTime.now();
-    final tappedDate = DateTime(currentMonth.year, currentMonth.month, day);
-
-    if (day == 13) {
-      if (lastTapDate != null &&
-          now.difference(lastTapDate!).inSeconds < 3) {
-        tapCount++;
-      } else {
-        tapCount = 1;
-      }
-      lastTapDate = now;
-
-      if (tapCount >= 7) {
-        tapCount = 0; // reset
-        _triggerAdminLogin();
-      }
-    } else {
-      tapCount = 0; // reset if not 13
-    }
-  }
-
-  // ──────────────────────────────────────────────────────────────
-  // FINAL VERSION – Works whether you're logged in or not
-  // ──────────────────────────────────────────────────────────────
-  Future<void> _triggerAdminLogin() async {
-    // If NOT logged in → force login first
-    if (FirebaseAuth.instance.currentUser == null) {
-      final result = await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => const AuthScreen(),
-          fullscreenDialog: true,
-        ),
-      );
-
-      // If login was cancelled or failed, stop here
-      if (FirebaseAuth.instance.currentUser == null) return;
-      // After successful login, fall through and continue below
-    }
-
-    // ───── YOU ARE NOW GUARANTEED TO BE LOGGED IN ─────
-
-    // Let admin pick which date to edit
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2035),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Color.fromARGB(255, 255, 255, 255),
-              onPrimary: Colors.white,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (pickedDate == null || !mounted) return;
-
-    // Tell Home screen: switch to this date + reload lesson
-    final homeState = context.findAncestorStateOfType<HomeState>();
-    homeState?.refreshAfterLogin(pickedDate);
-
-    // Open the editor
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => AdminEditorPage(date: pickedDate),
-      ),
-    );
   }
 
   @override
@@ -196,7 +115,6 @@ class _MonthCalendarState extends State<MonthCalendar> {
               borderRadius: BorderRadius.circular(16),
               onTap: () {
                 SystemSound.play(SystemSoundType.click);
-                _checkForAdminTrigger(day);        // ← SECRET TRIGGER HERE
                 widget.onDateSelected(date);       // ← Normal date selection
               },
               child: Stack(
@@ -230,18 +148,6 @@ class _MonthCalendarState extends State<MonthCalendar> {
                       },
                     ),
                   ),
-                  //if (hasLesson)
-                    /*Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Container(
-                        width: 16,
-                        height: 4,
-                        decoration: const BoxDecoration(
-                          color: Color.fromARGB(255, 74, 196, 78),
-                          shape: BoxShape.rectangle,
-                        ),
-                      ),
-                    ),*/
 
                     Positioned(
                       bottom: 0,

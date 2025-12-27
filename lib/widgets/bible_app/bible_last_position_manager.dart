@@ -1,52 +1,61 @@
 // lib/services/last_position_manager.dart
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LastPositionManager {
   static const String _keyBook = 'last_book';
   static const String _keyChapter = 'last_chapter';
+  static const String _keyVerse = 'last_verse';
   static const String _keyScreen = 'last_screen'; // "home", "book_grid", "chapter"
 
   // Save current position
   static Future<void> save({
-    required String bookName,
-    required int chapter,
-    required String screen, // "home" | "book_grid" | "chapter"
+    required String screen, // "home", "book_grid", "chapter"
+    String? bookName,
+    int? chapter,
+    int? verse,
   }) async {
-    print('🗂️ SAVING: book=$bookName, chapter=$chapter, screen=$screen'); // ← ADD THIS
+
+    if (kDebugMode) {
+      print('🗂️ SAVING POSITION: screen=$screen, book=$bookName, chapter=$chapter, verse=$verse');
+    }
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_keyBook, bookName);
-    await prefs.setInt(_keyChapter, chapter);
     await prefs.setString(_keyScreen, screen);
-    print('✅ SAVE COMPLETE: Data written to prefs'); // ← ADD THIS
+    if (bookName != null) await prefs.setString(_keyBook, bookName);
+    if (chapter != null) await prefs.setInt(_keyChapter, chapter);
+    if (verse != null) await prefs.setInt(_keyVerse, verse);
+
+    if (kDebugMode) {
+      print('✅ SAVE COMPLETE: Data written to prefs');
+    }
   }
 
   // Get last position (returns null on first launch)
   static Future<Map<String, dynamic>?> getLast() async {
-    print('📂 LOADING: Checking for saved data...'); // ← ADD THIS
-    final prefs = await SharedPreferences.getInstance();
-    final hasData = prefs.containsKey(_keyBook) &&
-        prefs.containsKey(_keyChapter) &&
-        prefs.containsKey(_keyScreen);
+    if (kDebugMode) print('📂 LOADING last position...');
 
-    if (!hasData) {
-      print('❌ NO SAVED DATA FOUND'); // ← ADD THIS
+    final prefs = await SharedPreferences.getInstance();
+    final screen = prefs.getString(_keyScreen);
+    if (screen == null) {
+      if (kDebugMode) print('❌ No saved position found');
       return null;
     }
 
     final data = {
-      'book': prefs.getString(_keyBook)!,
-      'chapter': prefs.getInt(_keyChapter)!,
-      'screen': prefs.getString(_keyScreen)!,
+      'screen': screen,
+      'book': prefs.getString(_keyBook),
+      'chapter': prefs.getInt(_keyChapter),
+      'verse': prefs.getInt(_keyVerse),
     };
-    print('✅ LOADED: $data'); // ← ADD THIS
+    if (kDebugMode) print('✅ LOADED: $data');
     return data;
   }
 
-  // Optional: reset to Genesis (e.g. for a "Start Over" button later)
-  static Future<void> resetToGenesis() async {
+  static Future<void> clear() async {
     final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_keyScreen);
     await prefs.remove(_keyBook);
     await prefs.remove(_keyChapter);
-    await prefs.remove(_keyScreen);
+    await prefs.remove(_keyVerse);
   }
 }

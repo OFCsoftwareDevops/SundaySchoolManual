@@ -32,6 +32,7 @@ dependencies:
     sdk: flutter
   device_info_plus: ^11.1.0
   firebase_core: ^3.6.0
+  firebase_analytics: ^11.6.0
   firebase_auth: ^5.3.1
   cloud_firestore: ^5.4.4
   cloud_functions: ^5.1.3
@@ -49,6 +50,7 @@ dependencies:
   intl_phone_field: ^3.2.0
   url_launcher: ^6.1.7
   google_fonts: ^6.2.1
+
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -81,6 +83,8 @@ flutter:
   assets:
     - assets/images/rccg_logo.png
     - assets/images/google_logo.png
+    - assets/images/apple_logo.png
+    - assets/images/anonymous_user.png
     - assets/bible/web/
     - assets/bible/kjv/
     

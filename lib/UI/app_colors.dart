@@ -2,42 +2,89 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Primary brand colors
-  static const primary = Color(0xFF6200EE);       // Purple (Material 3 default primary)
-  static const primaryContainer = Color(0xFFBB86FC);
-  static const onPrimary = Color(0xFFFFFFFF);
+  // =========================
+  // Primary Brand Colors
+  // =========================
 
-  // Secondary / Accent
-  static const secondary = Color(0xFF03DAC6);
-  static const secondaryContainer = Color(0xFF018786);
-  static const onSecondary = Color(0xFF000000);
+  /// Authority / Teaching Blue (Headers, AppBar, Navigation)
+  static const primary = Color.fromARGB(255, 52, 72, 98);
 
+  /// Primary Container (Soft Wine Red – action emphasis)
+  static const primaryContainer = Color.fromARGB(255, 152, 61, 61);
+
+  /// Text/Icon on Primary
+  static const onPrimary = Color.fromARGB(255, 255, 255, 255);
+
+  // =========================
+  // Secondary / Accent Colors
+  // =========================
+
+  /// Secondary Blue (Cards, secondary buttons, tabs)
+  static const secondary = Color.fromARGB(255, 64, 90, 124);
+
+  /// Secondary Container (Very soft blue-gray surface)
+  static const secondaryContainer = Color.fromARGB(255, 234, 241, 248);
+
+  /// Text/Icon on Secondary
+  static const onSecondary = Color.fromARGB(255, 248, 246, 242);
+
+  /// Divine Accent (Muted Gold – sacred emphasis, progress)
+  static const divineAccent = Color.fromARGB(255, 188, 170, 115);
+
+  /// Scripture Highlight (Soft parchment gold)
+  static const scriptureHighlight = Color.fromARGB(255, 133, 12, 38);
+
+  // =========================
   // Neutral / Background
-  static const background = Color(0xFFFFFFFF);    // Light theme
-  static const surface = Color(0xFFFAFAFA);
-  static const onBackground = Color(0xFF000000);
-  static const onSurface = Color(0xFF000000);
+  // =========================
 
-  // Error / Warning / Success
-  static const error = Color(0xFFB00020);
-  static const onError = Color(0xFFFFFFFF);
-  static const success = Color(0xFF00C853);
-  static const warning = Color(0xFFFFC107);
+  /// Main App Background (Soft heavenly blue)
+  static const background = Color.fromARGB(255, 245, 250, 255);
 
-  // Greys
-  static const grey50 = Color(0xFFFAFAFA);
-  static const grey100 = Color(0xFFF5F5F5);
-  static const grey200 = Color(0xFFEEEEEE);
-  static const grey300 = Color(0xFFE0E0E0);
-  static const grey400 = Color(0xFFBDBDBD);
-  static const grey500 = Color(0xFF9E9E9E);
-  static const grey600 = Color(0xFF757575);
-  static const grey700 = Color(0xFF616161);
-  static const grey800 = Color(0xFF424242);
-  static const grey900 = Color(0xFF212121);
+  /// Card / Sheet / Modal Surface
+  static const surface = Color.fromARGB(255, 248, 246, 242);
 
-  // Dark theme variants (optional)
-  static const darkBackground = Color(0xFF121212);
-  static const darkSurface = Color(0xFF1E1E1E);
-  static const darkOnBackground = Color(0xFFFFFFFF);
+  /// Primary text on background
+  static const onBackground = Color.fromARGB(255, 32, 36, 40);
+
+  /// Primary text on surface
+  static const onSurface = Color.fromARGB(255, 32, 36, 40);
+
+  // =========================
+  // Status Colors (Softened)
+  // =========================
+
+  /// Error (Muted red-brown, respectful)
+  static const error = Color.fromARGB(255, 140, 60, 60);
+
+  static const onError = Color.fromARGB(255, 255, 255, 255);
+
+  /// Success (Soft olive-gold green, not neon)
+  static const success = Color.fromARGB(255, 81, 134, 81);
+
+  /// Warning (Muted amber)
+  static const warning = Color.fromARGB(255, 190, 160, 90);
+
+  // =========================
+  // Greys (Warm, not blue)
+  // =========================
+
+  static const grey50  = Color.fromARGB(255, 250, 250, 248);
+  static const grey100 = Color.fromARGB(255, 240, 240, 236);
+  static const grey200 = Color.fromARGB(255, 226, 226, 222);
+  static const grey300 = Color.fromARGB(255, 208, 208, 204);
+  static const grey400 = Color.fromARGB(255, 180, 180, 176);
+  static const grey500 = Color.fromARGB(255, 150, 150, 146);
+  static const grey600 = Color.fromARGB(255, 120, 120, 116);
+  static const grey700 = Color.fromARGB(255, 90, 90, 88);
+  static const grey800 = Color.fromARGB(255, 60, 60, 58);
+  static const grey900 = Color.fromARGB(255, 32, 32, 30);
+
+  // =========================
+  // Dark Theme (Optional, Calm)
+  // =========================
+
+  static const darkBackground = Color.fromARGB(255, 18, 24, 32);
+  static const darkSurface = Color.fromARGB(255, 28, 36, 46);
+  static const darkOnBackground = Color.fromARGB(255, 240, 240, 240);
 }

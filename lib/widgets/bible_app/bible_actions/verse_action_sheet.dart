@@ -1,11 +1,12 @@
 // widgets/verse_action_sheet.dart
+import 'package:app_demo/UI/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'highlight/highlight_manager.dart';
-import '../../../auth/login/auth_service.dart';
-import '../../../backend_data/saved_items_service.dart';
+import 'highlight_manager.dart';
+import '../../../../auth/login/auth_service.dart';
+import '../../../backend_data/service/saved_items_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 
@@ -29,6 +30,8 @@ class VerseActionSheet extends StatefulWidget {
 
 class _VerseActionSheetState extends State<VerseActionSheet> {
   bool _showColorPicker = false;
+  bool _isBookmarked = false;
+  bool _isCheckingBookmark = true;
 
   final List<Color> colors = [
     const Color.fromARGB(255, 228, 214, 87),
@@ -38,6 +41,90 @@ class _VerseActionSheetState extends State<VerseActionSheet> {
     const Color.fromARGB(255, 234, 178, 96),
     const Color.fromARGB(255, 209, 108, 227),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _checkIfBookmarked();
+  }
+
+  Future<void> _checkIfBookmarked() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      setState(() => _isCheckingBookmark = false);
+      return;
+    }
+
+    final auth = Provider.of<AuthService>(context, listen: false);
+    if (auth.churchId == null) {
+      setState(() => _isCheckingBookmark = false);
+      return;
+    }
+
+    final service = SavedItemsService();
+
+    // Create the same refId we use when saving
+    final sorted = widget.verses..sort();
+    final refId = '${widget.bookName.toLowerCase().replaceAll(' ', '_')}_${widget.chapter}_${sorted.join('-')}';
+
+    final exists = await service.isBookmarked(user.uid, refId);
+
+    if (mounted) {
+      setState(() {
+        _isBookmarked = exists;
+        _isCheckingBookmark = false;
+      });
+    }
+  }
+
+  Future<void> _toggleBookmark() async {
+    final user = FirebaseAuth.instance.currentUser;
+    final auth = Provider.of<AuthService>(context, listen: false);
+
+    if (user == null || auth.churchId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Sign in and join a church to save bookmarks")),
+      );
+      return;
+    }
+
+    if (_isBookmarked) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Already bookmarked! ⭐")),
+      );
+      return;
+    }
+
+    final service = SavedItemsService();
+
+    final sorted = widget.verses..sort();
+    final reference = sorted.length == 1
+        ? "${widget.bookName} ${widget.chapter}:${sorted.first}"
+        : "${widget.bookName} ${widget.chapter}:${sorted.first}–${sorted.last}";
+
+    final fullText = sorted.map((v) => "$v ${widget.versesText[v]}").join("\n");
+
+    final refId = '${widget.bookName.toLowerCase().replaceAll(' ', '_')}_${widget.chapter}_${sorted.join('-')}';
+
+    try {
+      await service.addBookmark(
+        user.uid,
+        refId: refId,
+        title: reference,
+        text: fullText,
+      );
+
+      setState(() => _isBookmarked = true);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Bookmarked! ⭐")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to bookmark: $e")),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,8 +147,8 @@ class _VerseActionSheetState extends State<VerseActionSheet> {
       duration: const Duration(milliseconds: 250),
       curve: Curves.easeOut,
       decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        color: AppColors.secondaryContainer,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(2)),
       ),
       padding: EdgeInsets.only(
         left: 20,
@@ -72,7 +159,7 @@ class _VerseActionSheetState extends State<VerseActionSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(width: 40, height: 5, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
+          Container(width: 40, height: 5, decoration: BoxDecoration(color: AppColors.secondaryContainer, borderRadius: BorderRadius.circular(10))),
           const SizedBox(height: 16),
           // Verse preview
           Row(
@@ -90,38 +177,12 @@ class _VerseActionSheetState extends State<VerseActionSheet> {
                 onTap: () => setState(() => _showColorPicker = !_showColorPicker),
               ),
               _Action(
-                icon: Icons.bookmark_border, 
-                label: "Bookmark", 
-                onTap: () async {
-                final auth = Provider.of<AuthService>(context, listen: false);
-                final user = FirebaseAuth.instance.currentUser ?? auth.currentUser;
-                final churchId = auth.churchId;
-
-                if (user == null || churchId == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Sign in and select a church to save bookmarks")));
-                  return;
-                }
-
-                final service = SavedItemsService();
-
-                // Build a stable refId for this selection (book-chapter-verses)
-                final refId = '${widget.bookName.toLowerCase().replaceAll(' ', '_')}_${widget.chapter}_${sorted.join('-')}';
-
-                try {
-                  await service.addBookmark(
-                    churchId,
-                    user.uid,
-                    refId: refId,
-                    title: reference,
-                    text: fullText,
-                  );
-
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Bookmarked")));
-                  //Navigator.pop(context); // close sheet
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save bookmark: $e')));
-                }
-              }),
+                icon: _isCheckingBookmark
+                    ? Icons.hourglass_empty
+                    : (_isBookmarked ? Icons.bookmark : Icons.bookmark_border),
+                label: _isBookmarked ? "Bookmarked" : "Bookmark",
+                color: _isBookmarked ? const Color(0xFF5D8668) : null, // green when saved
+                onTap: _toggleBookmark,),
             ],
           ),
 
@@ -163,11 +224,11 @@ class _VerseActionSheetState extends State<VerseActionSheet> {
                             color: color,
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: isSelected ? Colors.black87 : Colors.white,
-                              width: isSelected ? 4 : 2,
+                              color: isSelected ? AppColors.darkSurface : const Color.fromARGB(0, 52, 72, 98),
+                              width: isSelected ? 2 : 1,
                             ),
                           ),
-                          child: isSelected ? const Icon(Icons.check, color: Colors.black87, size: 28) : null,
+                          child: isSelected ? const Icon(Icons.check, color: AppColors.darkSurface , size: 28) : null,
                         ),
                       );
                     }).toList(),
@@ -188,8 +249,9 @@ class _Action extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
+  final Color? color;
 
-  const _Action({required this.icon, required this.label, required this.onTap});
+  const _Action({required this.icon, required this.label, required this.onTap, this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -202,13 +264,13 @@ class _Action extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF5D8668).withOpacity(0.12),
-              borderRadius: BorderRadius.circular(16),
+              color: AppColors.onPrimary.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, size: 28, color: const Color(0xFF5D8668)),
+            child: Icon(icon, size: 28, color: AppColors.primaryContainer),
           ),
           const SizedBox(height: 6),
-          Text(label, style: const TextStyle(fontSize: 13)),
+          Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.primary)),
         ],
       ),
     );

@@ -14,17 +14,15 @@ extension IterableX<E> on Iterable<E> {
 }
 
 class BibleEntryPoint extends StatefulWidget {
-
   const BibleEntryPoint({
     super.key, 
   });
 
   @override
-  State<BibleEntryPoint> createState() => _BibleEntryPointState();
+  State<BibleEntryPoint> createState() => BibleEntryPointState();
 }
 
-class _BibleEntryPointState extends State<BibleEntryPoint> with AutomaticKeepAliveClientMixin{
-  bool _hasEnteredBible = false;
+class BibleEntryPointState extends State<BibleEntryPoint> with AutomaticKeepAliveClientMixin{
 
   @override
   bool get wantKeepAlive => true;
@@ -32,53 +30,61 @@ class _BibleEntryPointState extends State<BibleEntryPoint> with AutomaticKeepAli
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
-    // Use a post-frame callback so the context is fully ready
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _tryResumeLastPosition();
-    });
   }
 
-  Future<void> _tryResumeLastPosition() async {
-    _hasEnteredBible = true;
-
-    if (!mounted) return;
-
+  Future<void> resumeLastPosition() async {
     final last = await LastPositionManager.getLast();
+    if (last == null) return;
 
-    // If nothing saved ever, or user was only on home/book_grid → do nothing
-    if (last == null || last['screen'] != 'chapter') {
-      return;
-    }
+    final screen = last['screen'] as String?;
+    if (screen == null) return;
 
-    final String bookName = last['book'];
-    final int chapter = last['chapter'];
+    final manager = context.read<BibleVersionManager>();
+    final books = manager.books;
 
-    final book = context.read<BibleVersionManager>().books.firstWhereOrNull(
-          (b) => b['name'] == bookName,
+    switch (screen) {
+      case 'bible_page':
+        // Already on book grid — do nothing
+        break;
+
+      case 'book_grid':
+        final bookName = last['book'] as String?;
+        if (bookName == null) return;
+
+        final book = books.firstWhereOrNull((b) => b['name'] == bookName);
+        if (book == null) return;
+
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => BookReader(book: book)),
         );
+        break;
 
-    if (book == null) return;
+      case 'chapter':
+        final bookName = last['book'] as String?;
+        final chapter = last['chapter'] as int?;
+        final verse = last['verse'] as int?;
 
-    final chapters = book['chapters'] as List;
-    if (chapter < 1 || chapter > chapters.length) return;
+        if (bookName == null || chapter == null) return;
 
-    if (!mounted) return;
+        final book = books.firstWhereOrNull((b) => b['name'] == bookName);
+        if (book == null) return;
 
-    // Remove any existing Bible routes to avoid duplicates
-    Navigator.of(context).popUntil((route) => route.isFirst);
+        final chapters = book['chapters'] as List;
+        if (chapter < 1 || chapter > chapters.length) return;
 
-    // JUST PUSH — never pushReplacement
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => ChapterReader(
-          chapterData: chapters[chapter - 1],
-          bookName: book['name'],
-          chapterNum: chapter,
-          totalChapters: chapters.length,
-        ),
-      ),
-    );
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => ChapterReader(
+              chapterData: chapters[chapter - 1],
+              bookName: book['name'],
+              chapterNum: chapter,
+              totalChapters: chapters.length,
+              initialVerse: verse,
+            ),
+          ),
+        );
+        break;
+    }
   }
 
   @override

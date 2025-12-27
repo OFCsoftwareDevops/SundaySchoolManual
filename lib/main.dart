@@ -11,21 +11,21 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart'; 
-import 'UI/linear_progress_bar.dart';
+import 'UI/app_linear_progress_bar.dart';
 import 'UI/app_theme.dart';
-import 'auth/database/constants.dart';
+import 'backend_data/database/constants.dart';
 import 'auth/login/auth_service.dart';
 import 'auth/login/login_page.dart';
-import 'backend_data/assignment_dates_provider.dart';
-import 'backend_data/firestore_service.dart';
-import 'backend_data/submitted_dates_provider.dart';
-import 'widgets/bible_app/highlight/highlight_manager.dart';
-import 'firebase_options.dart';
+import 'backend_data/service/assignment_dates_provider.dart';
+import 'backend_data/service/firestore_service.dart';
+import 'backend_data/service/submitted_dates_provider.dart';
+import 'widgets/bible_app/bible_actions/highlight_manager.dart';
+import 'backend_data/service/analytics/firebase_options.dart';
 import 'l10n/app_localizations.dart';
 import 'widgets/bible_app/bible.dart';
-import 'widgets/church_selection.dart';
-import 'widgets/intro_page.dart';
-import 'widgets/main_screen.dart';
+import 'widgets/helpers/church_selection.dart';
+import 'widgets/helpers/intro_page.dart';
+import 'widgets/helpers/main_screen.dart';
 
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {

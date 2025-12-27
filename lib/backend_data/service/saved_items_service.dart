@@ -13,24 +13,20 @@ class SavedItemsService {
 
   /// Helper to get the member's subcollection reference
   CollectionReference _getMemberSubcollection(
-    String churchId,
     String userId,
     String subcollection,
   ) =>
       _db
-        .collection('churches')
-        .doc(churchId)
-        .collection('members')
+        .collection('users')
         .doc(userId)
         .collection(subcollection);
 
   // ──────────────── BOOKMARKS ────────────────
   /// Watch all bookmarks for a user in a church, ordered by most recent
   Stream<List<Map<String, dynamic>>> watchBookmarks(
-    String churchId,
     String userId,
   ) =>
-      _getMemberSubcollection(churchId, userId, 'bookmarks')
+      _getMemberSubcollection( userId, 'bookmarks')
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snap) => snap.docs
@@ -45,7 +41,6 @@ class SavedItemsService {
   /// [text]: Optional snapshot of the verse text for offline access
   /// [note]: Optional personal annotation
   Future<String> addBookmark(
-    String churchId,
     String userId, {
     required String refId,
     required String title,
@@ -53,46 +48,42 @@ class SavedItemsService {
     String? note,
   }) async {
     final docRef =
-        await _getMemberSubcollection(churchId, userId, 'bookmarks').add({
+        await _getMemberSubcollection(userId, 'bookmarks').add({
       'type': 'scripture',
       'refId': refId,
       'title': title,
       'text': text,
       'note': note,
       'createdAt': FieldValue.serverTimestamp(),
-      'createdBy': userId,
     });
     return docRef.id;
   }
 
   /// Remove a bookmark by ID
   Future<void> removeBookmark(
-    String churchId,
     String userId,
     String bookmarkId,
   ) =>
-      _getMemberSubcollection(churchId, userId, 'bookmarks')
+      _getMemberSubcollection(userId, 'bookmarks')
         .doc(bookmarkId)
         .delete();
 
   /// Update a bookmark's note
   Future<void> updateBookmarkNote(
-    String churchId,
     String userId,
     String bookmarkId,
     String note,
   ) =>
-      _getMemberSubcollection(churchId, userId, 'bookmarks')
+      _getMemberSubcollection(userId, 'bookmarks')
         .doc(bookmarkId)
         .update({'note': note});
 
   // ──────────────── SAVED LESSONS ────────────────
   /// Watch all saved lessons for a user in a church, ordered by most recent
   Stream<List<Map<String, dynamic>>> watchSavedLessons(
-    String churchId,
     String userId,
   ) =>
-      _getMemberSubcollection(churchId, userId, 'saved_lessons')
+      _getMemberSubcollection(userId, 'saved_lessons')
         .orderBy('savedAt', descending: true)
         .snapshots()
         .map((snap) => snap.docs
@@ -107,7 +98,6 @@ class SavedItemsService {
   /// [lessonType]: "adult" or "teen"
   /// [preview]: Optional first few lines of the lesson
   Future<String> saveLessonFromDate(
-    String churchId,
     String userId, {
     required String lessonId,
     required String lessonType,
@@ -115,7 +105,7 @@ class SavedItemsService {
     String? preview,
     String? note,
   }) async {
-    final docRef = await _getMemberSubcollection(churchId, userId, 'saved_lessons')
+    final docRef = await _getMemberSubcollection(userId, 'saved_lessons')
         .add({
       'lessonId': lessonId,
       'lessonType': lessonType,
@@ -123,39 +113,35 @@ class SavedItemsService {
       'preview': preview,
       'note': note,
       'savedAt': FieldValue.serverTimestamp(),
-      'savedBy': userId,
     });
     return docRef.id;
   }
 
   /// Remove a saved lesson
   Future<void> removeSavedLesson(
-    String churchId,
     String userId,
     String lessonDocId,
   ) =>
-      _getMemberSubcollection(churchId, userId, 'saved_lessons')
+      _getMemberSubcollection(userId, 'saved_lessons')
         .doc(lessonDocId)
         .delete();
 
   /// Update a saved lesson's note
   Future<void> updateSavedLessonNote(
-    String churchId,
     String userId,
     String lessonDocId,
     String note,
   ) =>
-      _getMemberSubcollection(churchId, userId, 'saved_lessons')
+      _getMemberSubcollection(userId, 'saved_lessons')
         .doc(lessonDocId)
         .update({'note': note});
 
   // ──────────────── FURTHER READINGS ────────────────
   /// Watch all further readings for a user in a church, ordered by most recent
   Stream<List<Map<String, dynamic>>> watchFurtherReadings(
-    String churchId,
     String userId,
   ) =>
-      _getMemberSubcollection(churchId, userId, 'further_readings')
+      _getMemberSubcollection(userId, 'further_readings')
         .orderBy('savedAt', descending: true)
         .snapshots()
         .map((snap) => snap.docs
@@ -168,68 +154,78 @@ class SavedItemsService {
   /// Add a further reading (external link, PDF reference, etc.)
   /// [source]: Category or source name (e.g., "external link", "uploaded pdf")
   Future<String> addFurtherReading(
-    String churchId,
     String userId, {
     required String title,
     String? reading,
     String? note,
   }) async {
-    final docRef = await _getMemberSubcollection(churchId, userId, 'further_readings')
+    final docRef = await _getMemberSubcollection(userId, 'further_readings')
         .add({
       'title': title,
       'reading': reading,
       'note': note,
       'savedAt': FieldValue.serverTimestamp(),
-      'savedBy': userId,
     });
     return docRef.id;
   }
 
   /// Remove a further reading
   Future<void> removeFurtherReading(
-    String churchId,
     String userId,
     String readingId,
   ) =>
-      _getMemberSubcollection(churchId, userId, 'further_readings')
+      _getMemberSubcollection(userId, 'further_readings')
         .doc(readingId)
         .delete();
 
   /// Update a further reading's note
   Future<void> updateFurtherReadingNote(
-    String churchId,
     String userId,
     String readingId,
     String note,
   ) =>
-      _getMemberSubcollection(churchId, userId, 'further_readings')
+      _getMemberSubcollection(userId, 'further_readings')
         .doc(readingId)
         .update({'note': note});
 
   // ──────────────── UTILITY: Check if item is saved ────────────────
-  /// Check if a scripture is bookmarked
-  Future<bool> isScriptureSaved(
-    String churchId,
-    String userId,
-    String refId,
-  ) async {
-    final snap = await _getMemberSubcollection(churchId, userId, 'bookmarks')
-      .where('refId', isEqualTo: refId)
-      .limit(1)
-      .get();
-    return snap.docs.isNotEmpty;
+  /// Check if a Bible verse is already bookmarked
+  Future<bool> isBookmarked(String userId, String refId) async {
+    final query = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('bookmarks')
+        .where('refId', isEqualTo: refId)
+        .limit(1)
+        .get();
+
+    return query.docs.isNotEmpty;
   }
 
-  /// Check if a lesson is saved
-  Future<bool> isLessonSaved(
-    String churchId,
-    String userId,
-    String lessonId,
-  ) async {
-    final snap = await _getMemberSubcollection(churchId, userId, 'saved_lessons')
-      .where('lessonId', isEqualTo: lessonId)
-      .limit(1)
-      .get();
-    return snap.docs.isNotEmpty;
+  /// Check if a lesson is already saved
+  Future<bool> isLessonSaved(String userId, String lessonId) async {
+    final query = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('saved_lessons')
+        .where('lessonId', isEqualTo: lessonId)
+        .limit(1)
+        .get();
+
+    return query.docs.isNotEmpty;
+  }
+
+  /// Check if a further reading is already saved (by title or some unique key)
+  /// You might want to use a unique identifier like URL or title
+  Future<bool> isFurtherReadingSaved(String userId, String title) async {
+    final query = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('further_readings')
+        .where('title', isEqualTo: title)
+        .limit(1)
+        .get();
+
+    return query.docs.isNotEmpty;
   }
 }

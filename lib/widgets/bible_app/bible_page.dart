@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../UI/buttons.dart';
-import '../../UI/linear_progress_bar.dart';
-import 'highlight/highlight_manager.dart';
+import '../../UI/app_buttons.dart';
+import '../../UI/app_colors.dart';
+import '../../UI/app_linear_progress_bar.dart';
+import 'bible_actions/highlight_manager.dart';
 import 'bible.dart';
 import 'bible_last_position_manager.dart';
-import 'verse_action_sheet.dart';
+import 'bible_actions/verse_action_sheet.dart';
 
 
 extension StringExtension on String {
@@ -33,14 +34,14 @@ class BiblePage extends StatelessWidget {
 
         if (manager.isLoading || books.isEmpty) {
           return Scaffold(
-            backgroundColor: Colors.white,
+            backgroundColor: AppColors.background,
             body: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: const [
-                  Icon(Icons.menu_book_rounded, size: 100, color: Color.fromARGB(255, 20, 140, 100)),
+                  Icon(Icons.menu_book_rounded, size: 100, color: AppColors.primaryContainer),
                   SizedBox(height: 40),
-                  Text("Loading the Holy Bible...", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF5D8668))),
+                  Text("Loading the Holy Bible...", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.primaryContainer)),
                   SizedBox(height: 30),
                   LinearProgressBar(),
                 ],
@@ -52,8 +53,8 @@ class BiblePage extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             title: const Text("Holy Bible", style: TextStyle(fontWeight: FontWeight.bold)),
-            backgroundColor: const Color.fromARGB(255, 20, 140, 100),
-            foregroundColor: Colors.white,
+            backgroundColor: AppColors.primary,
+            foregroundColor: AppColors.background,
             centerTitle: true,
             actions: [
               Padding(
@@ -63,10 +64,10 @@ class BiblePage extends StatelessWidget {
                     ? const LinearProgressBar()
                     : DropdownButton<String>(
                       value: manager.currentVersion,
-                      dropdownColor: const Color.fromARGB(255, 20, 140, 100),
-                      icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
+                      dropdownColor: AppColors.primary,
+                      icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.onPrimary),
                       underline: const SizedBox(),
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      style: const TextStyle(color: AppColors.onPrimary, fontWeight: FontWeight.bold),
                       items: manager.availableVersions
                         .map((v) => DropdownMenuItem(value: v['code'], child: Text(v['name']!)))
                         .toList(),
@@ -98,7 +99,7 @@ class BiblePage extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-          child: Text(title, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 20, 140, 100))),
+          child: Text(title, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: AppColors.primary)),
         ),
         ...items.map((book) => Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
@@ -107,7 +108,7 @@ class BiblePage extends StatelessWidget {
             child: BibleBooksButtons(
               context: context,
               text: book['name'],
-              topColor: const Color.fromARGB(255, 20, 140, 100),  // same color you used in ElevatedButton
+              topColor: AppColors.secondary,  // same color you used in ElevatedButton
               onPressed: () {
                 LastPositionManager.save(
                   bookName: book['name'],
@@ -151,9 +152,18 @@ class BookReader extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(book['name']),
-        backgroundColor: const Color.fromARGB(255, 20, 140, 100),
-        foregroundColor: Colors.white,
-        //leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: onBack),
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.background,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            // Save position BEFORE popping
+            LastPositionManager.save(
+              screen: 'bible_page', // back to main Bible grid
+            );
+            Navigator.pop(context);
+          },
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12),
@@ -168,10 +178,10 @@ class BookReader extends StatelessWidget {
                         )
                       : DropdownButton<String>(
                           value: manager.currentVersion,
-                          dropdownColor: const Color.fromARGB(255, 20, 140, 100),
-                          icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
+                          dropdownColor: AppColors.secondary,
+                          icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.onSecondary),
                           underline: const SizedBox(),
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          style: const TextStyle(color: AppColors.onSecondary, fontWeight: FontWeight.bold),
                           items: manager.availableVersions
                               .map((v) => DropdownMenuItem(
                                     value: v['code'],
@@ -201,16 +211,18 @@ class BookReader extends StatelessWidget {
             child: BibleChaptersButtons(
               context: context,
               text: "${i + 1}",
-              topColor: const Color.fromARGB(255, 20, 140, 100),
+              topColor: AppColors.secondary,
               borderColor: const Color.fromARGB(0, 0, 0, 0),   // optional
               onPressed: () {
                 LastPositionManager.save(
+                  screen: 'chapter',
                   bookName: book['name'],
                   chapter: i + 1,
-                  screen: 'chapter',
+                  verse: 1,
                 );
 
-                Navigator.of(context).push(
+                Navigator.push(
+                  context,
                   MaterialPageRoute(
                     builder: (_) => ChapterReader(
                       chapterData: chapters[i],
@@ -235,13 +247,15 @@ class ChapterReader extends StatefulWidget {
   final String bookName;
   final int chapterNum;
   final int totalChapters;
+  final int? initialVerse;
 
   const ChapterReader({
     super.key,
     required this.chapterData,
     required this.bookName,
     required this.chapterNum,
-    required this.totalChapters,
+    required this.totalChapters, 
+    this.initialVerse,
   });
 
   @override
@@ -251,17 +265,33 @@ class ChapterReader extends StatefulWidget {
 class _ChapterReaderState extends State<ChapterReader> {
   final Set<int> _selectedVerses = {};
   final GlobalKey _listViewKey = GlobalKey();
+  late ScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
     // Try to scroll to the last read verse as soon as the screen appears
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    /*WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToLastVerseIfNeeded();
-    });
+    });*/
+    _scrollController = ScrollController();
+    _scrollController.addListener(_saveScrollPosition);
   }
 
-  Future<void> _scrollToLastVerseIfNeeded() async {
+  void _saveScrollPosition() {
+    final offset = _scrollController.offset;
+    // Simple: find the first visible verse
+    // Or use a more accurate way with visible render objects
+    // For now, save the current chapter
+    LastPositionManager.save(
+      screen: 'chapter',
+      bookName: widget.bookName,
+      chapter: widget.chapterNum,
+      verse: 1, // improve later
+    );
+  }
+
+  /*Future<void> _scrollToLastVerseIfNeeded() async {
     final prefs = await SharedPreferences.getInstance();
 
     // Only scroll if the saved position is exactly this chapter
@@ -286,7 +316,7 @@ class _ChapterReaderState extends State<ChapterReader> {
         alignment: 0.1, // brings verse near the top
       );
     }
-  }
+  }*/
 
   // One GlobalKey per verse so we can scroll to any of them
   final Map<int, GlobalKey> _verseKeys = {};
@@ -324,8 +354,20 @@ class _ChapterReaderState extends State<ChapterReader> {
         return Scaffold(
           appBar: AppBar(
             title: Text("${widget.bookName} ${widget.chapterNum}"),
-            backgroundColor: const Color.fromARGB(255, 20, 140, 100),
-            foregroundColor: Colors.white,
+            backgroundColor: AppColors.primary,
+            foregroundColor: AppColors.onSecondary,
+            leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              // Save position BEFORE popping
+              LastPositionManager.save(
+                screen: 'book_grid',
+                bookName: widget.bookName,
+                chapter: widget.chapterNum,
+              );
+              Navigator.pop(context);
+            },
+          ),
             actions: [
               if (_selectedVerses.isNotEmpty)
                 IconButton(
@@ -346,10 +388,10 @@ class _ChapterReaderState extends State<ChapterReader> {
                             )
                           : DropdownButton<String>(
                               value: manager.currentVersion,
-                              dropdownColor: const Color.fromARGB(255, 20, 140, 100),
-                              icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
+                              dropdownColor: AppColors.secondary,
+                              icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.onSecondary),
                               underline: const SizedBox(),
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                              style: const TextStyle(color: AppColors.onSecondary, fontWeight: FontWeight.bold),
                               items: manager.availableVersions
                                   .map((v) => DropdownMenuItem(
                                         value: v['code'],
@@ -411,7 +453,7 @@ class _ChapterReaderState extends State<ChapterReader> {
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 5),
                       decoration: BoxDecoration(
-                        color: isSelected ? const Color.fromARGB(255, 140, 141, 140).withOpacity(0.22) : null,
+                        color: isSelected ? AppColors.grey200 : null,
                       ),
                       child: Container(
                         width: double.infinity,
@@ -424,7 +466,7 @@ class _ChapterReaderState extends State<ChapterReader> {
                             style: TextStyle(
                               fontSize: 17,
                               height: 1.5,
-                              color: isSelected ? const Color.fromARGB(255, 0, 0, 0) : Colors.black87,
+                              color: isSelected ? AppColors.darkSurface : AppColors.onBackground,
                               fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
                             ),
                             children: [
@@ -432,7 +474,7 @@ class _ChapterReaderState extends State<ChapterReader> {
                                 text: "$verseNum. ",
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  color: Color.fromARGB(255, 94, 17, 17),
+                                  color: AppColors.primaryContainer,
                                   fontSize: 12,
                                 ),
                               ),
@@ -562,16 +604,16 @@ class ChapterNavigationButtons extends StatelessWidget {
               child: Container(
                 margin: const EdgeInsets.only(left: 12),
                 decoration: const BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.primary,
                   shape: BoxShape.circle,
                   boxShadow: [
-                    BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 2)),
+                    BoxShadow(color: AppColors.darkBackground, blurRadius: 4, offset: Offset(0, 2)),
                   ],
                 ),
                 child: IconButton(
                   iconSize: 36,
                   onPressed: hasPrevious ? goPrevious : null,
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF5D8668)),
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.onPrimary),
                 ),
               ),
             ),
@@ -581,16 +623,16 @@ class ChapterNavigationButtons extends StatelessWidget {
               child: Container(
                 margin: const EdgeInsets.only(right: 12),
                 decoration: const BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.primary,
                   shape: BoxShape.circle,
                   boxShadow: [
-                    BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 2)),
+                    BoxShadow(color: AppColors.darkBackground, blurRadius: 4, offset: Offset(0, 2)),
                   ],
                 ),
                 child: IconButton(
                   iconSize: 36,
                   onPressed: hasNext ? goNext : null,
-                  icon: const Icon(Icons.arrow_forward_ios_rounded, color: Color(0xFF5D8668)),
+                  icon: const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.onPrimary),
                 ),
               ),
             ),

@@ -273,14 +273,14 @@ Widget PressInButtons({
   required Color topColor,
   required Widget child, // ← NEW
   Color borderColor = const Color.fromARGB(0, 118, 118, 118),
-  double borderWidth = 2.0,
+  double borderWidth = 0.0,
   double backOffset = 3.0,
   double backDarken = 0.45,
 }) {
   final screenSize = MediaQuery.of(context).size;
-  final double buttonWidth = screenSize.width * 0.40;
+  final double buttonWidth = screenSize.width * 0.35;
   final double buttonHeight = screenSize.height * 0.08;
-  const double pressDepth = 4.0;
+  const double pressDepth = 3.0;
 
   return SizedBox(
     height: buttonHeight + backOffset,

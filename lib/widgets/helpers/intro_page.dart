@@ -1,6 +1,7 @@
 // lib/widgets/intro_page.dart
 import 'package:flutter/material.dart';
-import '../UI/timed_button.dart';
+import '../../UI/app_colors.dart';
+import '../../UI/timed_button.dart';
 
 class IntroPage extends StatelessWidget {
   final VoidCallback? onFinish;
@@ -27,10 +28,24 @@ class IntroPage extends StatelessWidget {
           child: Column(
             children: [
               const Spacer(),
-              Icon(
-                Icons.menu_book_rounded,
-                size: 100,
-                color: Colors.deepPurple,
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.all(0),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 3),
+                    color: Colors.white.withOpacity(0.2),
+                  ),
+                  child: ClipOval(
+                    child: Image.asset(
+                      'assets/images/rccg_logo.png',
+                      height: 150,
+                      width: 150,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => const Icon(Icons.church, size: 70, color: Colors.white),
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(height: 40),
               Text(
@@ -55,7 +70,7 @@ class IntroPage extends StatelessWidget {
                   preloadDone: preloadDone,
                   progress: preloadProgress,
                   totalSteps: totalPreloadSteps,
-                  activeColor: Colors.deepPurple,
+                  activeColor: AppColors.primary,
                   onPressed: onFinish, // your original function
                 ),
               ),

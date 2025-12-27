@@ -1,12 +1,16 @@
 // lib/widgets/admin_responses_grading_page.dart
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../UI/app_colors.dart';
 import '../../../UI/segment_sliding.dart';
 import '../../../auth/login/auth_service.dart';
-import '../../../backend_data/assignment_dates_provider.dart';
-import '../../../backend_data/firestore_service.dart';
+import '../../../backend_data/database/constants.dart';
+import '../../../backend_data/service/assignment_dates_provider.dart';
+import '../../../backend_data/service/firestore_service.dart';
 import 'assignment_response_page_admin.dart';
+
 
 class AdminResponsesGradingPage extends StatefulWidget {
   const AdminResponsesGradingPage({super.key});
@@ -17,7 +21,49 @@ class AdminResponsesGradingPage extends StatefulWidget {
 
 class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
   bool _isTeen = false;
-  int _selectedPeriod = 0;
+  int _selectedQuarter = 0;
+
+  // Cache for submission counts to avoid repeated queries
+  final Map<String, Map<String, int>> _submissionCache = {}; // { "2025-12-26_adult": {"total": 5, "graded": 3}, ... }  
+
+  String _formatDateId(DateTime date) =>
+    "${date.year}-${date.month.toString().padLeft(2,'0')}-${date.day.toString().padLeft(2,'0')}";
+
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    final currentMonth = now.month;
+
+    if (currentMonth == 12 || currentMonth <= 2) {
+      _selectedQuarter = 0; // Q1
+    } else if (currentMonth <= 5) {
+      _selectedQuarter = 1; // Q2
+    } else if (currentMonth <= 8) {
+      _selectedQuarter = 2; // Q3
+    } else {
+      _selectedQuarter = 3; // Q4
+    }
+  }
+
+  Future<Map<String,int>> _getSubmissionInfo(DateTime date, String type) async {
+    final cacheKey = "${_formatDateId(date)}_$type";
+
+    // Return cached if available
+    if (_submissionCache.containsKey(cacheKey)) {
+      return _submissionCache[cacheKey]!;
+    }
+
+    final service = FirestoreService(churchId: context.read<AuthService>().churchId);
+
+    final total = await service.getSubmissionCount(date: date, type: type);
+    final graded = await service.getGradedCount(date: date, type: type);
+
+    _submissionCache[cacheKey] = {"total": total, "graded": graded};
+    return _submissionCache[cacheKey]!;
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -25,16 +71,29 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
     final auth = context.read<AuthService>();
     final churchName = auth.churchName ?? "Global";
 
+    if (datesProvider.isLoading) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text("Grade Responses — $churchName"),
+          backgroundColor: AppColors.primary,
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Grade Responses — $churchName"),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: AppColors.primary,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
+            tooltip: "Refresh assignments",
             onPressed: () {
-              final service = Provider.of<FirestoreService>(context, listen: false);
-              Provider.of<AssignmentDatesProvider>(context, listen: false).refresh(service);
+              final service = FirestoreService(churchId: auth.churchId);
+              datesProvider.refresh(service);
+              _submissionCache.clear(); // Clear cache so counts refresh
+              setState(() {}); // Rebuild to reload counts
             },
           ),
           Padding(
@@ -56,125 +115,162 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
           ),
         ],
       ),
-      body: datesProvider.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: segmentedControl(
-                    selectedIndex: _selectedPeriod,
-                    items: const [
-                      SegmentItem("Q1"),
-                      SegmentItem("Q2"),
-                      SegmentItem("Q3"),
-                      SegmentItem("Q4"),
-                    ],
-                    onChanged: (i) => setState(() => _selectedPeriod = i),
-                  ),
-                ),
-                Expanded(
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    child: ListView(
-                      key: ValueKey(_selectedPeriod),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      children: _buildMonthsForPeriod(_selectedPeriod - 1, datesProvider.dates),
-                    ),
-                  ),
-                ),
-              ],
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: segmentedControl(
+              selectedIndex: _selectedQuarter,
+              items: AppConstants.quarterLabels.map((l) => SegmentItem(l)).toList(),
+              onChanged: (i) => setState(() => _selectedQuarter = i),
             ),
+          ),
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              key: ValueKey('$_selectedQuarter-$_isTeen'),
+              child: _buildQuarterContent(_selectedQuarter, datesProvider.dates),
+            ),
+          ),
+        ],
+      ),
     );
   }
-  List<Widget> _buildMonthsForPeriod(int periodOffset, Set<DateTime> allDates) {
-    final List<Widget> months = [];
-    final now = DateTime.now();
-    final baseMonth = DateTime(now.year, now.month + (periodOffset * 3));
 
-    for (int i = 0; i < 3; i++) {
-      final date = DateTime(baseMonth.year, baseMonth.month + i);
-      final sundays = _getSundaysInMonth(date.year, date.month, allDates);
+  Widget _buildQuarterContent(int quarterIndex, Set<DateTime> allDates) {
+    final service = FirestoreService(churchId: context.read<AuthService>().churchId);
+    final months = AppConstants.quarterMonths[quarterIndex];
+    final List<Widget> monthWidgets = [];
+
+    for (final month in months) {
+      final sundays = _getAllSundaysInMonth(month, allDates);
       if (sundays.isEmpty) continue;
 
-      months.add(
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "${_monthName(date.month)} ${date.year}",
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.deepPurple),
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: sundays.map((sunday) {
-                  return Material(
-                    color: Colors.deepPurple.shade50,
-                    borderRadius: BorderRadius.circular(16),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(16),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => AssignmentResponseDetailPage(
-                              date: sunday,
-                              isTeen: _isTeen,
+      final Map<int, List<DateTime>> byYear = {};
+      for (final s in sundays) {
+        byYear.putIfAbsent(s.year, () => []).add(s);
+      }
+
+      final sortedYears = byYear.keys.toList()..sort();
+
+      for (final year in sortedYears) {
+        final yearSundays = byYear[year]!..sort();
+
+        monthWidgets.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "${AppConstants.monthNames[month - 1]} $year",
+                  style: const TextStyle(fontSize: 18, 
+                    fontWeight: FontWeight.bold, 
+                    color: Colors.deepPurple,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: yearSundays.map((sunday) {
+                    final type = _isTeen ? "teen" : "adult";
+
+                    return FutureBuilder<Map<String, int>>(
+                      future: _getSubmissionInfo(sunday, type),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {
+                          return const SizedBox(
+                            width: 100, height: 140,
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+
+                        final total = snapshot.data!['total'] ?? 0;
+                        final graded = snapshot.data!['graded'] ?? 0;
+
+                        final label = total == 0 ? "No submissions" : "$graded / $total graded";
+
+                        return Material(
+                          color: total > 0 ? Colors.green.shade100 : Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(16),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(16),
+                            onTap: total == 0 ? null : () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => AssignmentResponseDetailPage(
+                                    date: sunday,
+                                    isTeen: _isTeen,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: SizedBox(
+                              width: 100,
+                              height: 140,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "${sunday.day}",
+                                    style: TextStyle(
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.bold,
+                                      color: total > 0 ? Colors.green.shade800 : Colors.grey.shade700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 5),
+                                  Icon(
+                                    total > 0 ? Icons.check_circle : Icons.pending,
+                                    size: 20,
+                                    color: total > 0 ? Colors.green.shade800 : Colors.grey.shade700,
+                                  ),
+                                  const SizedBox(height: 5),
+                                  Text(
+                                    label,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: total > 0 ? Colors.green.shade800 : Colors.grey.shade700,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         );
                       },
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          children: [
-                            Text(
-                              "${sunday.day}",
-                              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.deepPurple),
-                            ),
-                            const SizedBox(height: 8),
-                            Container(
-                              width: 25,
-                              height: 5,
-                              decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.rectangle),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ],
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
           ),
+        );
+      }
+    }
+
+    if (monthWidgets.isEmpty) {
+      return const Center(
+        child: Text(
+          "No assignments in this quarter.",
+          style: TextStyle(fontSize: 18, color: Colors.grey),
         ),
       );
     }
-    return months;
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      children: monthWidgets,
+    );
   }
 
-  List<DateTime> _getSundaysInMonth(int year, int month, Set<DateTime> allDates) {
-    final List<DateTime> sundays = [];
-    DateTime firstDay = DateTime(year, month, 1);
-    int offset = (DateTime.sunday - firstDay.weekday + 7) % 7;
-    DateTime sunday = firstDay.add(Duration(days: offset));
-
-    while (sunday.month == month) {
-      final normalized = DateTime(sunday.year, sunday.month, sunday.day);
-      if (allDates.contains(normalized)) {
-        sundays.add(sunday);
-      }
-      sunday = sunday.add(const Duration(days: 7));
-    }
-    return sundays;
+  List<DateTime> _getAllSundaysInMonth(int month, Set<DateTime> allDates) {
+    return allDates
+        .where((d) => d.month == month && d.weekday == DateTime.sunday)
+        .toList()
+      ..sort();
   }
-
-  String _monthName(int m) => [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-      ][m - 1];
 }

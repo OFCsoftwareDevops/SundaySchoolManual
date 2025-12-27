@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'app_colors.dart';
+
 class SegmentItem {
   final String label;
   final bool enabled;
@@ -12,8 +14,8 @@ Widget segmentedControl({
   required int selectedIndex,
   required List<SegmentItem> items,
   required ValueChanged<int> onChanged,
-  Color backgroundColor = const Color(0xFFE5E5EA),
-  Color indicatorColor = Colors.deepPurple,
+  Color backgroundColor = AppColors.onPrimary,
+  Color indicatorColor = AppColors.primaryContainer,
 }) {
   return LayoutBuilder(
     builder: (context, constraints) {
@@ -74,7 +76,7 @@ Widget segmentedControl({
                                 ? Colors.grey
                                 : selected
                                     ? Colors.white
-                                    : Colors.deepPurple,
+                                    : AppColors.secondary
                           ),
                         ),
                       ),

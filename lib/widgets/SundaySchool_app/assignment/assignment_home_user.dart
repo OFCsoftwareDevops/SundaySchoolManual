@@ -3,11 +3,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../UI/app_colors.dart';
 import '../../../UI/segment_sliding.dart';
 import '../../../auth/login/auth_service.dart';
-import '../../../backend_data/assignment_dates_provider.dart';
-import '../../../backend_data/firestore_service.dart';
-import '../../../backend_data/submitted_dates_provider.dart';
+import '../../../backend_data/database/constants.dart';
+import '../../../backend_data/service/assignment_dates_provider.dart';
+import '../../../backend_data/service/firestore_service.dart';
+import '../../../backend_data/service/submitted_dates_provider.dart';
 import 'assignment_response_page_user.dart';
 
 
@@ -20,19 +22,67 @@ class UserAssignmentsPage extends StatefulWidget {
 
 class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
   bool _isTeen = false;
-  int _selectedPeriod = 0;
+  int _selectedQuarter = 0;
   bool _ensuredSubmittedDatesLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    final currentMonth = now.month;
+
+    if (currentMonth == 12 || currentMonth <= 2) {
+      _selectedQuarter = 0; // Q1
+    } else if (currentMonth <= 5) {
+      _selectedQuarter = 1; // Q2
+    } else if (currentMonth <= 8) {
+      _selectedQuarter = 2; // Q3
+    } else {
+      _selectedQuarter = 3; // Q4
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final datesProvider = Provider.of<AssignmentDatesProvider>(context);
     final submittedProvider = Provider.of<SubmittedDatesProvider>(context);
     final auth = context.read<AuthService>();
+    final user = FirebaseAuth.instance.currentUser;
     final churchName = auth.churchName ?? "Your Church";
 
-    // Ensure submitted dates are loaded once when the user first opens this page.
-    if (!_ensuredSubmittedDatesLoaded) {
+    if (!_ensuredSubmittedDatesLoaded && user != null) {
       _ensuredSubmittedDatesLoaded = true;
+
+      // Use the same churchId from AuthService
+      final service = FirestoreService(churchId: auth.churchId ?? '');
+
+      submittedProvider.load(service, user.uid).catchError((e) {
+        debugPrint('Error loading submitted dates on page open: $e');
+      });
+    }
+
+    // Show loading spinner only if critical data isn't ready yet
+    if (datesProvider.isLoading || 
+        (user != null && submittedProvider.isLoading && !_ensuredSubmittedDatesLoaded)) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    // If no user, show a friendly message (optional fallback)
+    if (user == null) {
+      return Scaffold(
+        appBar: AppBar(title: Text("My Assignments — $churchName")),
+        body: const Center(
+          child: Text("Please log in to view your assignments."),
+        ),
+      );
+    }
+
+    /*// Ensure submitted dates are loaded once when the user first opens this page.
+    if (!_ensuredSubmittedDatesLoaded && user != null) {
+      _ensuredSubmittedDatesLoaded = true;
+
       final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
       if (userId.isNotEmpty) {
         final auth = context.read<AuthService>();
@@ -49,13 +99,13 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
-    }
+    }*/
 
     // No loading state needed — data is preloaded!
     return Scaffold(
       appBar: AppBar(
         title: Text("My Assignments — $churchName"),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: AppColors.primary,
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 10),
@@ -64,9 +114,9 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
                 isSelected: [!_isTeen, _isTeen],
                 onPressed: (i) => setState(() => _isTeen = i == 1),
                 borderRadius: BorderRadius.circular(30),
-                selectedColor: Colors.white,
-                fillColor: Colors.deepPurple.shade700,
-                color: Colors.white70,
+                selectedColor: AppColors.onSurface,
+                fillColor: AppColors.secondaryContainer,
+                color: AppColors.onSurface,
                 children: const [
                   Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: Text("Adult")),
                   Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: Text("Teen")),
@@ -81,31 +131,23 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
           Padding(
             padding: const EdgeInsets.all(10),
             child: segmentedControl(
-              selectedIndex: _selectedPeriod,
-              items: const [
-                SegmentItem("Q1"),
-                SegmentItem("Q2"),
-                SegmentItem("Q3"),
-                SegmentItem("Q4"),
-              ],
-              onChanged: (i) => setState(() => _selectedPeriod = i),
+              selectedIndex: _selectedQuarter,
+              items: AppConstants.quarterLabels
+                .map((label) => SegmentItem(label))
+                .toList(),
+              onChanged: (i) => setState(() => _selectedQuarter = i),
             ),
           ),
           Expanded(
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),
-              child: _buildMonthsForPeriod(_selectedPeriod - 1, datesProvider.dates).isEmpty
-                  ? const Center(
-                      child: Text(
-                        "No assignments in this quarter.",
-                        style: TextStyle(fontSize: 18, color: Colors.grey),
-                      ),
-                    )
-                  : ListView(
-                      key: ValueKey(_selectedPeriod),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      children: _buildMonthsForPeriod(_selectedPeriod - 1, datesProvider.dates),
-                    ),
+              key: ValueKey('$_selectedQuarter-$_isTeen'),
+              child: _buildQuarterContent(
+                _selectedQuarter,
+                datesProvider.dates,
+                submittedProvider,
+                _isTeen,
+              ),
             ),
           ),
         ],
@@ -113,25 +155,65 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
     );
   }
 
-  List<Widget> _buildMonthsForPeriod(int periodOffset, Set<DateTime> allDates) {
-    final List<Widget> months = [];
-    final now = DateTime.now();
-    final baseMonth = DateTime(now.year, now.month + (periodOffset * 3));
+  Widget _buildQuarterContent(
+    int quarterIndex,
+    Set<DateTime> allDates,
+    SubmittedDatesProvider submittedProvider,
+    bool isTeen,
+  ) {
+    final months = AppConstants.quarterMonths[quarterIndex];
 
-    for (int i = 0; i < 3; i++) {
-      final date = DateTime(baseMonth.year, baseMonth.month + i);
-      final sundays = _getSundaysInMonth(date.year, date.month, allDates);
-      if (sundays.isEmpty) continue;
+    // Group Sundays by month and year for display
+    final Map<String, List<DateTime>> sundaysByMonthYear = {};
 
-      months.add(
+    for (final date in allDates) {
+      if (months.contains(date.month)) {
+        final key = "${date.month}-${date.year}";
+        sundaysByMonthYear.putIfAbsent(key, () => []).add(date);
+      }
+    }
+
+    if (sundaysByMonthYear.isEmpty) {
+      return const Center(
+        child: Text(
+          "No assignments in this quarter.",
+          style: TextStyle(fontSize: 18, color: Colors.grey),
+        ),
+      );
+    }
+
+    List<Widget> monthWidgets = [];
+
+    // Sort by year then month
+    final sortedKeys = sundaysByMonthYear.keys.toList()
+      ..sort((a, b) {
+        final partsA = a.split('-').map(int.parse).toList();
+        final partsB = b.split('-').map(int.parse).toList();
+        final yearCompare = partsA[1].compareTo(partsB[1]);
+        if (yearCompare == 0) return partsA[0].compareTo(partsB[0]);
+        return yearCompare;
+      });
+
+    for (final key in sortedKeys) {
+      final parts = key.split('-');
+      final month = int.parse(parts[0]);
+      final year = int.parse(parts[1]);
+
+      final sundays = sundaysByMonthYear[key]!..sort(); // oldest first
+
+      monthWidgets.add(
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "${_monthName(date.month)} ${date.year}",
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+                "${AppConstants.monthNames[month - 1]} $year",
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.deepPurple,
+                ),
               ),
               const SizedBox(height: 12),
               Wrap(
@@ -140,54 +222,30 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
                 children: sundays.map((sunday) {
                   final normalized = DateTime(sunday.year, sunday.month, sunday.day);
 
-                  // Use the preloaded submitted dates
-                  final submittedProvider = Provider.of<SubmittedDatesProvider>(context, listen: false);
-                  /*final isSubmitted = _isTeen
+                  final isSubmitted = isTeen
                       ? submittedProvider.teenSubmitted.contains(normalized)
-                      : submittedProvider.adultSubmitted.contains(normalized);*/
+                      : submittedProvider.adultSubmitted.contains(normalized);
 
-                  final Set<DateTime> submittedSet = _isTeen
-                      ? submittedProvider.teenSubmitted
-                      : submittedProvider.adultSubmitted;
+                  final isGraded = isTeen
+                      ? submittedProvider.teenGraded.contains(normalized)
+                      : submittedProvider.adultGraded.contains(normalized);
 
-                  final Set<DateTime> gradedSet = _isTeen
-                      ? submittedProvider.teenGraded
-                      : submittedProvider.adultGraded;
-
-                  final bool isSubmitted = submittedSet.contains(normalized);
-                  final bool isGraded = gradedSet.contains(normalized);
-
-                  // <--- ADD THIS DEBUG PRINT
-                  // debugPrint('Checking ${normalized.toIso8601String()} - isTeen: $_isTeen - Submitted? $isSubmitted');
-
-                  /*final Color cardColor = isSubmitted ? Colors.green.shade100 : Colors.grey.shade100;
-                  final Color textColor = isSubmitted ? Colors.green.shade800 : Colors.grey;
-                  final IconData icon = isSubmitted ? Icons.check_circle : Icons.pending;*/
-
-                  // Determine card style based on state
                   Color cardColor;
                   Color textColor;
                   IconData icon;
-                  String? statusText;
 
                   if (isGraded) {
-                    // GRADED: Blue
                     cardColor = Colors.blue.shade200;
                     textColor = Colors.blue.shade800;
                     icon = Icons.verified;
-                    statusText = null;
                   } else if (isSubmitted) {
-                    // SUBMITTED BUT NOT GRADED: Green
                     cardColor = Colors.green.shade100;
                     textColor = Colors.green.shade800;
                     icon = Icons.check_circle;
-                    statusText = null;
                   } else {
-                    // UNANSWERED: Gray
                     cardColor = const Color.fromARGB(255, 226, 226, 226);
                     textColor = Colors.grey.shade700;
                     icon = Icons.pending;
-                    statusText = null;
                   }
 
                   return Material(
@@ -224,18 +282,6 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
                               color: textColor,
                               size: 24,
                             ),
-                            if (statusText != null)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 4),
-                                child: Text(
-                                  statusText,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: textColor,
-                                  ),
-                                ),
-                              ),
                           ],
                         ),
                       ),
@@ -248,7 +294,11 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
         ),
       );
     }
-    return months;
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      children: monthWidgets,
+    );
   }
 
   List<DateTime> _getSundaysInMonth(int year, int month, Set<DateTime> allDates) {
@@ -266,9 +316,4 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
     }
     return sundays;
   }
-
-  String _monthName(int m) => [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-      ][m - 1];
 }

@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../UI/app_colors.dart';
+
 class StreakPage extends StatelessWidget {
   const StreakPage({super.key});
 
@@ -17,7 +19,7 @@ class StreakPage extends StatelessWidget {
       );
     }
 
-    final docRef = FirebaseFirestore.instance.collection('streaks').doc(uid);
+    final docRef = FirebaseFirestore.instance.collection('users').doc(uid);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Reading Streak')),
@@ -28,12 +30,16 @@ class StreakPage extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final doc = snapshot.data;
-          final data = doc?.data();
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
 
-          final int streak = (data?['readingStreak'] ?? 0) as int;
-          final int freezeCount = (data?['freezeCount'] ?? 0) as int;
-          final ts = data?['readingLastDate'];
+          final doc = snapshot.data;
+          final data = doc?.data() ?? {};
+
+          final int streak = (data['readingStreak'] ?? 0) as int;
+          final int freezeCount = (data['freezeCount'] ?? 0) as int;
+          final ts = data['readingLastDate'];
           String last = 'Never';
           if (ts is Timestamp) {
             final d = ts.toDate();
@@ -92,7 +98,10 @@ class StreakPage extends StatelessWidget {
                       children: [
                         const Text('Progress to next freeze', style: TextStyle(fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
-                        LinearProgressIndicator(value: progress),
+                        LinearProgressIndicator(
+                          value: progress,
+                          backgroundColor: AppColors.grey300,
+                        ),
                         const SizedBox(height: 8),
                         Text('$daysToNext day(s) until next freeze (every 7-day streak awards 1 freeze)'),
                       ],
@@ -110,7 +119,7 @@ class StreakPage extends StatelessWidget {
                 ),
 
                 const Spacer(),
-                Center(
+                /*nter(
                   child: ElevatedButton(
                     onPressed: () async {
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Keep reading to grow your streak!')));
@@ -118,7 +127,7 @@ class StreakPage extends StatelessWidget {
                     child: const Text('Keep Reading'),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 20),*/
               ],
             ),
           );

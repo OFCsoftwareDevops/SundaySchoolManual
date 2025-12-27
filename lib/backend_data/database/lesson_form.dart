@@ -1,7 +1,7 @@
 // lib/widgets/lesson_form.dart
 
 import 'package:flutter/material.dart';
-import '../backend_data/lesson_data.dart';
+import 'lesson_data.dart';
 
 class LessonForm extends StatefulWidget {
   final SectionNotes initialData;

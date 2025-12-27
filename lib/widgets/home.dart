@@ -1,5 +1,7 @@
 import 'dart:ui';
+import 'package:app_demo/UI/app_colors.dart';
 import 'package:app_demo/auth/login/auth_service.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:provider/provider.dart';
 import 'package:app_demo/main.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -8,9 +10,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../UI/buttons.dart';
-import '../backend_data/firestore_service.dart';
-import '../backend_data/lesson_data.dart';
+import '../UI/app_buttons.dart';
+import '../backend_data/service/analytics/analytics_service.dart';
+import '../backend_data/service/firestore_service.dart';
+import '../backend_data/database/lesson_data.dart';
 import '../l10n/app_localizations.dart';
 import 'SundaySchool_app/further_reading/further_reading_dialog.dart';
 import 'calendar.dart';
@@ -61,13 +64,13 @@ class HomeState extends State<Home> {
                 ),
               ],
             ),
-            backgroundColor: Colors.deepPurple,
+            backgroundColor: AppColors.background,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             duration: const Duration(seconds: 8),
             action: SnackBarAction(
               label: "OPEN",
-              textColor: Colors.yellowAccent,
+              textColor: AppColors.grey900,
               onPressed: () {
                 final nextSunday = _getNextSunday();
                 setState(() => selectedDate = nextSunday);
@@ -124,7 +127,7 @@ class HomeState extends State<Home> {
     final isAdmin = user?.email == adminEmail;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
       title: Consumer<AuthService>(
         builder: (context, auth, child) {
@@ -138,7 +141,7 @@ class HomeState extends State<Home> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text("Switched to General (Global) lessons"),
-                    backgroundColor: Colors.deepPurple,
+                    backgroundColor: AppColors.surface,
                     duration: Duration(seconds: 2),
                   ),
                 );
@@ -154,15 +157,15 @@ class HomeState extends State<Home> {
               isGeneral ? "RCCG Sunday School (General)" : name,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: AppColors.onPrimary,
                 fontSize: 20,
               ),
             ),
           );
         },
       ),
-        backgroundColor: const Color.fromARGB(146, 7, 7, 7),
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.secondary,
         elevation: 4,
         actions: [
           // Change Church Button
@@ -178,8 +181,14 @@ class HomeState extends State<Home> {
           ),*/
           // Language Menu
           PopupMenuButton<Locale>(
-            icon: const Icon(Icons.language, color: Colors.white),
-            onSelected: (locale) => MyApp.setLocale(context, locale),
+            icon: const Icon(Icons.language, color: AppColors.onPrimary),
+            onSelected: (locale) async {
+              // Log language change
+              await AnalyticsService.logButtonClick('language_change_${locale.languageCode}');
+
+              // Apply the selected locale
+              MyApp.setLocale(context, locale);
+            },
             itemBuilder: (_) => [
               const PopupMenuItem(value: Locale('en'), child: Text("English")),
               const PopupMenuItem(value: Locale('fr'), child: Text("Français")),
@@ -208,13 +217,13 @@ class HomeState extends State<Home> {
                 final offline = snapshot.data?.every((r) => r == ConnectivityResult.none) ?? false;
                 return AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
-                  color: offline ? Colors.orange.shade700 : Colors.transparent,
+                  color: offline ? AppColors.warning : Colors.transparent,
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   child: offline
                       ? const Center(
                           child: Text(
                             "Offline Mode • Using cached lessons",
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                            style: TextStyle(color: AppColors.grey800, fontWeight: FontWeight.w500),
                           ),
                         )
                       : const SizedBox.shrink(),
@@ -290,6 +299,35 @@ class HomeState extends State<Home> {
                 padding: const EdgeInsets.only(bottom: 0),
                 child: Column(
                   children: [
+
+                    //MIGRATION BUTTON
+                    /*ElevatedButton(
+                      onPressed: () async {
+                        if (FirebaseAuth.instance.currentUser?.email != "olaoluwa.ogunseye@gmail.com") return;
+
+                        try {
+                          final HttpsCallable callable = FirebaseFunctions.instance
+                              .httpsCallable('migrateUserDataToUsersCollection');
+                          final result = await callable.call();
+
+                          final data = result.data as Map<String, dynamic>;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                "Migration SUCCESS! 🎉\n"
+                                "${data['migratedDocuments']} items moved to new structure.",
+                              ),
+                              backgroundColor: AppColors.success,
+                            ),
+                          );
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("Error: $e"), backgroundColor: AppColors.error),
+                          );
+                        }
+                      },
+                      child: const Text("RUN MIGRATION (Admin Only)"),
+                    ),*/
 
                   // DEBUG BUTTON
                   
@@ -395,8 +433,8 @@ class HomeState extends State<Home> {
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: hasLesson
-                                  ? [const Color.fromARGB(186, 93, 134, 104), const Color.fromARGB(195, 157, 194, 166), const Color(0xFFEEFFEE)]
-                                  : [const Color.fromARGB(170, 156, 113, 113), const Color.fromARGB(173, 235, 207, 207), const Color(0xFFFFF8F8)],
+                                  ? [AppColors.secondary, AppColors.secondary, AppColors.primaryContainer]
+                                  : [AppColors.grey800, AppColors.grey600, AppColors.grey400],
                             ),
                           ),
                           child: Column(
@@ -407,7 +445,7 @@ class HomeState extends State<Home> {
                                   Icon(
                                     hasLesson ? Icons.menu_book_rounded : Icons.event_busy,
                                     size: 40,
-                                    color: hasLesson ? Colors.white : const Color.fromARGB(255, 62, 62, 62),
+                                    color: hasLesson ? AppColors.onPrimary : AppColors.onSecondary,
                                   ),
                                   const SizedBox(width: 10),
                                   Expanded(
@@ -415,7 +453,7 @@ class HomeState extends State<Home> {
                                       hasLesson
                                           ? AppLocalizations.of(context)!.sundaySchoolLesson
                                           : AppLocalizations.of(context)!.noLessonToday,
-                                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: hasLesson ? Colors.white : const Color.fromARGB(255, 62, 62, 62),),
+                                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: hasLesson ? AppColors.onPrimary : AppColors.onSecondary),
                                     ),
                                   ),
                                 ],
@@ -431,17 +469,23 @@ class HomeState extends State<Home> {
                                     icon: Icons.play_lesson,
                                     label: lesson?.teenNotes?.topic ?? AppLocalizations.of(context)!.noTeenLesson,
                                     available: lesson?.teenNotes != null,
-                                    onTap: () => Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => BeautifulLessonPage(
-                                          data: lesson!.teenNotes!,
-                                          title: "Teen Lesson",
-                                          lessonDate: selectedDate,
-                                          isTeen: true,
+                                    onTap: () async {
+                                      // Log the button / tap event
+                                      await AnalyticsService.logButtonClick('teen_lesson_open');
+
+                                      // Then navigate
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => BeautifulLessonPage(
+                                            data: lesson!.teenNotes!,
+                                            title: "Teen Lesson",
+                                            lessonDate: selectedDate,
+                                            isTeen: true,
+                                          ),
                                         ),
-                                      ),
-                                    ),
+                                      );
+                                    },
                                   ),
                                 ],
                               ),
@@ -458,7 +502,25 @@ class HomeState extends State<Home> {
                                     label: lesson?.adultNotes?.topic 
                                       ?? AppLocalizations.of(context)!.noAdultLesson,
                                     available: lesson?.adultNotes != null,
-                                    onTap: () => Navigator.push(
+                                    onTap: () async {
+                                      // Log the button / tap event
+                                      await AnalyticsService.logButtonClick('adult_lesson_open');
+
+                                      // Then navigate
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => BeautifulLessonPage(
+                                            data: lesson!.adultNotes!,
+                                            title: "Adult Lesson",
+                                            lessonDate: selectedDate,
+                                            isTeen: false,
+                                          ),
+                                        ),
+                                      );
+                                    },
+
+                                   /* onTap: () => Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (_) => BeautifulLessonPage(
@@ -468,7 +530,7 @@ class HomeState extends State<Home> {
                                           isTeen: false,
                                         ),
                                       ),
-                                    ),
+                                    ),*/
                                   ),
                                 ],
                               ),
@@ -499,7 +561,7 @@ class HomeState extends State<Home> {
     return LessonCardButtons(
       context: context,
       onPressed: available ? onTap : () {},
-      topColor: available ? const Color.fromARGB(255, 20, 140, 100) : const Color.fromARGB(255, 33, 32, 32),
+      topColor: available ? AppColors.primaryContainer : AppColors.grey800,
       borderColor: Colors.transparent,
       borderWidth: 0,
       text: "",
@@ -508,12 +570,12 @@ class HomeState extends State<Home> {
         children: [
           Row(
             children: [
-              Icon(Icons.menu_book_rounded, color: Colors.white),
+              Icon(Icons.menu_book_rounded, color: AppColors.onSecondary),
               const SizedBox(width: 10),
               Text(
                 label,
                 style: TextStyle(
-                  color: available ? Colors.white : Colors.white70,
+                  color: available ? AppColors.onPrimary : AppColors.onSecondary,
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.2,
@@ -524,7 +586,7 @@ class HomeState extends State<Home> {
           ),
           Icon(
             available ? Icons.arrow_forward_ios_rounded : Icons.lock_outline,
-            color: Colors.white70,
+            color: AppColors.onSecondary,
             size: 18,
           ),
         ],
@@ -553,7 +615,7 @@ class HomeState extends State<Home> {
                 todayReading: todayReading,
               )
           : () {},
-      topColor: hasReading ? const Color.fromARGB(255, 20, 140, 100) : const Color.fromARGB(255, 174, 174, 174),
+      topColor: hasReading ? AppColors.primaryContainer : AppColors.grey800,
       borderColor:
           hasReading ? const Color.fromARGB(0, 99, 59, 167) : const Color.fromARGB(0, 224, 224, 224),
       borderWidth: hasReading ? 0 : 0,
@@ -564,8 +626,8 @@ class HomeState extends State<Home> {
             Icons.menu_book_rounded,
             size: 30,
             color: hasReading
-                ? const Color.fromARGB(255, 255, 255, 255)
-                : const Color.fromARGB(255, 39, 39, 39),
+                ? AppColors.onPrimary
+                : AppColors.onSecondary,
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -578,8 +640,8 @@ class HomeState extends State<Home> {
                   style: TextStyle(
                     fontSize: 16,
                     color: hasReading
-                        ? const Color.fromARGB(255, 255, 255, 255)
-                        : Color.fromARGB(255, 39, 39, 39),
+                        ? AppColors.onPrimary
+                        : AppColors.onSecondary,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -592,20 +654,21 @@ class HomeState extends State<Home> {
                     fontSize: 14,
                     fontWeight: FontWeight.w400,
                     color: hasReading
-                        ? const Color.fromARGB(255, 255, 255, 255)
-                        : Color.fromARGB(255, 39, 39, 39),
+                        ? AppColors.onPrimary
+                        : AppColors.onSecondary,
                   ),
                 ),
               ],
             ),
           ),
+          const SizedBox(width: 10),
           Icon(
             hasReading
                 ? Icons.arrow_forward_ios_rounded
                 : Icons.lock_outline,
             color: hasReading
-                ? const Color.fromARGB(255, 255, 255, 255)
-                : Color.fromARGB(255, 39, 39, 39),
+                ? AppColors.onPrimary
+                : AppColors.onSecondary,
             size: 22,
           ),
         ],

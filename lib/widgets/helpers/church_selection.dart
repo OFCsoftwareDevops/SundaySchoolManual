@@ -3,10 +3,10 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../UI/linear_progress_bar.dart';
-import '../auth/login/auth_service.dart';
-import '../widgets/add_church_screen.dart';
-import '../widgets/main_screen.dart';
+import '../../UI/app_linear_progress_bar.dart';
+import '../../auth/login/auth_service.dart';
+import 'add_church_screen.dart';
+import 'main_screen.dart';
 
 class ChurchOnboardingScreen extends StatefulWidget {
   const ChurchOnboardingScreen({super.key});

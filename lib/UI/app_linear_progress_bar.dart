@@ -6,13 +6,16 @@ class LinearProgressBar extends StatelessWidget {
   final Color valueColor;
   final BorderRadius? borderRadius;
   final EdgeInsetsGeometry? margin;
-  final String? message; // Optional message below the bar
+  final String? message;
+  
+  final double value; // Optional message below the bar
 
   const LinearProgressBar({
     super.key,
+    this.value = 0.0,
     this.height = 6.0,
-    this.backgroundColor = const Color(0xFFE0E0E0),
-    this.valueColor = const Color(0xFF5D8668), // Your app's green
+    this.backgroundColor = const Color.fromARGB(255, 83, 15, 15),
+    this.valueColor = const Color.fromARGB(255, 224, 8, 8), // Your app's green
     this.borderRadius,
     this.margin,
     this.message,
@@ -31,8 +34,9 @@ class LinearProgressBar extends StatelessWidget {
           ),
           child: ClipRRect(
             borderRadius: borderRadius ?? BorderRadius.circular(height / 2),
-            child: const LinearProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF5D8668)),
+            child: LinearProgressIndicator(
+              value: value,
+              valueColor: AlwaysStoppedAnimation<Color>(valueColor),
               backgroundColor: Colors.transparent,
             ),
           ),

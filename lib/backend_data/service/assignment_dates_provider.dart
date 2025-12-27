@@ -1,6 +1,6 @@
 // lib/providers/assignment_dates_provider.dart
 import 'package:flutter/material.dart';
-import '../backend_data/firestore_service.dart';
+import 'firestore_service.dart';
 
 class AssignmentDatesProvider with ChangeNotifier {
   Set<DateTime> _allDates = {};

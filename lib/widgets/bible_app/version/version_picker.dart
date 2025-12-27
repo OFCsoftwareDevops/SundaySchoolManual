@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../UI/linear_progress_bar.dart';
+import '../../../UI/app_linear_progress_bar.dart';
 import '../bible.dart';
 
 class VersionPicker extends StatelessWidget {

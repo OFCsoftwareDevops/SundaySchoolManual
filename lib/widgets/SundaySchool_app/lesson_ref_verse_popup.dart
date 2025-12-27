@@ -1,4 +1,5 @@
 // lib/widgets/verse_popup.dart
+import 'package:app_demo/UI/app_colors.dart';
 import 'package:flutter/material.dart';
 import '../bible_app/version/version_picker.dart';
 
@@ -27,7 +28,7 @@ class VersePopup extends StatelessWidget {
         text: '$verseNum ',
         style: const TextStyle(
           fontWeight: FontWeight.bold,
-          color: Color.fromARGB(255, 94, 17, 17),
+          color: AppColors.primaryContainer,
           fontSize: 14,
         ),
       ));
@@ -35,11 +36,11 @@ class VersePopup extends StatelessWidget {
       spans.add(TextSpan(
         text: '$text\n\n',
         style: TextStyle(
-          color: Colors.black87,
+          color: AppColors.grey900,
           fontSize: 17,
           height: 1.5,
           backgroundColor: highlighted
-              ? const Color.fromARGB(80, 255, 229, 180)
+              ? AppColors.grey100
               : null,
         ),
       ));
@@ -55,36 +56,36 @@ class VersePopup extends StatelessWidget {
       height: height,
       width: double.infinity,
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: AppColors.secondaryContainer,
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
           children: [
-            // drag handle
+            /*/ drag handle
             Container(
               width: 50,
               height: 5,
               decoration: BoxDecoration(
-                color: Colors.grey[400],
+                color: AppColors.onBackground,
                 borderRadius: BorderRadius.circular(5),
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 5),*/
             // version picker
             const VersionPicker(
               iconColor: Colors.black,
               textColor: Colors.black,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 5),
             // Reference header
             Text(
               reference,
               style: const TextStyle(
                 fontSize: 19,
                 fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 94, 17, 17),
+                color: AppColors.primaryContainer,
               ),
             ),
             const SizedBox(height: 10),

@@ -35,6 +35,10 @@ class AuthService extends ChangeNotifier {
   // Cached values
   String? _currentChurchId;
   String? _currentChurchName;
+  String? _churchFullName;     // e.g. "RCCG Grace - Lagos Parish"
+  String? _parishName;         // Extracted: "Lagos Parish"
+  String? _accessCode;
+  String? _pastorName;
   AdminStatus? _adminStatus;
   bool _isLoading = true;
 
@@ -42,11 +46,16 @@ class AuthService extends ChangeNotifier {
   User? get currentUser => _auth.currentUser;
   String? get churchId => _currentChurchId;
   String? get churchName => _currentChurchName;
+  String? get churchFullName => _churchFullName ?? _currentChurchName;
+  String? get parishName => _parishName;
+  String? get accessCode => _accessCode;
+  String? get pastorName => _pastorName;
+  String get displayChurchName => _churchFullName ?? _currentChurchName ?? "My Church";
   bool get hasChurch => _currentChurchId != null;
   bool get isLoading => _isLoading;
   AdminStatus get adminStatus => _adminStatus ?? 
-      AdminStatus(isGlobalAdmin: false, isChurchAdmin: false, isGroupAdmin: false, 
-                  adminChurchIds: [], adminGroups: {}, highestAdminType: AdminType.none);
+    AdminStatus(isGlobalAdmin: false, isChurchAdmin: false, isGroupAdmin: false, 
+      adminChurchIds: [], adminGroups: {}, highestAdminType: AdminType.none);
 
   // Public helpers
   bool get isGlobalAdmin => adminStatus.isGlobalAdmin;
@@ -119,15 +128,30 @@ class AuthService extends ChangeNotifier {
     if (data != null && data['churchId'] != null) {
       final churchId = data['churchId'] as String;
       final churchDoc = await FirebaseFirestore.instance.doc('churches/$churchId').get();
-      final churchName = churchDoc.data()?['name'] as String? ?? 'Unknown Church';
+
+      if (!churchDoc.exists) return;
+
+      final churchData = churchDoc.data()!;
+      final String fullName = churchData['name'] as String? ?? 'Unknown Church';
+      final String? code = churchData['accessCode'] as String?;
+      final String? pastor = churchData['pastorName'] as String?;
+
+      // Split "Church Name - Parish" → extract parish
+      final parts = fullName.split(' - ');
+      final churchName = parts[0].trim();
+      final parishName = parts.length > 1 ? parts[1].trim() : null;
 
       _currentChurchId = churchId;
       _currentChurchName = churchName;
+      _churchFullName = fullName;
+      _parishName = parishName;
+      _accessCode = code;
+      _pastorName = pastor;
 
       // Persist to prefs
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('church_id', churchId);
-      await prefs.setString('church_name', churchName);
+      await prefs.setString('church_name', fullName);
     }
   }
 
@@ -146,15 +170,26 @@ class AuthService extends ChangeNotifier {
 
       if (churchSnap.exists) {
         final churchId = churchSnap.id;
-        final churchName = churchSnap.data()?['name'] as String? ?? 'My Church';
+        final churchData = churchSnap.data()!;
+        final String fullName = churchData['name'] as String? ?? 'My Church';
+        final String? code = churchData['accessCode'] as String?;
+        final String? pastor = churchData['pastorName'] as String?;
+
+        final parts = fullName.split(' - ');
+        final churchName = parts[0].trim();
+        final parishName = parts.length > 1 ? parts[1].trim() : null;
 
         _currentChurchId = churchId;
         _currentChurchName = churchName;
+        _churchFullName = fullName;
+        _parishName = parishName;
+        _accessCode = code;
+        _pastorName = pastor;
 
         // Save to prefs AND optionally update users/{uid}.churchId
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('church_id', churchId);
-        await prefs.setString('church_name', churchName);
+        await prefs.setString('church_name', fullName);
 
         // Optional: backfill users doc
         await FirebaseFirestore.instance.doc('users/${user.uid}').set({
@@ -199,8 +234,29 @@ class AuthService extends ChangeNotifier {
   /// Call this after successful join (from your Cloud Function)
   Future<void> setCurrentChurch(String churchId, String churchName) async {
     _currentChurchId = churchId;
-    _currentChurchName = churchName;
+    _currentChurchName = churchName.split(' - ').first.trim();
+    _churchFullName = churchName;
 
+    // Extract parish name if available
+    final parts = churchName.split(' - ');
+    _parishName = parts.length > 1 ? parts[1].trim() : null;
+
+    // Now load full details from Firestore for code & pastor
+    try {
+      final churchDoc = await FirebaseFirestore.instance
+          .doc('churches/$churchId')
+          .get();
+
+      if (churchDoc.exists) {
+        final data = churchDoc.data()!;
+        _accessCode = data['accessCode'] as String?;
+        _pastorName = data['pastorName'] as String?;
+      }
+    } catch (e) {
+      print("Could not load extra church details: $e");
+    }
+
+    // Persist to SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('church_id', churchId);
     await prefs.setString('church_name', churchName);
@@ -214,6 +270,17 @@ class AuthService extends ChangeNotifier {
     }
 
     notifyListeners();
+  }
+
+  Future<void> leaveChurch() async {
+    final uid = currentUser?.uid;
+    if (uid == null) return;
+
+    await FirebaseFirestore.instance
+        .doc('users/$uid')
+        .update({'churchId': FieldValue.delete()});
+
+    await clearChurch();
   }
 
   /// Call on sign out or church leave

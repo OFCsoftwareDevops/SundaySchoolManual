@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../SundaySchool_app/bible_ref_parser.dart';
+import '../SundaySchool_app/lesson_bible_ref_parser.dart';
 import 'bible_entry_point.dart';
 
 class BibleBook {

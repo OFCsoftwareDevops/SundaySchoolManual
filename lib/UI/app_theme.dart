@@ -6,6 +6,7 @@ import 'app_colors.dart';
 class AppTheme {
   static ThemeData get lightTheme => ThemeData(
         useMaterial3: true,
+        cardColor: AppColors.primaryContainer,
         colorScheme: ColorScheme.light(
           primary: AppColors.primary,
           onPrimary: AppColors.onPrimary,

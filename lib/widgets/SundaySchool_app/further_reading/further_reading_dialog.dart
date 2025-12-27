@@ -2,14 +2,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../UI/app_colors.dart';
 import '../../../auth/login/auth_service.dart';
-import '../../../backend_data/saved_items_service.dart';
-import '../../../backend_data/streak_service.dart';
-import '../../../UI/linear_progress_bar.dart';
+import '../../../backend_data/service/analytics/analytics_service.dart';
+import '../../../backend_data/service/saved_items_service.dart';
+import '../../../backend_data/service/streak_service.dart';
+import '../../../UI/app_linear_progress_bar.dart';
 import '../../../UI/timed_button.dart';
 import '../../bible_app/bible.dart';
-import '../../bible_app/highlight/highlight_manager.dart';
-import '../reference_verse_popup.dart';
+import '../../bible_app/bible_actions/highlight_manager.dart';
+import '../../helpers/main_screen.dart';
+import '../lesson_ref_verse_popup.dart';
 
 
 /// Opens the Further Reading as a centered dialog (not bottom sheet)
@@ -79,7 +82,7 @@ void showFurtherReadingDialog({
     barrierDismissible: false,
     builder: (context) => AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.secondaryContainer,
       insetPadding: const EdgeInsets.all(20),
       contentPadding: EdgeInsets.zero,
       content: SizedBox(
@@ -95,33 +98,8 @@ void showFurtherReadingDialog({
                   Expanded(
                     child: Text(ref, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
-                  IconButton(
-                    tooltip: 'Save reading',
-                    icon: const Icon(Icons.bookmark_add, color: Color.fromARGB(255, 100, 13, 74)),
-                    onPressed: () async {
-                      final auth = context.read<AuthService>();
-                      final currentUser = FirebaseAuth.instance.currentUser;
-                      final churchId = auth.churchId;
-
-                      if (currentUser == null || churchId == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sign in and select a church to save readings')));
-                        return;
-                      }
-
-                      try {
-                        await SavedItemsService().addFurtherReading(
-                          churchId,
-                          currentUser.uid,
-                          title: ref,
-                          reading: todayReading,
-                        
-                        );
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reading saved')));
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save reading: $e')));
-                      }
-                    },
-                  ),
+                  // NEW: Smart Save Button
+                  _SmartSaveReadingButton(ref: ref, todayReading: todayReading),
                 ],
               ),
             ),
@@ -146,9 +124,10 @@ void showFurtherReadingDialog({
             width: double.infinity, // full width in actions
               child: TimedFeedbackButtonStateful(
               text: "Complete Reading",
-              topColor: Colors.deepPurple,
+              topColor: AppColors.success,
               seconds: readingSeconds, // time to wait before enabling
               onPressed: () async {
+                await AnalyticsService.logButtonClick('further_reading_completed!');
                 final currentUser = FirebaseAuth.instance.currentUser;
 
                 if (currentUser != null) {
@@ -159,9 +138,11 @@ void showFurtherReadingDialog({
                   }
                 }
 
-                Navigator.of(context).pop(); // close the dialog
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => MainScreen()),
+                ); // close the dialog
               },
-              borderColor: Colors.deepPurple,
+              borderColor: AppColors.success,
               borderWidth: 2,
               backOffset: 4,
               backDarken: 0.45,
@@ -171,4 +152,107 @@ void showFurtherReadingDialog({
       ],
     ),
   );
+}
+
+// Smart Save Button — uses your existing isFurtherReadingSaved()
+class _SmartSaveReadingButton extends StatefulWidget {
+  final String ref;
+  final String todayReading;
+
+  const _SmartSaveReadingButton({required this.ref, required this.todayReading});
+
+  @override
+  State<_SmartSaveReadingButton> createState() => _SmartSaveReadingButtonState();
+}
+
+class _SmartSaveReadingButtonState extends State<_SmartSaveReadingButton> {
+  bool _isSaved = false;
+  bool _isChecking = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkIfSaved();
+  }
+
+  Future<void> _checkIfSaved() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      setState(() => _isChecking = false);
+      return;
+    }
+
+    final auth = context.read<AuthService>();
+    if (auth.churchId == null) {
+      setState(() => _isChecking = false);
+      return;
+    }
+
+    final saved = await SavedItemsService().isFurtherReadingSaved(user.uid, widget.ref);
+
+    if (mounted) {
+      setState(() {
+        _isSaved = saved;
+        _isChecking = false;
+      });
+    }
+  }
+
+  Future<void> _saveReading() async {
+    final user = FirebaseAuth.instance.currentUser;
+    final auth = context.read<AuthService>();
+
+    if (user == null || auth.churchId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sign in and join a church to save readings')),
+      );
+      return;
+    }
+
+    if (_isSaved) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Already saved! 📖')),
+      );
+      return;
+    }
+
+    try {
+      await SavedItemsService().addFurtherReading(
+        user.uid,
+        title: widget.ref,
+        reading: widget.todayReading,
+      );
+
+      setState(() => _isSaved = true);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Reading saved! 📖')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save: $e')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      tooltip: _isSaved ? 'Already saved' : 'Save this reading',
+      onPressed: _saveReading,
+      icon: _isChecking
+          ? const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Color.fromARGB(255, 100, 13, 74),
+              ),
+            )
+          : Icon(
+              _isSaved ? Icons.bookmark : Icons.bookmark_add,
+              color: _isSaved ? const Color.fromARGB(255, 100, 13, 74): const Color.fromARGB(255, 78, 77, 78),
+            ),
+    );
+  }
 }

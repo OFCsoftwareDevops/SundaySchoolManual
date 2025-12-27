@@ -3,12 +3,14 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'package:app_demo/UI/app_colors.dart';
 import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
-import '../../UI/buttons.dart';
+import '../../UI/app_buttons.dart';
+import '../../backend_data/service/analytics/analytics_service.dart';
 import 'auth_service.dart';
 import '../../UI/loading_overlay.dart';
 
@@ -174,7 +176,7 @@ class _AuthScreenState extends State<AuthScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF5D8668), Color(0xFFEEFFEE)],
+            colors: [ Color.fromARGB(255, 255, 255, 255),AppColors.secondary, AppColors.darkSurface],
           ),
         ),
         child: SafeArea(
@@ -211,7 +213,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color: AppColors.onSecondary,
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -221,7 +223,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.white70,
+                    color: AppColors.onSecondary,
                     height: 1.4,
                   ),
                 ),
@@ -242,7 +244,10 @@ class _AuthScreenState extends State<AuthScreen> {
                           // Google tab
                           Expanded(
                             child: GestureDetector(
-                              onTap: () => setState(() => _selectedTab = 0),
+                              onTap: () async {
+                                await AnalyticsService.logButtonClick('google_login');
+                                setState(() => _selectedTab = 0);
+                              },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(vertical: 16),
                                 decoration: BoxDecoration(
@@ -264,7 +269,11 @@ class _AuthScreenState extends State<AuthScreen> {
                           if (Platform.isIOS)
                             Expanded(
                               child: GestureDetector(
-                                onTap: () => setState(() => _selectedTab = 1),
+                                onTap: () async {
+                                  await AnalyticsService.logButtonClick('iOS_login');
+                                  setState(() => _selectedTab = 1);
+                                },
+
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(vertical: 16),
                                   decoration: BoxDecoration(
@@ -285,7 +294,12 @@ class _AuthScreenState extends State<AuthScreen> {
                           // Guest tab
                           Expanded(
                             child: GestureDetector(
-                              onTap: () => setState(() => _selectedTab = Platform.isIOS ? 2 : 1), // adjust index if no Apple
+                              onTap: () async {
+                                final tabName = Platform.isIOS ? 'ios_device': 'android_device';
+                                await AnalyticsService.logButtonClick('Anonymous_login_$tabName');
+
+                                setState(() => _selectedTab = Platform.isIOS ? 2 : 1);
+                              },// adjust index if no Apple
                               child: Container(
                                 padding: const EdgeInsets.symmetric(vertical: 16),
                                 decoration: BoxDecoration(
@@ -367,6 +381,15 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 15),
+                Text(
+                  _selectedTab == 0
+                      ? ""
+                      : "All data are temporarily saved and lost after logout.",
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: AppColors.onPrimary, fontSize: 14),
+                ),
+
 
                 /*/ Segmented Toggle: Google | Guest
                 Container(
@@ -463,7 +486,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       ? "Full access: create or join your church"
                       : "Limited access: use general mode only",
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Color.fromARGB(255, 14, 14, 14), fontSize: 14),
+                  style: const TextStyle(color: AppColors.onPrimary, fontSize: 14),
                 ),
                 const SizedBox(height: 40),
               ],

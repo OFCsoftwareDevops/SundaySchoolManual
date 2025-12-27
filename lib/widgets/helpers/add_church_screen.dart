@@ -1,8 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
-import '../UI/linear_progress_bar.dart';
+import '../../UI/app_linear_progress_bar.dart';
 
 class AddChurchScreen extends StatefulWidget {
   const AddChurchScreen({super.key});
@@ -14,6 +13,8 @@ class AddChurchScreen extends StatefulWidget {
 class _AddChurchScreenState extends State<AddChurchScreen> {
   final _nameController = TextEditingController();
   final _parishController = TextEditingController();
+  final _pastorController = TextEditingController();
+  final _adminController = TextEditingController();
   final _locationController = TextEditingController();
   final _countryController = TextEditingController();
   bool _isLoading = false;
@@ -21,10 +22,12 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
   Future<void> _createChurch() async {
     final churchName = _nameController.text.trim();
     final parishName = _parishController.text.trim();
+    final pastorName = _pastorController.text.trim();
+    final churchAdminEmail = _adminController.text.trim();
     final address = _locationController.text.trim();
     final country = _countryController.text.trim();
 
-    if (churchName.isEmpty || parishName.isEmpty || country.isEmpty) {
+    if (churchName.isEmpty || parishName.isEmpty || pastorName.isEmpty || churchAdminEmail.isEmpty || country.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please fill all required fields")),
       );
@@ -50,8 +53,8 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
         'parishName': parishName,
         'address': address.isEmpty ? "Not provided" : address,
         'country': country,
-        'pastorName': user.displayName ?? "Unknown",
-        'pastorEmail': user.email ?? "No email",
+        'churchAdminEmail': churchAdminEmail,
+        'pastorName': pastorName,
         'pastorUid': user.uid,
         'requestedAt': FieldValue.serverTimestamp(),
         'status': 'pending',
@@ -142,6 +145,8 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
   void dispose() {
     _nameController.dispose();
     _parishController.dispose();
+    _pastorController.dispose();
+    _adminController.dispose();
     _locationController.dispose();
     _countryController.dispose();
     super.dispose();
@@ -178,6 +183,26 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
               decoration: const InputDecoration(
                 labelText: "Parish / Branch Name *",
                 hintText: "e.g. Grace Lagos, Jesus House Abuja",
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            TextField(
+              controller: _pastorController,
+              decoration: const InputDecoration(
+                labelText: "Pastor's Name *",
+                hintText: "e.g. Pastor John Doe",
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            TextField(
+              controller: _adminController,
+              decoration: const InputDecoration(
+                labelText: "Admin Email *",
+                hintText: "e.g. admin@grace-lagos.org",
                 border: OutlineInputBorder(),
               ),
             ),

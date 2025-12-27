@@ -1,12 +1,13 @@
+import 'package:app_demo/UI/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../auth/login/auth_service.dart';
-import '../backend_data/saved_items_service.dart';
-import '../backend_data/firestore_service.dart';
-import '../backend_data/lesson_data.dart';
-import 'SundaySchool_app/lesson_preview.dart';
-import 'SundaySchool_app/further_reading/further_reading_dialog.dart';
+import '../../auth/login/auth_service.dart';
+import '../../backend_data/service/saved_items_service.dart';
+import '../../backend_data/service/firestore_service.dart';
+import '../../backend_data/database/lesson_data.dart';
+import '../SundaySchool_app/lesson_preview.dart';
+import '../SundaySchool_app/further_reading/further_reading_dialog.dart';
 
 class SavedItemsPage extends StatefulWidget {
   const SavedItemsPage({super.key});
@@ -43,7 +44,7 @@ class _SavedItemsPageState extends State<SavedItemsPage>
         appBar: AppBar(
           title: const Text('Saved Items'),
           centerTitle: true,
-          backgroundColor: const Color(0xFF5D8668),
+          backgroundColor: AppColors.primary,
         ),
         body: Center(
           child: Padding(
@@ -79,7 +80,7 @@ class _SavedItemsPageState extends State<SavedItemsPage>
         appBar: AppBar(
           title: const Text('Saved Items'),
           centerTitle: true,
-          backgroundColor: const Color(0xFF5D8668),
+          backgroundColor: AppColors.primary,
         ),
         body: const Center(
           child: Text('No church selected'),
@@ -91,7 +92,7 @@ class _SavedItemsPageState extends State<SavedItemsPage>
       appBar: AppBar(
         title: const Text('Saved Items'),
         centerTitle: true,
-        backgroundColor: const Color(0xFF5D8668),
+        backgroundColor: AppColors.primary,
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Colors.white,
@@ -143,7 +144,7 @@ class _BookmarksTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Map<String, dynamic>>>(
-      stream: service.watchBookmarks(churchId, userId),
+      stream: service.watchBookmarks(userId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -173,9 +174,9 @@ class _BookmarksTab extends StatelessWidget {
               title: title,
               text: text,
               note: note,
-              onDelete: () => service.removeBookmark(churchId, userId, id),
+              onDelete: () => service.removeBookmark(userId, id),
               onEditNote: (newNote) =>
-                  service.updateBookmarkNote(churchId, userId, id, newNote),
+                  service.updateBookmarkNote(userId, id, newNote),
             );
           },
         );
@@ -245,7 +246,7 @@ class _BookmarkCard extends StatelessWidget {
               ],
             ),
             trailing: IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+              icon: const Icon(Icons.delete, color: AppColors.grey700, size: 20),
               onPressed: onDelete,
               tooltip: 'Delete bookmark',
             ),
@@ -399,7 +400,7 @@ class _SavedLessonsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Map<String, dynamic>>>(
-      stream: service.watchSavedLessons(churchId, userId),
+      stream: service.watchSavedLessons(userId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -432,9 +433,9 @@ class _SavedLessonsTab extends StatelessWidget {
               type: lessonType,
               preview: preview,
               note: note,
-              onDelete: () => service.removeSavedLesson(churchId, userId, id),
+              onDelete: () => service.removeSavedLesson(userId, id),
               onEditNote: (newNote) =>
-                  service.updateSavedLessonNote(churchId, userId, id, newNote),
+                  service.updateSavedLessonNote(userId, id, newNote),
               onTap: () async {
                 DateTime? date;
                 try {
@@ -561,7 +562,7 @@ class _LessonCard extends StatelessWidget {
                     tooltip: 'Open lesson',
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                    icon: const Icon(Icons.delete, color: AppColors.grey700, size: 20),
                     onPressed: onDelete,
                     tooltip: 'Delete lesson',
                   ),
@@ -686,7 +687,7 @@ class _FurtherReadingsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Map<String, dynamic>>>(
-      stream: service.watchFurtherReadings(churchId, userId),
+      stream: service.watchFurtherReadings(userId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -716,9 +717,9 @@ class _FurtherReadingsTab extends StatelessWidget {
               title: title,
               readingText: readingText,
               note: note,
-              onDelete: () => service.removeFurtherReading(churchId, userId, id),
+              onDelete: () => service.removeFurtherReading(userId, id),
               onEditNote: (newNote) =>
-                  service.updateFurtherReadingNote(churchId, userId, id, newNote),
+                  service.updateFurtherReadingNote(userId, id, newNote),
               onTap: () {
                 // prefer link if it looks like a scripture reference, otherwise title
                 final todayReading = (readingText != null && readingText.isNotEmpty) ? readingText : title;
@@ -776,7 +777,7 @@ class _ReadingCard extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                    icon: const Icon(Icons.delete, color:  AppColors.grey700, size: 20),
                     onPressed: onDelete,
                     tooltip: 'Delete reading',
                   ),

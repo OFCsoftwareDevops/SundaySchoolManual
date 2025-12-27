@@ -5,13 +5,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../../../UI/buttons.dart';
-import '../../../UI/linear_progress_bar.dart';
+import '../../../UI/app_buttons.dart';
+import '../../../UI/app_linear_progress_bar.dart';
 import '../../../auth/login/auth_service.dart';
-import '../../../backend_data/assignment_data.dart';
-import '../../../backend_data/firestore_service.dart';
-import '../../../backend_data/submitted_dates_provider.dart';
-import '../../../backend_data/lesson_data.dart';
+import '../../../backend_data/database/assignment_data.dart';
+import '../../../backend_data/service/analytics/analytics_service.dart';
+import '../../../backend_data/service/firestore_service.dart';
+import '../../../backend_data/service/submitted_dates_provider.dart';
+import '../../../backend_data/database/lesson_data.dart';
 
 class AssignmentResponsePage extends StatefulWidget {
   final DateTime date;
@@ -516,13 +517,16 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
                         : (_isSubmitted && !_isEditing ? const Color.fromARGB(255, 62, 134, 71) : Colors.deepPurple),
                       onPressed: _isGradedByAdmin
                         ? null // Fully disabled
-                        : () {
+                        : () async {
                             if (_isSubmitted && !_isEditing) {
+                              await AnalyticsService.logButtonClick('unlock_for_editing');
                               // Unlock for editing
                               setState(() {
                                 _isEditing = true;
                               });
                             } else {
+                              // Submit (new or update)
+                              await AnalyticsService.logButtonClick('save_responses');
                               // Submit (new or update)
                               _saveResponses();
                             }
