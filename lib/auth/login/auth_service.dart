@@ -1,6 +1,7 @@
 // lib/services/auth_service.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -42,6 +43,9 @@ class AuthService extends ChangeNotifier {
   AdminStatus? _adminStatus;
   bool _isLoading = true;
 
+  DateTime? _deletionScheduledAt;
+  bool _isScheduledForDeletion = false;
+
   // Getters
   User? get currentUser => _auth.currentUser;
   String? get churchId => _currentChurchId;
@@ -56,6 +60,9 @@ class AuthService extends ChangeNotifier {
   AdminStatus get adminStatus => _adminStatus ?? 
     AdminStatus(isGlobalAdmin: false, isChurchAdmin: false, isGroupAdmin: false, 
       adminChurchIds: [], adminGroups: {}, highestAdminType: AdminType.none);
+  bool get isScheduledForDeletion => _isScheduledForDeletion;
+  DateTime? get deletionScheduledAt => _deletionScheduledAt;
+
 
   // Public helpers
   bool get isGlobalAdmin => adminStatus.isGlobalAdmin;
@@ -110,6 +117,61 @@ class AuthService extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+
+    // Load deletion status
+    final userDoc = await FirebaseFirestore.instance.doc('users/${user.uid}').get();
+    if (userDoc.exists) {
+      final data = userDoc.data()!;
+      final timestamp = data['deletionScheduledAt'] as Timestamp?;
+      if (timestamp != null) {
+        _deletionScheduledAt = timestamp.toDate();
+        _isScheduledForDeletion = true;
+        
+        // Auto-cancel if user logged back in!
+        await _cancelDeletionIfNeeded(user.uid);
+      } else {
+        _isScheduledForDeletion = false;
+        _deletionScheduledAt = null;
+      }
+    }
+  }
+
+  // Helper to auto-cancel deletion on login
+  Future<void> _cancelDeletionIfNeeded(String uid) async {
+    try {
+      final callable = FirebaseFunctions.instance.httpsCallable('cancelAccountDeletion');
+      await callable.call();
+      _isScheduledForDeletion = false;
+      _deletionScheduledAt = null;
+      notifyListeners();
+      print("Pending deletion automatically cancelled on login");
+    } catch (e) {
+      print("Failed to cancel deletion on login: $e");
+    }
+  }
+
+  // Public method for manual cancel (if needed)
+  Future<void> cancelAccountDeletion() async {
+    if (!isScheduledForDeletion || currentUser == null) return;
+    try {
+      final callable = FirebaseFunctions.instance.httpsCallable('cancelAccountDeletion');
+      await callable.call();
+      _isScheduledForDeletion = false;
+      _deletionScheduledAt = null;
+      notifyListeners();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // Public method to request deletion
+  Future<void> requestAccountDeletion() async {
+    if (currentUser == null) throw Exception("Not logged in");
+    final callable = FirebaseFunctions.instance.httpsCallable('requestAccountDeletion');
+    await callable.call();
+    _isScheduledForDeletion = true;
+    _deletionScheduledAt = DateTime.now(); // approx
+    notifyListeners();
   }
 
   Future<void> _loadChurchFromPrefs() async {

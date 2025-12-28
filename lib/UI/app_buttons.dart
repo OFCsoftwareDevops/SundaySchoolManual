@@ -300,7 +300,7 @@ Widget PressInButtons({
 
 Widget LoginButtons({
   required BuildContext context,
-  required VoidCallback onPressed,
+  required VoidCallback? onPressed,
   required Color topColor,
   required String text,                    // still supported
   Widget? child,                           // ← NEW

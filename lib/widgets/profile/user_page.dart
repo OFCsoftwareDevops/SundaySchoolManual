@@ -10,6 +10,7 @@ import '../../backend_data/service/analytics/analytics_service.dart';
 import '../../backend_data/service/current_church_service.dart';
 import '../SundaySchool_app/assignment/assignment_home_admin.dart';
 import '../SundaySchool_app/assignment/assignment_home_user.dart';
+import '../helpers/admin_tools_screen.dart';
 import '../helpers/color_palette_page.dart';
 import 'user_leaderboard.dart';
 import 'user_saved_items.dart';
@@ -251,6 +252,18 @@ class UserProfileScreen extends StatelessWidget {
                                 );
                               },
                             ),
+                          _profileGridButton(
+                            context: context,
+                            icon: Icons.admin_panel_settings,
+                            title: "Admin Tools",
+                            onPressed: () async {
+                              await AnalyticsService.logButtonClick('admin_tools_open');
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const AdminToolsScreen()),
+                              );
+                            },
+                          ), 
                       ],
                     ],
                   ),
