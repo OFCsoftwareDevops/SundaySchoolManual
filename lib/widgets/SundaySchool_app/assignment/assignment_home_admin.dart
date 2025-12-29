@@ -103,8 +103,8 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
                 isSelected: [!_isTeen, _isTeen],
                 onPressed: (i) => setState(() => _isTeen = i == 1),
                 borderRadius: BorderRadius.circular(30),
-                selectedColor: Colors.white,
-                fillColor: Colors.deepPurple.shade700,
+                selectedColor: AppColors.primary,
+                fillColor: AppColors.onPrimary,
                 color: Colors.white70,
                 children: const [
                   Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: Text("Adult")),
@@ -166,7 +166,7 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
                   "${AppConstants.monthNames[month - 1]} $year",
                   style: const TextStyle(fontSize: 18, 
                     fontWeight: FontWeight.bold, 
-                    color: Colors.deepPurple,
+                    color: AppColors.primaryContainer,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -192,7 +192,7 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
                         final label = total == 0 ? "No submissions" : "$graded / $total graded";
 
                         return Material(
-                          color: total > 0 ? Colors.green.shade100 : Colors.grey.shade100,
+                          color: total > 0 ? Colors.green.shade100 : AppColors.grey200,
                           borderRadius: BorderRadius.circular(16),
                           child: InkWell(
                             borderRadius: BorderRadius.circular(16),

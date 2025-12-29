@@ -16,75 +16,6 @@ class SubmittedDatesProvider with ChangeNotifier {
   Set<DateTime> get teenGraded => _teenGraded;
   bool get isLoading => _isLoading;
 
-/*  Future<void> load(FirestoreService service, String userId) async {
-    _isLoading = true;
-    notifyListeners();
-
-    _adultSubmitted = {};
-    _teenSubmitted = {};
-    _adultGraded = {};
-    _teenGraded = {};
-
-    try {
-      // Load ALL adult responses for this user
-      final adultSnap = await service.responsesCollection
-          .doc('adult')
-          .collectionGroup(userId)
-          .get();
-
-      for (final doc in adultSnap.docs) {
-        final dateStr = doc.reference.parent.parent!.id; // e.g. "2026-03-08"
-        final parts = dateStr.split('-');
-        if (parts.length == 3) {
-          final date = DateTime(
-            int.parse(parts[0]),
-            int.parse(parts[1]),
-            int.parse(parts[2]),
-          );
-          _adultSubmitted.add(date);
-          if (doc.data()['isGraded'] == true) {
-            _adultGraded.add(date);
-          }
-        }
-      }
-
-      // Load ALL teen responses for this user
-      final teenSnap = await service.responsesCollection
-          .doc('teen')
-          .collectionGroup(userId)
-          .get();
-
-      for (final doc in teenSnap.docs) {
-        final dateStr = doc.reference.parent.parent!.id;
-        final parts = dateStr.split('-');
-        if (parts.length == 3) {
-          final date = DateTime(
-            int.parse(parts[0]),
-            int.parse(parts[1]),
-            int.parse(parts[2]),
-          );
-          _teenSubmitted.add(date);
-          if (doc.data()['isGraded'] == true) {
-            _teenGraded.add(date);
-          }
-        }
-      }
-
-      debugPrint(
-        'SubmittedDatesProvider LOADED: '
-        'Adult submitted=${_adultSubmitted.length}, '
-        'Adult graded=${_adultGraded.length}, '
-        'Teen submitted=${_teenSubmitted.length}, '
-        'Teen graded=${_teenGraded.length}',
-      );
-    } catch (e) {
-      debugPrint('Error loading submitted dates: $e');
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }*/
-
   Future<void> load(FirestoreService service, String userId) async {
     _isLoading = true;
     notifyListeners();
@@ -149,7 +80,3 @@ class SubmittedDatesProvider with ChangeNotifier {
     await load(service, userId);
   }
 }
-
-/*extension on DocumentReference<Object?> {
-  collectionGroup(String userId) {}
-}*/

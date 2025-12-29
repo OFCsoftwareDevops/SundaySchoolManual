@@ -23,8 +23,11 @@ class BibleVersionManager extends ChangeNotifier {
   bool _hasInitialLoad = false;
 
   final List<Map<String, String>> availableVersions = [
-    {'code': 'web', 'name': 'World English Bible'},
     {'code': 'kjv', 'name': 'King James Version'},
+    {'code': 'asv', 'name': 'American Standard Version'},
+    {'code': 'bbe', 'name': 'Bible in Basic English'},
+    {'code': 'web', 'name': 'World English Bible'},
+    {'code': 'ylt', 'name': 'Youngs Literal Translation'},
   ];
 
   // SINGLE SOURCE OF TRUTH

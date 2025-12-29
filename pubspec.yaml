@@ -86,8 +86,11 @@ flutter:
     - assets/images/google_logo.png
     - assets/images/apple_logo.png
     - assets/images/anonymous_user.png
-    - assets/bible/web/
     - assets/bible/kjv/
+    - assets/bible/bbe/
+    - assets/bible/web/
+    - assets/bible/asv/
+    - assets/bible/ylt/
     
 
   # To add assets to your application, add an assets section, like this:
