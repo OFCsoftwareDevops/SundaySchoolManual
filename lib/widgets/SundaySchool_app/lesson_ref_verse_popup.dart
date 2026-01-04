@@ -1,7 +1,9 @@
 // lib/widgets/verse_popup.dart
 import 'package:app_demo/UI/app_colors.dart';
 import 'package:flutter/material.dart';
-import '../bible_app/version/version_picker.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
+import '../bible_app/bible.dart';
 
 class VersePopup extends StatelessWidget {
   final String reference;
@@ -22,26 +24,22 @@ class VersePopup extends StatelessWidget {
     for (final v in verses) {
       final verseNum = v['verse']?.toString() ?? '';
       final text = (v['text'] ?? '').toString();
-      final highlighted = (v['highlighted'] ?? false) as bool;
+      //final highlighted = (v['highlighted'] ?? false) as bool;
 
       spans.add(TextSpan(
         text: '$verseNum ',
-        style: const TextStyle(
+        style: TextStyle(
           fontWeight: FontWeight.bold,
-          color: AppColors.primaryContainer,
-          fontSize: 14,
+          color: AppColors.scriptureHighlight,
+          fontSize: 14.sp,
         ),
       ));
 
       spans.add(TextSpan(
         text: '$text\n\n',
         style: TextStyle(
-          color: AppColors.grey900,
-          fontSize: 17,
-          height: 1.5,
-          backgroundColor: highlighted
-              ? AppColors.grey100
-              : null,
+          fontSize: 15.sp,
+          height: 1.5.sp,
         ),
       ));
     }
@@ -52,66 +50,54 @@ class VersePopup extends StatelessWidget {
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height * heightFraction;
 
-    return Container(
-      height: height,
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        color: AppColors.secondaryContainer,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          children: [
-            /*/ drag handle
-            Container(
-              width: 50,
-              height: 5,
-              decoration: BoxDecoration(
-                color: AppColors.onBackground,
-                borderRadius: BorderRadius.circular(5),
+    return ChangeNotifierProvider.value(
+      value: Provider.of<BibleVersionManager>(context, listen: false),
+      child: Container(
+        height: height,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.background,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16.sp)),
+        ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20.sp),
+          child: Column(
+            children: [
+              SizedBox(height:20.sp),
+              // Reference header
+              Text(
+                reference,
+                style: TextStyle(
+                  fontSize: 19.sp,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.scriptureHighlight,
+                ),
               ),
-            ),
-            const SizedBox(height: 5),*/
-            // version picker
-            const VersionPicker(
-              iconColor: Colors.black,
-              textColor: Colors.black,
-            ),
-            const SizedBox(height: 5),
-            // Reference header
-            Text(
-              reference,
-              style: const TextStyle(
-                fontSize: 19,
-                fontWeight: FontWeight.bold,
-                color: AppColors.primaryContainer,
-              ),
-            ),
-            const SizedBox(height: 10),
-            // Scrollable content
-            Expanded(
-              child: Scrollbar(
-                thickness: 6,
-                radius: const Radius.circular(10),
-                thumbVisibility: true,
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.only(right: 5),
-                  child: RichText(
-                    text: TextSpan(
-                      style: const TextStyle(
-                        fontSize: 17,
-                        height: 1.5,
-                        color: Colors.black87,
+              SizedBox(height: 10.sp),
+              // Scrollable content
+              Expanded(
+                child: Scrollbar(
+                  thickness: 6.sp,
+                  radius: Radius.circular(10.sp),
+                  thumbVisibility: true,
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: EdgeInsets.only(right: 5.sp),
+                    child: RichText(
+                      text: TextSpan(
+                        style: TextStyle(
+                          fontSize: 17.sp,
+                          height: 1.5.sp,
+                          //color: const Color.fromARGB(221, 255, 255, 255),
+                        ),
+                        children: _buildVerseSpansFromList(verses),
                       ),
-                      children: _buildVerseSpansFromList(verses),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

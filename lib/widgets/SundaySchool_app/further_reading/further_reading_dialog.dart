@@ -1,5 +1,6 @@
 // lib/widgets/further_reading_dialog.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../UI/app_colors.dart';
@@ -81,9 +82,9 @@ void showFurtherReadingDialog({
     context: context,
     barrierDismissible: false,
     builder: (context) => AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      backgroundColor: AppColors.secondaryContainer,
-      insetPadding: const EdgeInsets.all(20),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.sp)),
+      backgroundColor: Theme.of(context).colorScheme.background,
+      insetPadding: EdgeInsets.all(20.sp),
       contentPadding: EdgeInsets.zero,
       content: SizedBox(
         width: double.maxFinite,
@@ -92,11 +93,11 @@ void showFurtherReadingDialog({
           children: [
             // Top row with reference and save icon
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+              padding: EdgeInsets.fromLTRB(16.sp, 12.sp, 8.sp, 8.sp),
               child: Row(
                 children: [
                   Expanded(
-                    child: Text(ref, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    child: Text(ref, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
                   ),
                   // NEW: Smart Save Button
                   _SmartSaveReadingButton(ref: ref, todayReading: todayReading),
@@ -111,7 +112,7 @@ void showFurtherReadingDialog({
                 reference: ref,
                 verses: verses,
                 rawText: raw,
-                heightFraction: 0.85, // tall dialog
+                heightFraction: 0.85.sp, // tall dialog
               ),
             ),
           ],
@@ -119,7 +120,7 @@ void showFurtherReadingDialog({
       ),
       actions: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: 8.sp),
           child: SizedBox(
             width: double.infinity, // full width in actions
               child: TimedFeedbackButtonStateful(
@@ -143,8 +144,8 @@ void showFurtherReadingDialog({
                 ); // close the dialog
               },
               borderColor: AppColors.success,
-              borderWidth: 2,
-              backOffset: 4,
+              borderWidth: 2.sp,
+              backOffset: 4.sp,
               backDarken: 0.45,
             ),
           ),
@@ -237,13 +238,15 @@ class _SmartSaveReadingButtonState extends State<_SmartSaveReadingButton> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return IconButton(
       tooltip: _isSaved ? 'Already saved' : 'Save this reading',
       onPressed: _saveReading,
       icon: _isChecking
-          ? const SizedBox(
-              width: 24,
-              height: 24,
+          ? SizedBox(
+              width: 24.sp,
+              height: 24.sp,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
                 color: Color.fromARGB(255, 100, 13, 74),
@@ -251,7 +254,7 @@ class _SmartSaveReadingButtonState extends State<_SmartSaveReadingButton> {
             )
           : Icon(
               _isSaved ? Icons.bookmark : Icons.bookmark_add,
-              color: _isSaved ? const Color.fromARGB(255, 100, 13, 74): const Color.fromARGB(255, 78, 77, 78),
+              color: _isSaved ? AppColors.success : theme.colorScheme.onPrimary,
             ),
     );
   }

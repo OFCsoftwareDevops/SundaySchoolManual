@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../../UI/app_linear_progress_bar.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../UI/timed_button.dart';
 
 class AddChurchScreen extends StatefulWidget {
   const AddChurchScreen({super.key});
@@ -67,14 +68,14 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
         context: context,
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          icon: const Icon(Icons.check_circle, color: Colors.green, size: 60),
-          title: const Text("Request Sent!", textAlign: TextAlign.center),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.sp)),
+          icon: Icon(Icons.check_circle, color: Colors.green, size: 60.sp),
+          title: Text("Request Sent!", textAlign: TextAlign.center),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text("Thank you, ${user.displayName ?? 'Pastor'}!"),
-              const SizedBox(height: 12),
+              SizedBox(height: 12.sp),
               Text(
                 "Your request to create:\n\n"
                 "🏛️ $churchName\n"
@@ -83,10 +84,10 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
                 "has been sent.",
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 12),
-              const Text(
+              SizedBox(height: 12.sp),
+              Text(
                 "You will receive a notification within 24 hours when approved.",
-                style: TextStyle(fontSize: 14, color: Colors.grey),
+                style: TextStyle(fontSize: 14.sp, color: Colors.grey),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -95,15 +96,15 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
             Center(
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple,
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                  backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+                  padding: EdgeInsets.symmetric(horizontal: 40.sp, vertical: 16.sp),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.sp)),
                 ),
                 onPressed: () {
                   Navigator.of(ctx).pop();     // close dialog
                   Navigator.of(context).pop();  // go back to main screen
                 },
-                child: const Text("Got it!", style: TextStyle(fontSize: 18)),
+                child: Text("Got it!", style: TextStyle(fontSize: 18.sp)),
               ),
             ),
           ],
@@ -118,10 +119,10 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
         context: context,
         builder: (ctx) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Row(
+          title: Row(
             children: [
               Icon(Icons.error, color: Colors.red),
-              SizedBox(width: 8),
+              SizedBox(width: 8.sp),
               Text("Could not send request"),
             ],
           ),
@@ -157,16 +158,22 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Create Your Church"),
-        backgroundColor: const Color(0xFF5D8668),
-        foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        foregroundColor: Theme.of(context).appBarTheme.foregroundColor,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20.sp),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("Church Information", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 20),
+            Text(
+              "Church Information", 
+              style: TextStyle(
+                fontSize: 20.sp, 
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 20.sp),
 
             TextField(
               controller: _nameController,
@@ -176,7 +183,7 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
                 border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 10.sp),
 
             TextField(
               controller: _parishController,
@@ -186,7 +193,7 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
                 border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 10.sp),
 
             TextField(
               controller: _pastorController,
@@ -196,7 +203,7 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
                 border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 10.sp),
 
             TextField(
               controller: _adminController,
@@ -206,7 +213,7 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
                 border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 10.sp),
 
             TextField(
               controller: _locationController,
@@ -216,7 +223,7 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
                 border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 10.sp),
 
             TextField(
               controller: _countryController,
@@ -227,28 +234,38 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
               ),
             ),
 
-            const SizedBox(height: 40),
+            SizedBox(height: 10.sp),
 
             Center(
               child: SizedBox(
                 width: double.infinity,
-                height: 60,
-                child: ElevatedButton(
+                height: 60.sp,
+                child: PreloadProgressButton(
+                  context: context,
+                  text: "Submit Request",
+                  preloadDone: null,
+                  progress: null,
+                  totalSteps: null,
+                  //activeColor: Theme.of(context).colorScheme.surface,
+                  activeColor: Theme.of(context).colorScheme.onSurface,
+                  onPressed: _isLoading ? null : _createChurch,
+                ),
+               /* ElevatedButton(
                   onPressed: _isLoading ? null : _createChurch,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    elevation: 8,
+                    backgroundColor: Theme.of(context).colorScheme.onSurface,
+                    foregroundColor: Theme.of(context).colorScheme.surface,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.sp)),
+                    elevation: 2,
                   ),
                   child: _isLoading
-                      ? const LinearProgressBar()
-                      : const Text("Submit Request", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                ),
+                      ? LinearProgressBar()
+                      : Text("Submit Request", style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold)),
+                ),*/
               ),
             ),
 
-            const SizedBox(height: 20),
+            SizedBox(height: 20.sp),
           ],
         ),
       ),

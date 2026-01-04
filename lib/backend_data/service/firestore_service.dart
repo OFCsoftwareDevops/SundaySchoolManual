@@ -243,13 +243,13 @@ class FirestoreService {
         .doc(dateStr);
         
     
-    final indexRef = _churchSubcollection('assignment_response_indexes')
+    /*final indexRef = _churchSubcollection('assignment_response_indexes')
       .doc("${type}_$dateStr")
       .collection('users')
       .doc(userId);
 
     final summaryRef = _churchSubcollection('assignment_response_summaries')
-      .doc("${type}_$dateStr");
+      .doc("${type}_$dateStr");*/
 
     batch.set(
       responseRef,
@@ -268,7 +268,7 @@ class FirestoreService {
       SetOptions(merge: true),
     );
 
-    batch.set(
+    /*batch.set(
       indexRef,
       {
         'submittedAt': FieldValue.serverTimestamp(),
@@ -285,7 +285,7 @@ class FirestoreService {
         'lastSubmittedAt': FieldValue.serverTimestamp(),
       },
       SetOptions(merge: true),
-    );
+    );*/
 
     await batch.commit();
   }

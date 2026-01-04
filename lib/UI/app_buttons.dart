@@ -1,46 +1,52 @@
+import 'package:app_demo/utils/device_check.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'app_colors.dart';
 
 /// ---------------------------------------------------------------------------
 /// PUBLIC API – use exactly like your old `build3DButton`
 /// ---------------------------------------------------------------------------
+
 Widget BibleBooksButtons({
   required BuildContext context,
   required String text,
   required VoidCallback onPressed,
   required Color topColor,
+  required Color textColor,
   Color borderColor = const Color.fromARGB(0, 118, 118, 118),  // ← NEW: default white outline
-  double borderWidth = 2.0,          // ← NEW: thickness of border
+  double borderWidth = 0.0,          // ← NEW: thickness of border
   double backOffset = 4.0,
   double backDarken = 0.45,
 }) {
-  final screenSize = MediaQuery.of(context).size;
-  final double buttonWidth = screenSize.width * 0.75;
-  final double buttonHeight = screenSize.height * 0.04;
   const double pressDepth = 4.0;
 
-  return SizedBox(
-    height: buttonHeight + backOffset,
-    width: buttonWidth,
-    child: AnimatedPress3D(
-      onTap: onPressed,
-      topColor: topColor,
-      borderColor: borderColor,      // ← PASS THROUGH
-      borderWidth: borderWidth,      // ← PASS THROUGH
-      backOffset: backOffset,
-      backDarken: backDarken,
-      pressDepth: pressDepth,
-      child: Center(
-        child: Text(
-          text,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.2,
+  return LayoutBuilder(
+    builder: (context, constraints) {
+
+      return AnimatedPress3D(
+        onTap: onPressed,
+        topColor: topColor,
+        borderColor: borderColor,
+        borderWidth: borderWidth,
+        backOffset: backOffset,
+        backDarken: backDarken,
+        pressDepth: pressDepth,
+        child: Center(
+          child: Text(
+            text,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 15.sp,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.2,
+            ),
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis, // for long names like "Song of Solomon"
+            maxLines: 2, // allow wrap if needed on very small screens
           ),
         ),
-      ),
-    ),
+      );
+    },
   );
 }
 
@@ -49,8 +55,9 @@ Widget BibleChaptersButtons({
   required String text,
   required VoidCallback onPressed,
   required Color topColor,
-  Color borderColor = const Color.fromARGB(0, 118, 118, 118),  // ← NEW: default white outline
-  double borderWidth = 2.0,          // ← NEW: thickness of border
+  required Color textColor,
+  Color borderColor = const Color.fromARGB(0, 118, 118, 118),
+  double borderWidth = 0.0,
   double backOffset = 4.0,
   double backDarken = 0.45,
 }) {
@@ -58,40 +65,27 @@ Widget BibleChaptersButtons({
 
   return LayoutBuilder(
     builder: (context, constraints) {
-    final double buttonWidth = constraints.maxWidth;
-    final double buttonHeight = constraints.maxHeight;
 
-    // Choose the smaller of width/height as reference
-    final double baseSize = buttonHeight;
-
-    // Scale font size as a fraction of baseSize
-    final double fontSize = baseSize * 0.3; // adjust 0.4 as needed
-
-      return SizedBox(
-        height: buttonHeight + backOffset,
-        width: buttonWidth,
-        child: AnimatedPress3D(
-          onTap: onPressed,
-          topColor: topColor,
-          borderColor: borderColor,      // ← PASS THROUGH
-          borderWidth: borderWidth,      // ← PASS THROUGH
-          backOffset: backOffset,
-          backDarken: backDarken,
-          pressDepth: pressDepth,
-          child: Center(
-            child: Text(
-              text,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: fontSize,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0,
-              ),
+      return AnimatedPress3D(
+        onTap: onPressed,
+        topColor: topColor,
+        borderColor: borderColor,
+        borderWidth: borderWidth,
+        backOffset: backOffset,
+        backDarken: backDarken,
+        pressDepth: pressDepth,
+        child: Center(
+          child: Text(
+            text,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 13.sp,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),
       );
-    }
+    },
   );
 }
 
@@ -101,13 +95,15 @@ Widget AssignmentWidgetButton({
   required VoidCallback? onPressed,
   required Color topColor,
   Color borderColor = const Color.fromARGB(0, 118, 118, 118),  // ← NEW: default white outline
-  double borderWidth = 2.0,          // ← NEW: thickness of border
+  double borderWidth = 0.0,          // ← NEW: thickness of border
   double backOffset = 4.0,
   double backDarken = 0.45, required Icon icon,
 }) {
+  final scale = context.tabletScaleFactor;
   final screenSize = MediaQuery.of(context).size;
-  final double buttonWidth = screenSize.width * 0.8;
-  final double buttonHeight = screenSize.height * 0.05;
+
+  final double buttonWidth = screenSize.width.sp * 0.8;
+  final double buttonHeight = screenSize.height.sp * 0.05 * scale;
   const double pressDepth = 4.0;
 
   return SizedBox(
@@ -124,9 +120,9 @@ Widget AssignmentWidgetButton({
       child: Center(
         child: Text(
           text,
-          style: const TextStyle(
+          style: TextStyle(
             color: Colors.white,
-            fontSize: 18,
+            fontSize: 18.sp * 0.9,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.2,
           ),
@@ -142,13 +138,15 @@ Widget HomePageButtons({
   VoidCallback? onPressed,
   required Color topColor,
   Color borderColor = const Color.fromARGB(0, 118, 118, 118),  // ← NEW: default white outline
-  double borderWidth = 2.0,          // ← NEW: thickness of border
+  double borderWidth = 0.0,          // ← NEW: thickness of border
   double backOffset = 4.0,
   double backDarken = 0.45,
 }) {
+  final scale = context.tabletScaleFactor;
   final screenSize = MediaQuery.of(context).size;
+
   final double buttonWidth = screenSize.width * 0.8;
-  final double buttonHeight = screenSize.height * 0.05;
+  final double buttonHeight = screenSize.height * 0.05 * scale;
   const double pressDepth = 4.0;
 
   return SizedBox(
@@ -165,9 +163,9 @@ Widget HomePageButtons({
       child: Center(
         child: Text(
           text,
-          style: const TextStyle(
+          style: TextStyle(
             color: Colors.white,
-            fontSize: 18,
+            fontSize: 15.sp,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.2,
           ),
@@ -180,86 +178,166 @@ Widget HomePageButtons({
 Widget LessonCardButtons({
   required BuildContext context,
   required VoidCallback onPressed,
-  required Color topColor,
-  required String text,                    // still supported
-  Widget? child,                           // ← NEW
+  required String label,
+  required bool available,
+  IconData? leadingIcon,     // optional leading icon
+  IconData? trailingIcon,    // optional trailing (arrow/lock)
+  Color topColor = Colors.transparent,
   Color borderColor = const Color.fromARGB(0, 118, 118, 118),
-  double borderWidth = 2.0,
+  double borderWidth = 0.0,
   double backOffset = 4.0,
   double backDarken = 0.45,
 }) {
+  final scale = context.tabletScaleFactor;
   final screenSize = MediaQuery.of(context).size;
-  final double buttonWidth = screenSize.width * 0.8;
-  final double buttonHeight = screenSize.height * 0.05;
+
+  final double buttonHeight = screenSize.height * 0.05 * scale;
   const double pressDepth = 4.0;
 
-  return SizedBox(
-    height: buttonHeight + backOffset,
-    width: buttonWidth,
-    child: AnimatedPress3D(
-      onTap: onPressed,
-      topColor: topColor,
-      borderColor: borderColor,
-      borderWidth: borderWidth,
-      backOffset: backOffset,
-      backDarken: backDarken,
-      pressDepth: pressDepth,
-      child: Center(
-        child: child ??
-            Text(
-              text,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.2,
-              ),
+  final Color effectiveTopColor = available ? AppColors.primaryContainer : AppColors.grey800;
+  final Color textColor = available ? AppColors.onPrimary : AppColors.onSecondary;
+  final Color iconColor = textColor;
+
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      final double totalHeight = buttonHeight + backOffset;
+
+      return SizedBox(
+        height: totalHeight,
+        width: constraints.maxWidth,
+        child: AnimatedPress3D(
+          onTap: onPressed,
+          topColor: effectiveTopColor,
+          borderColor: borderColor,
+          borderWidth: borderWidth,
+          backOffset: backOffset,
+          backDarken: backDarken,
+          pressDepth: pressDepth,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.sp),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    if (leadingIcon != null)
+                      Icon(
+                        leadingIcon,
+                        size: totalHeight * 0.5,
+                        color: iconColor,
+                      ),
+                    if (leadingIcon != null) SizedBox(width: 12.sp),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        color: textColor,
+                        fontSize: totalHeight * 0.25,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.2,
+                        fontStyle: available ? FontStyle.normal : FontStyle.italic,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+                Icon(
+                  trailingIcon ?? (available ? Icons.arrow_forward_ios_rounded : Icons.lock_outline),
+                  size: totalHeight * 0.4,
+                  color: iconColor,
+                ),
+              ],
             ),
-      ),
-    ),
+          ),
+        ),
+      );
+    },
   );
 }
 
 Widget furtherReadingButtons({
   required BuildContext context,
   required VoidCallback onPressed,
-  required Color topColor,
-  required String text,                    // still supported
-  Widget? child,                           // ← NEW
+  required String label,
+  required bool available,
+  IconData? leadingIcon,     // optional leading icon
+  IconData? trailingIcon,    // optional trailing (arrow/lock)
+  Color topColor = Colors.transparent,
   Color borderColor = const Color.fromARGB(0, 118, 118, 118),
-  double borderWidth = 2.0,
+  double borderWidth = 0.0,
   double backOffset = 4.0,
   double backDarken = 0.45,
 }) {
+  final scale = context.tabletScaleFactor;
   final screenSize = MediaQuery.of(context).size;
-  final double buttonHeight = screenSize.height * 0.06;
+
+  final double buttonHeight = screenSize.height * 0.05 * scale;
   const double pressDepth = 4.0;
+
+  final Color effectiveTopColor = available ? AppColors.primaryContainer : AppColors.grey800;
+  final Color textColor = available ? AppColors.onPrimary : AppColors.onSecondary;
+  final Color iconColor = textColor;
 
   return LayoutBuilder(
     builder: (context, constraints) {
-      final double buttonWidth = constraints.maxWidth;
+      final double totalHeight = buttonHeight + backOffset;
+
       return SizedBox(
-        height: buttonHeight + backOffset,
-        width: buttonWidth,
+        height: totalHeight,
+        width: constraints.maxWidth,
         child: AnimatedPress3D(
           onTap: onPressed,
-          topColor: topColor,
+          topColor: effectiveTopColor,
           borderColor: borderColor,
           borderWidth: borderWidth,
           backOffset: backOffset,
           backDarken: backDarken,
           pressDepth: pressDepth,
-          child: Center(
-            child: child ??
-                Text(
-                  text,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.2,
-                  ),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.sp),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    if (leadingIcon != null)
+                      Icon(
+                        leadingIcon,
+                        size: totalHeight * 0.5,
+                        color: iconColor,
+                      ),
+                    if (leadingIcon != null) SizedBox(width: 12.sp),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          available? "Today's Reading" : "No Reading",
+                          style: TextStyle(     // ~32% of button height
+                            fontWeight: FontWeight.w700,
+                            fontSize: totalHeight * 0.25,
+                            color: available ? AppColors.onPrimary : AppColors.onSecondary,
+                          ),
+                        ),
+                        Text(
+                          label,
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: totalHeight * 0.2,
+                            fontStyle: available ? FontStyle.normal : FontStyle.italic,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
+                Icon(
+                  trailingIcon ?? (available ? Icons.arrow_forward_ios_rounded : Icons.lock_outline),
+                  size: totalHeight * 0.4,
+                  color: iconColor,
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -270,16 +348,21 @@ Widget furtherReadingButtons({
 Widget PressInButtons({
   required BuildContext context,
   required VoidCallback onPressed,
+  required String text,
+  required IconData icon,
   required Color topColor,
-  required Widget child, // ← NEW
-  Color borderColor = const Color.fromARGB(0, 118, 118, 118),
+  required Color textColor,
+  //required Widget child, // ← NEW
+  Color borderColor = Colors.transparent,
   double borderWidth = 0.0,
   double backOffset = 3.0,
   double backDarken = 0.45,
 }) {
+  final scale = context.tabletScaleFactor;
   final screenSize = MediaQuery.of(context).size;
+
   final double buttonWidth = screenSize.width * 0.35;
-  final double buttonHeight = screenSize.height * 0.08;
+  final double buttonHeight = screenSize.height * 0.08 * scale;
   const double pressDepth = 3.0;
 
   return SizedBox(
@@ -293,7 +376,89 @@ Widget PressInButtons({
       backOffset: backOffset,
       backDarken: backDarken,
       pressDepth: pressDepth,
-      child: child,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 10.sp), // comfortable text padding
+        child: Row(
+          children: [
+            Icon(icon, 
+              color: textColor, 
+              size: 18.sp,
+            ),
+            SizedBox(width: 20.sp),
+            Text(
+              text,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 15.sp,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.2,
+              ),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis, // for long names like "Song of Solomon"
+              maxLines: 2, // allow wrap if needed on very small screens
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+Widget GradeButtons({
+  required BuildContext context,
+  required VoidCallback? onPressed,
+  required String text,
+  required IconData icon,
+  required Color topColor,
+  required Color textColor,
+  //required Widget child, // ← NEW
+  Color borderColor = Colors.transparent,
+  double borderWidth = 0.0,
+  double backOffset = 3.0,
+  double backDarken = 0.45,
+}) {
+  final screenSize = MediaQuery.of(context).size;
+
+  final double buttonWidth = screenSize.width * 0.35;
+  final double buttonHeight = 40.sp;
+  const double pressDepth = 3.0;
+
+  return SizedBox(
+    height: buttonHeight + backOffset,
+    width: buttonWidth,
+    child: AnimatedPress3D(
+      onTap: onPressed,
+      topColor: topColor,
+      borderColor: borderColor,
+      borderWidth: borderWidth,
+      backOffset: backOffset,
+      backDarken: backDarken,
+      pressDepth: pressDepth,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 10.sp), // comfortable text padding
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Icon(icon, 
+              color: textColor, 
+              size: 18.sp,
+            ),
+            //SizedBox(width: 10.sp),
+            Text(
+              text,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 15.sp,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.2,
+              ),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis, // for long names like "Song of Solomon"
+              maxLines: 2, // allow wrap if needed on very small screens
+            ),
+          ],
+        ),
+      ),
     ),
   );
 }
@@ -304,14 +469,16 @@ Widget LoginButtons({
   required Color topColor,
   required String text,                    // still supported
   Widget? child,                           // ← NEW
-  Color borderColor = const Color.fromARGB(0, 118, 118, 118),
-  double borderWidth = 2.0,
+  Color borderColor = Colors.transparent,
+  double borderWidth = 0.0,
   double backOffset = 4.0,
-  double backDarken = 0.5,
+  double backDarken = 0.45,
 }) {
+  final scale = context.tabletScaleFactor;
   final screenSize = MediaQuery.of(context).size;
+
   final double buttonWidth = screenSize.width * 0.8;
-  final double buttonHeight = screenSize.height * 0.05;
+  final double buttonHeight = screenSize.height * 0.05 * scale;
   const double pressDepth = 4.0;
 
   return SizedBox(
@@ -329,56 +496,13 @@ Widget LoginButtons({
         child: child ??
             Text(
               text,
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white,
-                fontSize: 18,
+                fontSize: 15.sp,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.2,
               ),
             ),
-      ),
-    ),
-  );
-}
-
-
-
-Widget FeedbackPageButton({
-  required BuildContext context,
-  required String text,
-  required VoidCallback onPressed,
-  required Color topColor,
-  Color borderColor = const Color.fromARGB(0, 118, 118, 118),  // ← NEW: default white outline
-  double borderWidth = 2.0,          // ← NEW: thickness of border
-  double backOffset = 4.0,
-  double backDarken = 0.45,
-}) {
-  final screenSize = MediaQuery.of(context).size;
-  final double buttonWidth = screenSize.width * 0.8;
-  final double buttonHeight = screenSize.height * 0.04;
-  const double pressDepth = 4.0;
-
-  return SizedBox(
-    height: buttonHeight + backOffset,
-    width: buttonWidth,
-    child: AnimatedPress3D(
-      onTap: onPressed,
-      topColor: topColor,
-      borderColor: borderColor,      // ← PASS THROUGH
-      borderWidth: borderWidth,      // ← PASS THROUGH
-      backOffset: backOffset,
-      backDarken: backDarken,
-      pressDepth: pressDepth,
-      child: Center(
-        child: Text(
-          text,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.2,
-          ),
-        ),
       ),
     ),
   );
@@ -441,64 +565,82 @@ class _AnimatedPress3DState extends State<AnimatedPress3D>
   @override
   Widget build(BuildContext context) {
     final Color backColor = Color.lerp(widget.topColor, Colors.black, widget.backDarken)!;
-    const double radius = 12.0;
+    double radius = 8.sp;
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTapDown: (_) => _ctrl.forward(),
-      //onTapUp: (_) => _ctrl.reverse(),
-      onTapCancel: () => _ctrl.reverse(),
-      //onTap: widget.onTap,
-      onTapUp: (_) async {
-        await _ctrl.forward();
-        await _ctrl.reverse();
-        widget.onTap?.call();       // ← Navigation happens AFTER animation
-      },
-      child: AnimatedBuilder(
-        animation: _ctrl,
-        builder: (context, _) {
-          return Stack(
-            alignment: Alignment.center,
-            children: [
-              // 1. DARK BACK-PLATE with optional border
-              Transform.translate(
-                offset: Offset(0, widget.backOffset),
-                child: Container(
-                  height: 56,
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                    color: backColor,
-                    borderRadius: BorderRadius.circular(radius),
-                    border: Border.all(                   // ← Optional: border on back
-                      color: widget.borderColor.withOpacity(0.3),
-                      width: widget.borderWidth,
-                    ),
-                  ),
-                ),
-              ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Use full available size (square from GridView)
+        final size = Size(constraints.maxWidth, constraints.maxHeight);
 
-              // 2. MAIN BUTTON – moves down + has clear border
-              Transform.translate(
-                offset: Offset(0, _offset.value),
-                child: Container(
-                  height: 56,
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                    color: widget.topColor,
-                    borderRadius: BorderRadius.circular(radius),
-                    border: Border.all(                  // ← MAIN BORDER
-                      color: widget.borderColor,
-                      width: widget.borderWidth,
-                    ),
-                  ),
-                  alignment: Alignment.center,
-                  child: widget.child,
-                ),
+        return GestureDetector(
+          //behavior: HitTestBehavior.opaque,
+          onTapDown: (_) => _ctrl.forward(),
+          //onTapUp: (_) => _ctrl.reverse(),
+          onTapCancel: () => _ctrl.reverse(),
+          //onTap: widget.onTap,
+          onTapUp: (_) async {
+            await _ctrl.forward();
+            await _ctrl.reverse();
+            widget.onTap?.call();       // ← Navigation happens AFTER animation
+          },
+          child: SizedBox(
+            width: size.width,
+            height: size.height,
+            child: OverflowBox(
+              maxHeight: size.height + widget.backOffset + widget.pressDepth, // Allow shadow to draw below
+              alignment: Alignment.topCenter,
+              child: AnimatedBuilder(
+                animation: _ctrl,
+                builder: (context, _) {
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    alignment: Alignment.center,
+                    children: [
+                      // 1. DARK BACK-PLATE with optional border
+                      Transform.translate(
+                        offset: Offset(0, widget.backOffset),
+                        child: Container(
+                          height: size.height,
+                          width: size.width,
+                          //padding: EdgeInsets.symmetric(horizontal: 5.sp),
+                          decoration: BoxDecoration(
+                            color: backColor,
+                            borderRadius: BorderRadius.circular(radius),
+                            border: Border.all(                   // ← Optional: border on back
+                              color: widget.borderColor.withOpacity(0.3),
+                              width: widget.borderWidth,
+                            ),
+                          ),
+                        ),
+                      ),
+                      
+                      // 2. MAIN BUTTON – moves down + has clear border
+                      Transform.translate(
+                        offset: Offset(0, _offset.value),
+                        child: Container(
+                          width: size.width,
+                          height: size.height,
+                          //padding: EdgeInsets.symmetric(horizontal: 5.sp),
+                          decoration: BoxDecoration(
+                            color: widget.topColor,
+                            borderRadius: BorderRadius.circular(radius),
+                            border: Border.all(                  // ← MAIN BORDER
+                              color: widget.borderColor,
+                              width: widget.borderWidth,
+                            ),
+                          ),
+                          alignment: Alignment.center,
+                          child: widget.child,
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
-            ],
-          );
-        },
-      ),
+            ),
+          ),
+        );
+      }
     );
   }
 }

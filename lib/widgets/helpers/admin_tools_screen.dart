@@ -1,11 +1,13 @@
 // lib/screens/admin_tools_screen.dart
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:app_demo/UI/app_colors.dart';
 import 'package:app_demo/UI/app_buttons.dart';
 import '../../auth/login/auth_service.dart';
 import '../../backend_data/service/analytics/analytics_service.dart';
+import '../../utils/media_query.dart';
 
 class AdminToolsScreen extends StatefulWidget {
   const AdminToolsScreen({super.key});
@@ -93,6 +95,7 @@ class _AdminToolsScreenState extends State<AdminToolsScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthService>();
+    final style = CalendarDayStyle.fromContainer(context, 50);
 
     // Extra safety: only global admins should see this
     if (!auth.isGlobalAdmin) {
@@ -102,26 +105,45 @@ class _AdminToolsScreenState extends State<AdminToolsScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
+      backgroundColor: Theme.of(context).colorScheme.background,
+      /*appBar: AppBar(
         title: const Text("Global Admin Tools"),
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.onPrimary,
+      ),*/
+      appBar: AppBar(
+        centerTitle: true,
+        title: FittedBox(
+          fit: BoxFit.scaleDown, // Scales down text if it would overflow
+          child: Text(
+            "Global Admin Tools",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: style.monthFontSize.sp, // Matches your other screen's style
+            ),
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          iconSize: style.monthFontSize.sp, // Consistent sizing
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20.sp),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               "Promote User to Admin",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8.sp),
             Text(
               "You are logged in as global admin (${auth.currentUser?.email})",
-              style: TextStyle(color: Colors.grey[600]),
+              //style: TextStyle(color: Colors.grey[600]),
             ),
-            const SizedBox(height: 30),
+            SizedBox(height: 30.sp),
 
             // Email Field
             TextField(
@@ -133,7 +155,7 @@ class _AdminToolsScreenState extends State<AdminToolsScreen> {
               ),
               keyboardType: TextInputType.emailAddress,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 10.sp),
 
             // Church ID Field
             TextField(
@@ -144,7 +166,7 @@ class _AdminToolsScreenState extends State<AdminToolsScreen> {
                 border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 10.sp),
 
             // Group ID Field (only shown when needed)
             TextField(
@@ -155,10 +177,11 @@ class _AdminToolsScreenState extends State<AdminToolsScreen> {
                 border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 30),
+            SizedBox(height: 20.sp),
 
             // Buttons
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
                   child: LoginButtons(
@@ -166,10 +189,10 @@ class _AdminToolsScreenState extends State<AdminToolsScreen> {
                     topColor: AppColors.primaryContainer,
                     onPressed: _isLoading ? null : () => _makeAdmin(isGroupAdmin: false),
                     child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        ? SizedBox(
+                            height: 20.sp,
+                            width: 20.sp,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.sp),
                           )
                         : const Text(
                             "Make Church Admin",
@@ -178,17 +201,17 @@ class _AdminToolsScreenState extends State<AdminToolsScreen> {
                     text: '',
                   ),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: 16.sp),
                 Expanded(
                   child: LoginButtons(
                     context: context,
                     topColor: AppColors.success,
                     onPressed: _isLoading ? null : () => _makeAdmin(isGroupAdmin: true),
                     child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        ? SizedBox(
+                            height: 20.sp,
+                            width: 20.sp,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.sp),
                           )
                         : const Text(
                             "Make Group Admin",
@@ -200,21 +223,21 @@ class _AdminToolsScreenState extends State<AdminToolsScreen> {
               ],
             ),
 
-            const SizedBox(height: 30),
+            //SizedBox(height: 5.sp),
 
             // Feedback Message
             if (_message != null)
               Card(
                 color: _isSuccess ? Colors.green.shade50 : Colors.red.shade50,
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(16.sp),
                   child: Row(
                     children: [
                       Icon(
                         _isSuccess ? Icons.check_circle : Icons.error,
                         color: _isSuccess ? Colors.green.shade700 : Colors.red.shade700,
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: 12.sp),
                       Expanded(
                         child: Text(
                           _message!,
@@ -229,22 +252,19 @@ class _AdminToolsScreenState extends State<AdminToolsScreen> {
                 ),
               ),
 
-            const SizedBox(height: 40),
+            SizedBox(height: 20.sp),
 
             // Helpful Tips
-            const Card(
+            Card(
               child: Padding(
-                padding: EdgeInsets.all(16),
+                padding: EdgeInsets.all(16.sp),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Tips:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    SizedBox(height: 8),
-                    Text("• Church ID = document ID in Firestore → churches collection"),
-                    Text("• Group IDs are usually: teens, adults, youth, children, etc."),
+                    Text("Tips:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15.sp)),
+                    SizedBox(height: 8.sp),
                     Text("• Making someone Church Admin gives them full control over that church"),
                     Text("• Group Admin only controls assignments/grading for their group"),
-                    Text("• You can promote the same user multiple times safely"),
                   ],
                 ),
               ),

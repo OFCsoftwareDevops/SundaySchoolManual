@@ -1,6 +1,10 @@
 // lib/widgets/month_calendar.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import '../UI/app_theme.dart';
+import '../utils/media_query.dart';
 
 class MonthCalendar extends StatefulWidget {
   final Function(DateTime) onDateSelected;
@@ -42,10 +46,13 @@ class _MonthCalendarState extends State<MonthCalendar> {
 
   @override
   Widget build(BuildContext context) {
+    // Create a dynamic style for the calendar
+    final style = CalendarDayStyle.fromContainer(context, 50); // 50 is example day cell size
+
     return Card(
       margin: const EdgeInsets.all(0),
       child: Padding(
-        padding: const EdgeInsets.all(10),
+        padding: EdgeInsets.all(10.sp),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -53,36 +60,51 @@ class _MonthCalendarState extends State<MonthCalendar> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                IconButton(onPressed: () => _changeMonth(-1), icon: const Icon(Icons.chevron_left)),
+                IconButton(
+                  onPressed: () => _changeMonth(-1), 
+                  icon: Icon(Icons.chevron_left, size: style.iconSize.sp),
+                ),
                 Text(
                   "${_monthName(currentMonth.month)} ${currentMonth.year}",
-                  style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: style.monthFontSize.sp, 
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                IconButton(onPressed: () => _changeMonth(1), icon: const Icon(Icons.chevron_right)),
+                IconButton(
+                  onPressed: () => _changeMonth(1), 
+                  icon: Icon(Icons.chevron_right, size: style.iconSize.sp),
+                ),
               ],
             ),
-            const SizedBox(height: 5),
+            SizedBox(height: 5.sp),
 
             // Weekdays
             Row(
               children: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
                 .map((d) => Expanded(
                   child: Center(
-                    child: Text(d, style: const TextStyle(color: Color.fromARGB(255, 109, 109, 109), fontWeight: FontWeight.w600)),
-                  ),
-                ))
-              .toList(),
+                    child: Text(
+                      d, 
+                      style: TextStyle(
+                        fontSize: style.weekdayFontSize.sp,
+                        color: Color.fromARGB(255, 109, 109, 109), 
+                        fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ))
+                .toList(),
             ),
-            const SizedBox(height: 5),
+            SizedBox(height: 5.sp),
             // Calendar grid
-            ..._buildGrid(),
+            ..._buildGrid(style),
           ],
         ),
       ),
     );
   }
 
-  List<Widget> _buildGrid() {
+  List<Widget> _buildGrid(CalendarRadius) {
     final firstDay = DateTime(currentMonth.year, currentMonth.month, 1);
     final daysInMonth = DateTime(currentMonth.year, currentMonth.month + 1, 0).day;
     final startWeekday = firstDay.weekday % 7; // 0 = Sunday
@@ -96,7 +118,6 @@ class _MonthCalendarState extends State<MonthCalendar> {
     final DateTime selected = widget.selectedDate;
 
     // Pre-load which dates have lessons (from your Home screen)
-    // We'll pass this from Home in 2 seconds
     final Set<DateTime> datesWithLessons = widget.datesWithLessons ?? {};
 
     for (int day = 1; day <= daysInMonth; day++) {
@@ -111,73 +132,106 @@ class _MonthCalendarState extends State<MonthCalendar> {
         Expanded(
           child: AspectRatio(
             aspectRatio: 1,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: () {
-                SystemSound.play(SystemSoundType.click);
-                widget.onDateSelected(date);       // ← Normal date selection
-              },
-              child: Stack(
-                children: [
-                  Container(
-                    margin: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.rectangle,
-                      borderRadius: BorderRadius.circular(10),
-                      color: isSelected
-                      ? Colors.blue
-                      : isToday
-                        ? Colors.green
-                        : Colors.transparent,
+            child: Material(
+              color: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(CalendarRadius.dayBorderRadius),
+              ),
+              child: InkWell(
+                splashColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                customBorder: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(CalendarRadius.dayBorderRadius),
+                ),
+                onTap: () {
+                  SystemSound.play(SystemSoundType.click);
+                  widget.onDateSelected(date);       // ← Normal date selection
+                },
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: Container(
+                        margin: EdgeInsets.all(8.sp),
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final containerSize = constraints.maxWidth < constraints.maxHeight
+                                ? constraints.maxWidth
+                                : constraints.maxHeight;
+                      
+                            final style = CalendarDayStyle.fromContainer(context, containerSize);
+                      
+                            return Container(
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                  ? CalendarTheme.selectedBackground(context)
+                                  : isToday
+                                      ? CalendarTheme.todayBackground(context)
+                                      : Colors.transparent,
+                                /*color: isSelected
+                                    ? Colors.blue
+                                    : isToday
+                                        ? Colors.green
+                                        : Colors.transparent,*/
+                                borderRadius: BorderRadius.circular(style.dayBorderRadius),
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                '$day',
+                                style: TextStyle(
+                                  fontSize: style.dayFontSize.sp,
+                                  fontWeight: FontWeight.w500,
+                                  //color: isSelected || isToday ? Colors.white : null,
+                                  color: isSelected
+                                    ? CalendarTheme.selectedForeground(context)
+                                    : isToday
+                                        ? CalendarTheme.todayForeground(context)
+                                        : null, // default text color
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                     ),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final double fontSize = constraints.maxWidth * 0.40;
-                        // or use min(width, height) if not square
-
-                        return Center(
-                          child: Text(
-                            '$day',
-                            style: TextStyle(
-                              fontSize: fontSize,
-                              fontWeight: FontWeight.w500,
-                              color: isSelected || isToday ? Colors.white : null,
+              
+                    Positioned(
+                      bottom: 0,
+                      left: 10,
+                      right: 10,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Expanded(
+                            flex: 40,
+                            child: Container(
+                              height: 4.sp,
+                              margin: const EdgeInsets.symmetric(horizontal: 1),
+                              decoration: BoxDecoration(
+                                color: hasLesson
+                                    ? const Color.fromARGB(255, 74, 196, 78)
+                                    : const Color.fromARGB(132, 203, 203, 203),
+                                shape: BoxShape.rectangle,
+                              ),
                             ),
                           ),
-                        );
-                      },
-                    ),
-                  ),
-
-                    Positioned(
-                      bottom: 0,
-                      left: 6,
-                      right: 26,
-                      child: Container(
-                        width: 8,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: hasLesson? Color.fromARGB(255, 74, 196, 78) : Color.fromARGB(132, 203, 203, 203),
-                          shape: BoxShape.rectangle,
-                        ),
+                          Expanded(
+                            flex: 40,
+                            child: Container(
+                              height: 4.sp,
+                              margin: const EdgeInsets.symmetric(horizontal: 1),
+                              decoration: BoxDecoration(
+                                color: hasReading
+                                    ? const Color.fromARGB(255, 249, 81, 25)
+                                    : const Color.fromARGB(132, 203, 203, 203),
+                                shape: BoxShape.rectangle,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  // ←←←←← NEW: Purple dot for Further Readings
-                  //if (hasReading)
-                    Positioned(
-                      bottom: 0,
-                      left: 26,
-                      right: 6,
-                      child: Container(
-                        width: 8,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: hasReading? Color.fromARGB(255, 249, 81, 25) : Color.fromARGB(132, 203, 203, 203),
-                          shape: BoxShape.rectangle,
-                        ),
-                      ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -206,49 +260,4 @@ class _MonthCalendarState extends State<MonthCalendar> {
         'January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'
       ][m - 1];
-}
-
-class ShrinkingCalendarDelegate extends SliverPersistentHeaderDelegate {
-  final MonthCalendar calendar;
-  final double minHeight;
-  final double maxHeight;
-
-  ShrinkingCalendarDelegate({
-    required this.calendar,
-    required this.minHeight,
-    required this.maxHeight,
-  });
-
-  @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    final progress = shrinkOffset / (maxExtent - minExtent);
-    final scale = 1.0 - (progress * 0.4); // shrinks a bit
-    final opacity = 1.0 - (progress * 0.8);
-
-    return Container(
-      color: Theme.of(context).scaffoldBackgroundColor,
-      child: Opacity(
-        opacity: opacity.clamp(0.8, 1.0),
-        child: Transform.scale(
-          scale: scale.clamp(0.85, 1.0),
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: 8,
-              vertical: 8 - (shrinkOffset / 20).clamp(0, 8),
-            ),
-            child: calendar,
-          ),
-        ),
-      ),
-    );
-  }
-
-  @override
-  double get maxExtent => maxHeight;
-
-  @override
-  double get minExtent => minHeight;
-
-  @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) => true;
 }

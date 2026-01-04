@@ -32,7 +32,7 @@ class AppColors {
   static const divineAccent = Color.fromARGB(255, 188, 170, 115);
 
   /// Scripture Highlight (Soft parchment gold)
-  static const scriptureHighlight = Color.fromARGB(255, 133, 12, 38);
+  static const scriptureHighlight = Color.fromARGB(255, 161, 19, 49);
 
   // =========================
   // Neutral / Background
@@ -48,7 +48,7 @@ class AppColors {
   static const onBackground = Color.fromARGB(255, 32, 36, 40);
 
   /// Primary text on surface
-  static const onSurface = Color.fromARGB(255, 32, 36, 40);
+  static const onSurface = Color.fromARGB(255, 52, 72, 98);
 
   // =========================
   // Status Colors (Softened)
@@ -86,5 +86,11 @@ class AppColors {
 
   static const darkBackground = Color.fromARGB(255, 18, 24, 32);
   static const darkSurface = Color.fromARGB(255, 28, 36, 46);
+  static const darkSurfaceHigh = Color.fromARGB(255, 17, 22, 28);
   static const darkOnBackground = Color.fromARGB(255, 240, 240, 240);
+  static const darkOnSurface = Color.fromARGB(255, 240, 240, 240);      // Text on cards
+
+  // Re-use existing warm greys for disabled states in dark mode
+  static const darkDisabled = Color.fromARGB(255, 80, 80, 90);          // Slightly lighter than grey800
+  static const darkOnDisabled = Color.fromARGB(255, 140, 140, 140);
 }

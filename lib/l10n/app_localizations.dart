@@ -118,13 +118,13 @@ abstract class AppLocalizations {
   /// Shown when there is no teen lesson
   ///
   /// In en, this message translates to:
-  /// **'No Teen lesson available'**
+  /// **'No Teen Lesson available'**
   String get noTeenLesson;
 
   /// Shown when there is no adult lesson
   ///
   /// In en, this message translates to:
-  /// **'No Adult lesson available'**
+  /// **'No Adult Lesson available'**
   String get noAdultLesson;
 }
 

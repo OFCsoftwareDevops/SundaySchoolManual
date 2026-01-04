@@ -1,10 +1,12 @@
+import 'package:app_demo/utils/device_check.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../UI/app_buttons.dart';
 import '../../UI/app_colors.dart';
 import '../../UI/app_linear_progress_bar.dart';
+import '../../utils/media_query.dart';
 import 'bible_actions/highlight_manager.dart';
 import 'bible.dart';
 import 'bible_last_position_manager.dart';
@@ -28,20 +30,35 @@ class BiblePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+    final style = CalendarDayStyle.fromContainer(context, 50);
+
     return Consumer<BibleVersionManager>(
       builder: (context, manager, child) {
         final books = manager.books;
 
         if (manager.isLoading || books.isEmpty) {
           return Scaffold(
-            backgroundColor: AppColors.background,
+            backgroundColor: colorScheme.background,
             body: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(Icons.menu_book_rounded, size: 100, color: AppColors.primaryContainer),
+                children: [
+                  Icon(
+                    Icons.menu_book_rounded, 
+                    size: 100, color: 
+                    colorScheme.primaryContainer,
+                  ),
                   SizedBox(height: 40),
-                  Text("Loading the Holy Bible...", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.primaryContainer)),
+                  Text(
+                    "Loading the Holy Bible...", 
+                    style: textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.primaryContainer,
+                    ),
+                  ),
                   SizedBox(height: 30),
                   LinearProgressBar(),
                 ],
@@ -52,22 +69,33 @@ class BiblePage extends StatelessWidget {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text("Holy Bible", style: TextStyle(fontWeight: FontWeight.bold)),
-            backgroundColor: AppColors.primary,
-            foregroundColor: AppColors.background,
+            title: Text(
+              "Holy Bible",
+              style: theme.appBarTheme.titleTextStyle?.copyWith(
+                fontSize: style.monthFontSize.sp,
+                fontWeight: FontWeight.bold),
+            ),
             centerTitle: true,
             actions: [
               Padding(
-                padding: const EdgeInsets.only(right: 12),
+                padding: EdgeInsets.only(right: 10.sp),
                 child: Center(
                   child: manager.isLoading
                     ? const LinearProgressBar()
                     : DropdownButton<String>(
                       value: manager.currentVersion,
-                      dropdownColor: AppColors.primary,
-                      icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.onPrimary),
-                      underline: const SizedBox(),
-                      style: const TextStyle(color: AppColors.onPrimary, fontWeight: FontWeight.bold),
+                      dropdownColor: theme.colorScheme.onSecondaryContainer,
+                      icon: Icon(
+                        Icons.keyboard_arrow_down, 
+                        color: theme.colorScheme.onPrimary,
+                        size: style.monthFontSize.sp,
+                      ),
+                      //underline: const SizedBox(),
+                      style: TextStyle(
+                        color: theme.colorScheme.onPrimary, 
+                        fontSize: style.monthFontSize.sp * 0.5,
+                        fontWeight: FontWeight.bold,
+                      ),
                       items: manager.availableVersions
                         .map((v) => DropdownMenuItem(value: v['code'], child: Text(v['name']!)))
                         .toList(),
@@ -78,7 +106,7 @@ class BiblePage extends StatelessWidget {
             ],
           ),
           body: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             children: [
               _buildTestament(context, "Old Testament", books, 0, 39),
               const SizedBox(height: 32),
@@ -91,24 +119,39 @@ class BiblePage extends StatelessWidget {
   }
 
   Widget _buildTestament(BuildContext context, String title, List books, int start, int end) {
+    final theme = Theme.of(context);
     final items = books.sublist(start, end.clamp(start, books.length));
     if (items.isEmpty) return const SizedBox.shrink();
+
+    // Base height from your existing logic (perfect for phones)
+    final double baseButtonHeight = getBibleButtonSize(context);
+    // Apply 0.7 reduction ONLY on tablets
+    final double buttonHeight = context.isTablet ? baseButtonHeight * 0.7 : baseButtonHeight;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-          child: Text(title, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: AppColors.primary)),
+          padding: EdgeInsets.fromLTRB(16.sp, 24.sp, 16.sp, 8.sp),
+          child: Text(
+            title,
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontSize: 20.sp,
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
         ),
         ...items.map((book) => Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
           child: SizedBox(
+            height: buttonHeight,
             width: double.infinity, 
             child: BibleBooksButtons(
               context: context,
               text: book['name'],
-              topColor: AppColors.secondary,  // same color you used in ElevatedButton
+              textColor: theme.colorScheme.surface,
+              topColor: theme.colorScheme.onSurface,  // same color you used in ElevatedButton
               onPressed: () {
                 LastPositionManager.save(
                   bookName: book['name'],
@@ -136,26 +179,59 @@ class BiblePage extends StatelessWidget {
 class BookReader extends StatelessWidget {
   final Map<String, dynamic> book;
   final int initialChapter;
-  //final VoidCallback onBack;
 
   const BookReader({
     super.key, 
     required this.book,
     this.initialChapter = 1, 
-    //required this.onBack,
   });
+
+  // Helper: Detect tablet (add this extension elsewhere if not already present)
+  bool _isTablet(BuildContext context) {
+    return MediaQuery.of(context).size.shortestSide >= 600;
+  }
+
+  // Modified: Apply 0.7 scale only on tablets
+  double _getScaledButtonSize(BuildContext context) {
+    final double baseSize = getBibleButtonSize(context);
+    return _isTablet(context) ? baseSize * 0.7 : baseSize;
+  }
+
+  int _calculateCrossAxisCount(BuildContext context) {
+    final double buttonSize = _getScaledButtonSize(context);  // ← Use scaled size
+    final screenWidth = MediaQuery.of(context).size.width;
+    final totalHorizontalPadding = 40.0;
+    final availableWidth = screenWidth - totalHorizontalPadding;
+    final gap = 8.0;
+
+    // More columns will naturally fit on tablets due to smaller buttons
+    return ((availableWidth + gap) / (buttonSize + gap)).floor().clamp(7, 10); // ← Increased upper limit for tablets
+  }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final chapters = book['chapters'] as List<dynamic>;
+    final columns = _calculateCrossAxisCount(context);
+
+    final sizeInfo = calendarDayCellSize(context);
+    final totalHorizontalPadding = sizeInfo['horizontalPadding']!;
+    final style = CalendarDayStyle.fromContainer(context, 50);
+    const double gap = 8.0; // ~8px
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(book['name']),
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.background,
+        centerTitle: true,
+        title: FittedBox(
+          fit: BoxFit.scaleDown,  // Or fitWidth to fill width
+          child: Text(
+            book['name'],
+            style: TextStyle(fontSize: style.monthFontSize.sp)  // Your desired base size
+          ),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
+          iconSize: style.monthFontSize.sp,
           onPressed: () {
             // Save position BEFORE popping
             LastPositionManager.save(
@@ -166,22 +242,26 @@ class BookReader extends StatelessWidget {
         ),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 12),
+            padding: EdgeInsets.only(right: 12.sp),
             child: Center(
               child: Consumer<BibleVersionManager>(
                 builder: (context, manager, child) {
                   return manager.isLoading
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: LinearProgressBar(),
-                        )
+                      ? const LinearProgressBar()
                       : DropdownButton<String>(
                           value: manager.currentVersion,
-                          dropdownColor: AppColors.secondary,
-                          icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.onSecondary),
-                          underline: const SizedBox(),
-                          style: const TextStyle(color: AppColors.onSecondary, fontWeight: FontWeight.bold),
+                          dropdownColor: theme.colorScheme.onSecondaryContainer,
+                          icon: Icon(
+                            Icons.keyboard_arrow_down, 
+                            color: theme.colorScheme.onPrimary,
+                            size: style.monthFontSize.sp,
+                          ),
+                          //underline: const SizedBox(),
+                          style: TextStyle(
+                            color: theme.colorScheme.onPrimary, 
+                            fontWeight: FontWeight.bold,
+                            fontSize: style.monthFontSize.sp  * 0.5,
+                          ),
                           items: manager.availableVersions
                               .map((v) => DropdownMenuItem(
                                     value: v['code'],
@@ -198,42 +278,44 @@ class BookReader extends StatelessWidget {
       ),
 
       body: GridView.builder(
-        padding: const EdgeInsets.all(20),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 4,
-          childAspectRatio: 1.35,
-          crossAxisSpacing: 5,
-          mainAxisSpacing: 0,
+        padding: EdgeInsets.symmetric(
+          horizontal: totalHorizontalPadding / 2, // 20 on each side
+          vertical: 20,
+        ),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: columns,             
+          childAspectRatio: 1.0,              // Square buttons
+          crossAxisSpacing: gap,                // Identical horizontal gap
+          mainAxisSpacing: gap,                 // Identical vertical gap
         ),
         itemCount: chapters.length,
         itemBuilder: (context, i) {
-          return Center(
-            child: BibleChaptersButtons(
-              context: context,
-              text: "${i + 1}",
-              topColor: AppColors.secondary,
-              borderColor: const Color.fromARGB(0, 0, 0, 0),   // optional
-              onPressed: () {
-                LastPositionManager.save(
-                  screen: 'chapter',
-                  bookName: book['name'],
-                  chapter: i + 1,
-                  verse: 1,
-                );
+          return BibleChaptersButtons(
+            context: context,
+            text: "${i + 1}",
+            textColor: theme.colorScheme.surface,
+            topColor: theme.colorScheme.onSurface,
+            borderColor: Colors.transparent,
+            onPressed: () {
+              LastPositionManager.save(
+                screen: 'chapter',
+                bookName: book['name'],
+                chapter: i + 1,
+                verse: 1,
+              );
 
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ChapterReader(
-                      chapterData: chapters[i],
-                      bookName: book['name'],
-                      chapterNum: i + 1,
-                      totalChapters: chapters.length,
-                    ),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ChapterReader(
+                    chapterData: chapters[i],
+                    bookName: book['name'],
+                    chapterNum: i + 1,
+                    totalChapters: chapters.length,
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
           );
         },
       ),
@@ -270,10 +352,6 @@ class _ChapterReaderState extends State<ChapterReader> {
   @override
   void initState() {
     super.initState();
-    // Try to scroll to the last read verse as soon as the screen appears
-    /*WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToLastVerseIfNeeded();
-    });*/
     _scrollController = ScrollController();
     _scrollController.addListener(_saveScrollPosition);
   }
@@ -291,38 +369,16 @@ class _ChapterReaderState extends State<ChapterReader> {
     );
   }
 
-  /*Future<void> _scrollToLastVerseIfNeeded() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    // Only scroll if the saved position is exactly this chapter
-    final String? savedBook = prefs.getString('last_book');
-    final int? savedChapter = prefs.getInt('last_chapter');
-    final int? savedVerse = prefs.getInt('last_verse');
-
-    if (savedBook != widget.bookName ||
-        savedChapter != widget.chapterNum ||
-        savedVerse == null ||
-        savedVerse < 1) {
-      return;
-    }
-
-    // Find the verse widget and scroll to it
-    final verseContext = _verseKeys[savedVerse]?.currentContext;
-    if (verseContext != null) {
-      Scrollable.ensureVisible(
-        verseContext,
-        duration: const Duration(milliseconds: 600),
-        curve: Curves.easeInOut,
-        alignment: 0.1, // brings verse near the top
-      );
-    }
-  }*/
-
   // One GlobalKey per verse so we can scroll to any of them
   final Map<int, GlobalKey> _verseKeys = {};
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+    final fontstyle = CalendarDayStyle.fromContainer(context, 50);
+
     return Consumer<BibleVersionManager>(
       builder: (context, manager, child) {
         final currentData = manager.getCurrentChapterData(widget.bookName, widget.chapterNum) ?? widget.chapterData;
@@ -352,46 +408,63 @@ class _ChapterReaderState extends State<ChapterReader> {
         final highlightManager = Provider.of<HighlightManager>(context);
 
         return Scaffold(
+          backgroundColor: Theme.of(context).colorScheme.background,
           appBar: AppBar(
-            title: Text("${widget.bookName} ${widget.chapterNum}"),
-            backgroundColor: AppColors.primary,
-            foregroundColor: AppColors.onSecondary,
+            centerTitle: true,
+            title: FittedBox(
+              fit: BoxFit.scaleDown,  // Or fitWidth to fill width
+              child: Text(
+                "${widget.bookName} ${widget.chapterNum}",
+                style: TextStyle(
+                  fontSize: fontstyle.monthFontSize.sp)  // Your desired base size
+              ),
+            ),
             leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              // Save position BEFORE popping
-              LastPositionManager.save(
-                screen: 'book_grid',
-                bookName: widget.bookName,
-                chapter: widget.chapterNum,
-              );
-              Navigator.pop(context);
-            },
-          ),
+              icon: const Icon(Icons.arrow_back),
+              iconSize: fontstyle.monthFontSize.sp,
+              onPressed: () {
+                // Save position BEFORE popping
+                LastPositionManager.save(
+                  screen: 'book_grid',
+                  bookName: widget.bookName,
+                  chapter: widget.chapterNum,
+                );
+                Navigator.pop(context);
+              },
+            ),
             actions: [
               if (_selectedVerses.isNotEmpty)
                 IconButton(
                   icon: const Icon(Icons.close),
+                  iconSize: fontstyle.monthFontSize.sp,
                   onPressed: () => setState(() => _selectedVerses.clear()),
                 ),
               // ← VERSION SWITCHER (this was missing)
               Padding(
-                padding: const EdgeInsets.only(right: 12),
+                padding: EdgeInsets.only(right: 12.sp),
                 child: Center(
                   child: Consumer<BibleVersionManager>(
                     builder: (context, manager, child) {
                       return manager.isLoading
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
+                          ? SizedBox(
+                              width: 24.sp,
+                              height: 24.sp,
                               child: LinearProgressBar(),
                             )
                           : DropdownButton<String>(
                               value: manager.currentVersion,
-                              dropdownColor: AppColors.secondary,
-                              icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.onSecondary),
-                              underline: const SizedBox(),
-                              style: const TextStyle(color: AppColors.onSecondary, fontWeight: FontWeight.bold),
+                              dropdownColor: colorScheme.onSecondaryContainer,
+                              icon: Icon(
+                                Icons.keyboard_arrow_down, 
+                                color: colorScheme.onPrimary,
+                                size: fontstyle.monthFontSize.sp,
+                              ),
+                              //underline: const SizedBox(),
+                              style: TextStyle(
+                                color: colorScheme.onPrimary, 
+                                fontWeight: FontWeight.bold,
+                                fontSize: fontstyle.monthFontSize.sp * 0.5,
+                              ),
                               items: manager.availableVersions
                                   .map((v) => DropdownMenuItem(
                                         value: v['code'],
@@ -450,10 +523,10 @@ class _ChapterReaderState extends State<ChapterReader> {
                         });
                       },
                     child: Container(
-                      width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 5),
                       decoration: BoxDecoration(
-                        color: isSelected ? AppColors.grey200 : null,
+                        color: isSelected ? colorScheme.primary.withOpacity(0.2) : highlightColor?.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: Container(
                         width: double.infinity,
@@ -463,20 +536,27 @@ class _ChapterReaderState extends State<ChapterReader> {
                         ),
                         child: RichText(
                           text: TextSpan(
-                            style: TextStyle(
-                              fontSize: 17,
+                            style: textTheme.bodyLarge?.copyWith(
+                            //style: TextStyle(
+                              //fontSize: 17,
+                              fontSize: fontstyle.monthFontSize.sp * 0.9,
                               height: 1.5,
-                              color: isSelected ? AppColors.darkSurface : AppColors.onBackground,
-                              fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
+                              color: isSelected ? colorScheme.primary : colorScheme.onBackground,
+                              //fontWeight: isSelected ? colorScheme.primary : colorScheme.onBackground,
                             ),
                             children: [
                               TextSpan(
                                 text: "$verseNum. ",
-                                style: const TextStyle(
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.primaryContainer,
+                                  fontSize: fontstyle.monthFontSize.sp * 0.8,
+                                ),
+                                /*style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.primaryContainer,
                                   fontSize: 12,
-                                ),
+                                ),*/
                               ),
                               TextSpan(text: text),
                             ],
@@ -533,6 +613,10 @@ class ChapterNavigationButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final style = CalendarDayStyle.fromContainer(context, 50);
+
     final manager = Provider.of<BibleVersionManager>(context, listen: false);
     final books = manager.books;
     // Find current book index
@@ -594,7 +678,7 @@ class ChapterNavigationButtons extends StatelessWidget {
     return Align(
       alignment: Alignment.bottomCenter,
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 110),
+        padding: EdgeInsets.only(bottom: 120.sp),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -602,18 +686,23 @@ class ChapterNavigationButtons extends StatelessWidget {
             Opacity(
               opacity: hasPrevious ? 0.85 : 0.25,
               child: Container(
-                margin: const EdgeInsets.only(left: 12),
-                decoration: const BoxDecoration(
-                  color: AppColors.primary,
+                margin: EdgeInsets.only(left: 24.sp),
+                decoration: BoxDecoration(
+                  color: colorScheme.secondary,
                   shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(color: AppColors.darkBackground, blurRadius: 4, offset: Offset(0, 2)),
-                  ],
+                  /*boxShadow: [
+                    BoxShadow(
+                      color: AppColors.darkBackground, 
+                      blurRadius: style.monthFontSize.sp, 
+                      offset: Offset(0, 2),
+                    ),
+                  ],*/
                 ),
                 child: IconButton(
-                  iconSize: 36,
+                  iconSize: style.monthFontSize.sp,
                   onPressed: hasPrevious ? goPrevious : null,
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.onPrimary),
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                  color: colorScheme.onSecondary,
                 ),
               ),
             ),
@@ -621,18 +710,23 @@ class ChapterNavigationButtons extends StatelessWidget {
             Opacity(
               opacity: hasNext ? 0.85 : 0.25,
               child: Container(
-                margin: const EdgeInsets.only(right: 12),
-                decoration: const BoxDecoration(
-                  color: AppColors.primary,
+                margin: EdgeInsets.only(right: 24.sp),
+                decoration: BoxDecoration(
+                  color: colorScheme.secondary,
                   shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(color: AppColors.darkBackground, blurRadius: 4, offset: Offset(0, 2)),
-                  ],
+                  /*boxShadow: [
+                    BoxShadow(
+                      color: AppColors.darkBackground, 
+                      blurRadius: style.monthFontSize.sp, 
+                      offset: Offset(0, 1),
+                    ),
+                  ],*/
                 ),
                 child: IconButton(
-                  iconSize: 36,
+                  iconSize: style.monthFontSize.sp,
                   onPressed: hasNext ? goNext : null,
-                  icon: const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.onPrimary),
+                  icon: const Icon(Icons.arrow_forward_ios_rounded),
+                  color: colorScheme.onSecondary,
                 ),
               ),
             ),

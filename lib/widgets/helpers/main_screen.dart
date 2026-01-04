@@ -7,6 +7,7 @@ import '../../auth/login/auth_service.dart';
 import '../../auth/login/login_page.dart';
 import '../../backend_data/service/ads/banner_ads.dart';
 import '../../backend_data/service/analytics/analytics_service.dart';
+import '../../utils/device_check.dart';
 import '../bible_app/bible_entry_point.dart';
 import 'church_selection.dart';
 import '../home.dart';
@@ -87,92 +88,127 @@ class MainScreenState extends State<MainScreen> {
                   onGenerateRoute: (_) => MaterialPageRoute(builder: (_) => const UserProfileScreen()),
                 ),
               ],
-              /*children: [
-                const Home(),
-                const BibleEntryPoint(),
-                const UserProfileScreen(),
-              ],*/
             ),
             bottomNavigationBar: SafeArea(
               top: false,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // ←←←← THE BANNER AD GOES HERE
-                  const BannerAdWidget(), // Our reusable widget
-              
-                  BottomNavigationBar(
-                    backgroundColor: AppColors.darkOnBackground,
-                    type: BottomNavigationBarType.fixed,
-                    selectedItemColor: AppColors.primaryContainer,
-                    unselectedItemColor: AppColors.secondary,
-                    currentIndex: selectedIndex,
-                    onTap: (index) async {
-                      // Log which tab was clicked
-                      switch (index) {
-                        case 0:
-                          await AnalyticsService.logButtonClick('home_tab');
-                          break;
-                        case 1:
-                          await AnalyticsService.logButtonClick('bible_tab');
-                          break;
-                        case 2:
-                          await AnalyticsService.logButtonClick('profile_tab');
-                          break;
-                      }
+              child: Consumer<AuthService>(
+                builder: (context, _, __) {
+                  final scale = context.tabletScaleFactor;
+                  final screenHeight = MediaQuery.of(context).size.height;
+
+                  // Same formula as your lesson buttons
+                  final double buttonHeight = screenHeight * 0.06 * scale;
+
+                  // Total height = banner (50dp fixed by Google) + scaled nav bar
+                  final double navBarHeight = buttonHeight;
+
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // ←←←← THE BANNER AD GOES HERE
+                      const BannerAdWidget(), // Our reusable widget
                   
-                      if (index == selectedIndex) {
-                        // Same tab tapped → pop to root (fresh start)
-                        _navigatorKeys[index].currentState?.popUntil((route) => route.isFirst);
-                      } else {
-                        // Different tab → switch and reset to root (except Bible)
-                        setState(() => selectedIndex = index);
-                  
-                        if (index != 1) { // Not Bible tab
-                          _navigatorKeys[index].currentState?.popUntil((route) => route.isFirst);
-                        }
-                        // Bible tab keeps its stack — resume works
-                      }
-                  
-                      // ----------------- TO ALWAYS RESET ONLY PROFILE TAB TO ROOT, UNCOMMENT BELOW AND REMOVE THE ABOVE BLOCK
-                      /*setState(() => selectedIndex = index);
-                  
-                      // Always reset Profile tab to root
-                      if (index == 2) {
-                        _navigatorKeys[2].currentState?.popUntil((route) => route.isFirst);
-                      }*/
-                  
-                      // ----------------- TO RESUME ALL TABS (NOT ONLY BIBLE), UNCOMMENT BELOW AND REMOVE THE ABOVE BLOCK
-                      /*if (index == selectedIndex) {
-                        // If same tab tapped, pop to root of that tab
-                        _navigatorKeys[index].currentState?.popUntil((route) => route.isFirst);
-                      } else {
-                        setState(() => selectedIndex = index);
-                      }*/
-                  
-                      // Resume Bible only when tapping Bible tab
-                      if (index == 1) {
-                        final bibleState = _navigatorKeys[1].currentState?.context.findAncestorStateOfType<BibleEntryPointState>();
-                        await bibleState?.resumeLastPosition();
-                      }
-                    },
-                    /*onTap: (index) async {
-                      setState(() => selectedIndex = index);
-                      if (index == 1) {
-                        final bibleState = context.findAncestorStateOfType<BibleEntryPointState>();
-                        await bibleState?.resumeLastPosition(); // ← Resume ONLY when tapped
-                      }
-                    },*/
-                    items: const [
-                      BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: "Lessons"),
-                      BottomNavigationBarItem(icon: Icon(Icons.book), label: "Bible"),
-                      BottomNavigationBarItem(icon: Icon(Icons.verified_user), label: "My Account"),
-                      //BottomNavigationBarItem(icon: Icon(Icons.church), label: "My Parish"),
-                      /*BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
-                      BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings"),*/
+                      SizedBox(
+                        height: navBarHeight,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surface, // ← Key: adapts perfectly!
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 0.5,
+                                offset: const Offset(0, 0),
+                              ),
+                            ],
+                          ),
+                          child: BottomNavigationBar(
+                            backgroundColor: Theme.of(context).colorScheme.surface,
+                            type: BottomNavigationBarType.fixed,
+                            selectedItemColor: Theme.of(context).colorScheme.primaryContainer, // Wine red
+                            unselectedItemColor: Theme.of(context).colorScheme.onSurface,
+                            selectedFontSize: navBarHeight * 0.22,   // ~10-12dp text
+                            unselectedFontSize: navBarHeight * 0.20,
+                            iconSize: navBarHeight * 0.45,
+                            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
+                            unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
+                            currentIndex: selectedIndex,
+                            onTap: (index) async {
+                              // Log which tab was clicked
+                              switch (index) {
+                                case 0:
+                                  await AnalyticsService.logButtonClick('home_tab');
+                                  break;
+                                case 1:
+                                  await AnalyticsService.logButtonClick('bible_tab');
+                                  break;
+                                case 2:
+                                  await AnalyticsService.logButtonClick('profile_tab');
+                                  break;
+                              }
+                        
+                              if (index == selectedIndex) {
+                                // Same tab tapped → pop to root (fresh start)
+                                _navigatorKeys[index].currentState?.popUntil((route) => route.isFirst);
+                              } else {
+                                // Different tab → switch and reset to root (except Bible)
+                                setState(() => selectedIndex = index);
+                                
+                                if (index != 1) { // Not Bible tab
+                                  _navigatorKeys[index].currentState?.popUntil((route) => route.isFirst);
+                                }
+                                // Bible tab keeps its stack — resume works
+                              }
+                          
+                              // ----------------- TO ALWAYS RESET ONLY PROFILE TAB TO ROOT, UNCOMMENT BELOW AND REMOVE THE ABOVE BLOCK
+                              /*setState(() => selectedIndex = index);
+                          
+                              // Always reset Profile tab to root
+                              if (index == 2) {
+                                _navigatorKeys[2].currentState?.popUntil((route) => route.isFirst);
+                              }*/
+                          
+                              // ----------------- TO RESUME ALL TABS (NOT ONLY BIBLE), UNCOMMENT BELOW AND REMOVE THE ABOVE BLOCK
+                              /*if (index == selectedIndex) {
+                                // If same tab tapped, pop to root of that tab
+                                _navigatorKeys[index].currentState?.popUntil((route) => route.isFirst);
+                              } else {
+                                setState(() => selectedIndex = index);
+                              }*/
+                          
+                              // Resume Bible only when tapping Bible tab
+                              if (index == 1) {
+                                final bibleState = _navigatorKeys[1].currentState?.context.findAncestorStateOfType<BibleEntryPointState>();
+                                await bibleState?.resumeLastPosition();
+                              }
+                            },
+                            /*onTap: (index) async {
+                              setState(() => selectedIndex = index);
+                              if (index == 1) {
+                                final bibleState = context.findAncestorStateOfType<BibleEntryPointState>();
+                                await bibleState?.resumeLastPosition(); // ← Resume ONLY when tapped
+                              }
+                            },*/
+                            
+                            items: const [
+                              BottomNavigationBarItem(
+                                icon: Icon(Icons.home), 
+                                label: "Home",
+                              ),
+                              BottomNavigationBarItem(
+                                icon: Icon(Icons.book),
+                                label: "Bible",
+                              ),
+                              BottomNavigationBarItem(
+                                icon: Icon(Icons.verified_user), 
+                                label: "Account",
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
-                  ),
-                ],
+                  );
+                }
               ),
             ),
           );

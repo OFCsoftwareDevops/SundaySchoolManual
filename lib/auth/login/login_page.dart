@@ -7,6 +7,7 @@ import 'package:app_demo/UI/app_colors.dart';
 import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../../UI/app_buttons.dart';
@@ -181,48 +182,48 @@ class _AuthScreenState extends State<AuthScreen> {
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(20.sp),
             child: Column(
               children: [
-                const SizedBox(height: 40),
+                SizedBox(height: 40.sp),
                 // Logo
                 Center(
                   child: Container(
                     padding: const EdgeInsets.all(0),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 3),
+                      border: Border.all(color: Colors.white, width: 3.sp),
                       color: Colors.white.withOpacity(0.2),
                     ),
                     child: ClipOval(
                       child: Image.asset(
                         'assets/images/rccg_logo.png',
-                        height: 120,
-                        width: 120,
+                        height: 120.sp,
+                        width: 120.sp,
                         fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Icon(Icons.church, size: 70, color: Colors.white),
+                        errorBuilder: (_, __, ___) => Icon(Icons.church, size: 70.sp, color: Colors.white),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20.sp),
 
-                const Text(
+                Text(
                   "Login",
                   textAlign: TextAlign.center,
                     style: TextStyle(
-                    fontSize: 28,
+                    fontSize: 28.sp,
                     fontWeight: FontWeight.w700,
                     color: AppColors.onSecondary,
                     letterSpacing: 0.5,
                   ),
                 ),
-                const SizedBox(height: 8),
-                const Text(
+                SizedBox(height: 8.sp),
+                Text(
                   "Sign in to create or join your church",
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 16.sp,
                     color: AppColors.onSecondary,
                     height: 1.4,
                   ),
@@ -237,7 +238,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(30),
+                        borderRadius: BorderRadius.circular(30.sp),
                       ),
                       child: Row(
                         children: [
@@ -249,17 +250,23 @@ class _AuthScreenState extends State<AuthScreen> {
                                 setState(() => _selectedTab = 0);
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                padding: EdgeInsets.symmetric(vertical: 16.sp),
                                 decoration: BoxDecoration(
                                   color: _selectedTab == 0 ? Colors.white : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(30),
+                                  borderRadius: BorderRadius.circular(30.sp),
                                 ),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Image.asset('assets/images/google_logo.png', height: 20),
-                                    const SizedBox(width: 8),
-                                    const Text("Google", style: TextStyle(fontWeight: FontWeight.bold)),
+                                    Image.asset('assets/images/google_logo.png', height: 20.sp),
+                                    SizedBox(width: 8.sp),
+                                    Text(
+                                      "Google", 
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16.sp,
+                                      )
+                                    ),
                                   ],
                                 ),
                               ),
@@ -275,17 +282,23 @@ class _AuthScreenState extends State<AuthScreen> {
                                 },
 
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  padding: EdgeInsets.symmetric(vertical: 16.sp),
                                   decoration: BoxDecoration(
                                     color: _selectedTab == 1 ? Colors.white : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(30),
+                                    borderRadius: BorderRadius.circular(30.sp),
                                   ),
-                                  child: const Row(
+                                  child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(Icons.apple, size: 24),
-                                      SizedBox(width: 8),
-                                      Text("Apple", style: TextStyle(fontWeight: FontWeight.bold)),
+                                      Icon(Icons.apple, size: 20.sp),
+                                      SizedBox(width: 8.sp),
+                                      Text(
+                                        "Apple", 
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16.sp,
+                                        )
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -301,15 +314,18 @@ class _AuthScreenState extends State<AuthScreen> {
                                 setState(() => _selectedTab = Platform.isIOS ? 2 : 1);
                               },// adjust index if no Apple
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                padding: EdgeInsets.symmetric(vertical: 16.sp),
                                 decoration: BoxDecoration(
                                   color: _selectedTab == (Platform.isIOS ? 2 : 1) ? Colors.white : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(30),
+                                  borderRadius: BorderRadius.circular(30.sp),
                                 ),
-                                child: const Text(
+                                child: Text(
                                   "Guest",
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16.sp,
+                                  ),
                                 ),
                               ),
                             ),
@@ -318,7 +334,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 60),
+                    SizedBox(height: 60.sp),
 
                     // Large Action Button
                     LoginButtons(
@@ -338,12 +354,12 @@ class _AuthScreenState extends State<AuthScreen> {
                               }
                             },
                       child: _isLoading
-                          ? const SizedBox(
-                              height: 24,
-                              width: 24,
+                          ? SizedBox(
+                              height: 24.sp,
+                              width: 24.sp,
                               child: CircularProgressIndicator(
                                 color: Color.fromARGB(221, 188, 22, 22),
-                                strokeWidth: 3,
+                                strokeWidth: 3.sp,
                               ),
                             )
                           : Row(
@@ -351,29 +367,29 @@ class _AuthScreenState extends State<AuthScreen> {
                               children: [
                                 // Google
                                 if (_selectedTab == 0) ...[
-                                  Image.asset('assets/images/google_logo.png', height: 24),
-                                  const SizedBox(width: 12),
-                                  const Text(
+                                  Image.asset('assets/images/google_logo.png', height: 20.sp),
+                                  SizedBox(width: 12.sp),
+                                  Text(
                                     "Continue with Google",
-                                    style: TextStyle(color: Colors.black87, fontSize: 18, fontWeight: FontWeight.bold),
+                                    style: TextStyle(color: Colors.black87, fontSize: 16.sp, fontWeight: FontWeight.bold),
                                   ),
                                 ]
                                 // Apple
                                 else if (_selectedTab == 1 && Platform.isIOS) ...[
-                                  const Icon(Icons.apple, size: 26, color: Colors.white),
-                                  const SizedBox(width: 12),
-                                  const Text(
+                                  Icon(Icons.apple, size: 20.sp, color: Colors.white),
+                                  SizedBox(width: 12.sp),
+                                  Text(
                                     "Sign in with Apple",
-                                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                                    style: TextStyle(color: Colors.white, fontSize: 16.sp, fontWeight: FontWeight.bold),
                                   ),
                                 ]
                                 // Guest
                                 else ...[
-                                  const Icon(Icons.person_outline, size: 26, color: Colors.black87),
-                                  const SizedBox(width: 12),
-                                  const Text(
+                                  Icon(Icons.person_outline, size: 20.sp, color: Colors.black87),
+                                  SizedBox(width: 12.sp),
+                                  Text(
                                     "Continue as Guest",
-                                    style: TextStyle(color: Colors.black87, fontSize: 18, fontWeight: FontWeight.bold),
+                                    style: TextStyle(color: Colors.black87, fontSize: 16.sp, fontWeight: FontWeight.bold),
                                   ),
                                 ],
                               ],
@@ -381,13 +397,13 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 15),
+                SizedBox(height: 15.sp),
                 Text(
                   _selectedTab == 0
                       ? ""
                       : "All data are temporarily saved and lost after logout.",
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: AppColors.onPrimary, fontSize: 14),
+                  style: TextStyle(color: AppColors.onPrimary, fontSize: 14.sp),
                 ),
 
 
@@ -486,9 +502,9 @@ class _AuthScreenState extends State<AuthScreen> {
                       ? "Full access: create or join your church"
                       : "Limited access: use general mode only",
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: AppColors.onPrimary, fontSize: 14),
+                  style: TextStyle(color: AppColors.onPrimary, fontSize: 14.sp),
                 ),
-                const SizedBox(height: 40),
+                SizedBox(height: 40.sp),
               ],
             ),
           ),

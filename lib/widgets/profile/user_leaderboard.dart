@@ -2,10 +2,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import '../../../../UI/segment_sliding.dart';
 import '../../../../auth/login/auth_service.dart';
-import '../../UI/app_colors.dart';
+import '../../utils/media_query.dart';
 
 class LeaderboardPage extends StatefulWidget {
   const LeaderboardPage({super.key});
@@ -35,16 +36,37 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     final churchId = auth.churchId;
     final isAdmin = auth.isGlobalAdmin || (auth.hasChurch && auth.adminStatus.isChurchAdmin);
 
+    final style = CalendarDayStyle.fromContainer(context, 50);
+
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
+        centerTitle: true,
+        title: FittedBox(
+          fit: BoxFit.scaleDown, // Scales down text if it would overflow
+          child: Text(
+            "Leaderboard",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: style.monthFontSize.sp, // Matches your other screen's style
+            ),
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          iconSize: style.monthFontSize.sp, // Consistent sizing
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      /*appBar: AppBar(
         title: const Text("Leaderboard"),
         backgroundColor: AppColors.primary,
-      ),
+      ),*/
       body: Column(
         children: [
           // Top: Adult / Teen toggle
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: 16.sp),
             child: segmentedControl(
               selectedIndex: _selectedAgeGroup,
               items: _ageGroups.map((e) => SegmentItem(e)).toList(),
@@ -53,7 +75,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           ),
           // Nested: Church / Global toggle
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: 8.sp),
             child: segmentedControl(
               selectedIndex: _selectedScope,
               items: _scopes.map((e) => SegmentItem(e)).toList(),
@@ -97,14 +119,14 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           children: [
             if (userId != null)
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(5.sp),
                 child: Card(
-                  color: Colors.deepPurple.shade50,
+                  //color: Colors.deepPurple.shade50,
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(16.sp),
                     child: Text(
                       "Your Rank: $myRankText",
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -122,9 +144,9 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                     title: Text(displayName),
                     trailing: Text(
                       "${rank.totalScore} pts",
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    tileColor: isMe ? Colors.deepPurple.shade50 : null,
+                    tileColor: isMe ? const Color.fromARGB(255, 77, 26, 153) : null,
                   );
                 },
               ),
@@ -136,12 +158,12 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
   }
 
   Widget _buildRankBadge(int rank) {
-    if (rank == 1) return const Icon(Icons.emoji_events, color: Colors.amber, size: 36);
-    if (rank == 2) return const Icon(Icons.emoji_events, color: Colors.grey, size: 36);
-    if (rank == 3) return const Icon(Icons.emoji_events, color: Colors.brown, size: 36);
+    if (rank == 1) return Icon(Icons.emoji_events, color: Colors.amber, size: 36.sp);
+    if (rank == 2) return Icon(Icons.emoji_events, color: Colors.grey, size: 36.sp);
+    if (rank == 3) return Icon(Icons.emoji_events, color: Colors.brown, size: 36.sp);
     return Text(
       "#$rank",
-      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      style: TextStyle(fontSize: 15.sp),
     );
   }
 

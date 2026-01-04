@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'app_buttons.dart';
+import 'app_colors.dart';
 
 Widget TimedFeedbackButton({
   required BuildContext context,
@@ -95,7 +97,7 @@ class _TimedFeedbackButtonStatefulState extends State<TimedFeedbackButtonStatefu
       children: [
         SizedBox(
           height: buttonHeight + widget.backOffset,
-          width: buttonWidth,
+          width: buttonWidth.sp,
           child: AnimatedPress3D(
             onTap: _enabled ? widget.onPressed : () {},
             topColor: _enabled ? widget.topColor : Colors.grey, // grey if disabled
@@ -109,9 +111,9 @@ class _TimedFeedbackButtonStatefulState extends State<TimedFeedbackButtonStatefu
                 _enabled
                     ? widget.text
                     : "${widget.text} ($_remainingSeconds s)", // optional countdown text
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
-                  fontSize: 18,
+                  fontSize: 18.sp,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.2,
                 ),
@@ -119,10 +121,10 @@ class _TimedFeedbackButtonStatefulState extends State<TimedFeedbackButtonStatefu
             ),
           ),
         ),
-        const SizedBox(height: 6),
+        SizedBox(height: 6),
         LinearProgressIndicator(
           value: _progress,
-          minHeight: 5,
+          minHeight: 5.sp,
           backgroundColor: Colors.grey.shade300,
           color: widget.topColor,
         ),
@@ -136,9 +138,9 @@ class _TimedFeedbackButtonStatefulState extends State<TimedFeedbackButtonStatefu
 Widget PreloadProgressButton({
   required BuildContext context,
   required String text,
-  required bool preloadDone,
-  required int progress,        // 0 to 3
-  required int totalSteps,     // 3
+  required bool? preloadDone,
+  required int? progress,        // 0 to 3
+  required int? totalSteps,     // 3
   required Color activeColor,  // e.g., Colors.deepPurple
   required VoidCallback? onPressed,
   Color borderColor = const Color.fromARGB(0, 118, 118, 118),
@@ -146,7 +148,7 @@ Widget PreloadProgressButton({
   double backOffset = 4.0,
   double backDarken = 0.45,
 }) {
-  final bool isLoading = progress < totalSteps;
+  final bool isLoading = progress! < totalSteps!;
   final double progressValue = totalSteps == 0 ? 1.0 : progress / totalSteps;
 
   final screenSize = MediaQuery.of(context).size;
@@ -159,12 +161,12 @@ Widget PreloadProgressButton({
     children: [
       SizedBox(
         height: buttonHeight + backOffset,
-        width: buttonWidth,
+        width: buttonWidth.sp,
         child: AnimatedPress3D(
-          onTap: preloadDone ? onPressed : null,
+          onTap: preloadDone! ? onPressed : null,
           topColor: preloadDone
               ? activeColor
-              : const Color.fromARGB(255, 57, 56, 58), // your inactive grey
+              : AppColors.grey600,// your inactive grey
           borderColor: borderColor,
           borderWidth: borderWidth,
           backOffset: backOffset,
@@ -175,23 +177,23 @@ Widget PreloadProgressButton({
               preloadDone
                   ? text
                   : "Preparing... ($progress/$totalSteps)",
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
+              style: TextStyle(
+                color: preloadDone? Theme.of(context).colorScheme.surface : AppColors.onPrimary,
+                fontSize: 18.sp * 0.8,
                 fontWeight: FontWeight.w600,
-                letterSpacing: 0.2,
+                letterSpacing: 0.2.sp,
               ),
             ),
           ),
         ),
       ),
-      const SizedBox(height: 6),
+      SizedBox(height: 6),
       if (isLoading) // Only show progress bar while loading
         LinearProgressIndicator(
           value: progressValue,
-          minHeight: 5,
+          minHeight: 5.sp,
           backgroundColor: Colors.grey.shade300,
-          color: activeColor,
+          color: AppColors.success,
         ),
     ],
   );

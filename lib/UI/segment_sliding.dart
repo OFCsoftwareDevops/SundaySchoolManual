@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'app_colors.dart';
 
@@ -14,24 +15,25 @@ Widget segmentedControl({
   required int selectedIndex,
   required List<SegmentItem> items,
   required ValueChanged<int> onChanged,
-  Color backgroundColor = AppColors.onPrimary,
-  Color indicatorColor = AppColors.primaryContainer,
 }) {
   return LayoutBuilder(
     builder: (context, constraints) {
-      final double padding_choice = 5;
+      final double padding_choice = 5.sp;
       final double outerPadding = padding_choice * 2; // left + right
       final double usableWidth = constraints.maxWidth - outerPadding;
       final double segmentWidth = ((usableWidth / items.length))/*.floorToDouble()*/;
 
+      final backgroundColor = Theme.of(context).colorScheme.onPrimary;
+      final indicatorColor = Theme.of(context).colorScheme.primaryContainer;
+
        //final segmentWidth = constraints.maxWidth / items.length;
 
       return Container(
-        height: 40,
+        height: 40.sp,
         padding: EdgeInsets.all(padding_choice),
         decoration: BoxDecoration(
           color: backgroundColor,
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(30.sp),
         ),
         child: Stack(
           children: [
@@ -46,7 +48,7 @@ Widget segmentedControl({
               child: Container(
                 decoration: BoxDecoration(
                   color: indicatorColor,
-                  borderRadius: BorderRadius.circular(26),
+                  borderRadius: BorderRadius.circular(26.sp),
                 ),
               ),
             ),
@@ -62,21 +64,21 @@ Widget segmentedControl({
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: item.enabled
-                          ? () {
-                              HapticFeedback.selectionClick();
-                              onChanged(i);
-                            }
-                          : null,
+                        ? () {
+                          HapticFeedback.selectionClick();
+                          onChanged(i);
+                        }
+                      : null,
                       child: Center(
                         child: Text(
                           item.label,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: !item.enabled
-                                ? Colors.grey
-                                : selected
-                                    ? Colors.white
-                                    : AppColors.secondary
+                              ? Colors.grey
+                              : selected
+                                ? Colors.white
+                                : AppColors.secondary
                           ),
                         ),
                       ),

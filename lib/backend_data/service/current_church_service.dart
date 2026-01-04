@@ -1,11 +1,15 @@
 // lib/widgets/current_church_card.dart
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../UI/app_buttons.dart';
 import '../../UI/app_colors.dart';
 import '../../auth/login/auth_service.dart';
+import '../../utils/leave_church.dart';
+import '../../utils/share_church.dart';
 import 'analytics/analytics_service.dart';
 
 class CurrentChurchCard extends StatefulWidget {
@@ -21,6 +25,8 @@ class _CurrentChurchCardState extends State<CurrentChurchCard> {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     // Hide entire card for anonymous users or if no church
     if (user?.isAnonymous == true || !context.select<AuthService, bool>((auth) => auth.hasChurch)) {
@@ -31,28 +37,26 @@ class _CurrentChurchCardState extends State<CurrentChurchCard> {
       builder: (context, auth, child) {
         final isScheduled = auth.isScheduledForDeletion;
         final scheduledTimestamp = auth.deletionScheduledAt;
-        final deletionDate = scheduledTimestamp != null
-            ? scheduledTimestamp.add(const Duration(days: 30))
-            : null;
+        final deletionDate = scheduledTimestamp?.add(const Duration(days: 30));
 
         return Card(
-          elevation: 1,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          elevation: 2,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.sp)),
+          margin: EdgeInsets.symmetric(horizontal: 16.sp, vertical: 8.sp),
           child: InkWell(
-            borderRadius: BorderRadius.circular(5),
+            borderRadius: BorderRadius.circular(5.sp),
             onTap: () async { // Log expand/collapse
               await AnalyticsService.logButtonClick(_expanded ? 'collapse_section' : 'expand_section');
 
               setState(() => _expanded = !_expanded);
             },
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16.sp),
               child: AnimatedCrossFade(
                 duration: const Duration(milliseconds: 1),
                 crossFadeState: _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-                firstChild: _collapsedView(auth),
-                secondChild: _expandedView(auth, context, isScheduled, deletionDate),
+                firstChild: _collapsedView(auth, textTheme, colorScheme),
+                secondChild: _expandedView(auth, context, textTheme, colorScheme, isScheduled, deletionDate),
               ),
             ),
           ),
@@ -61,7 +65,7 @@ class _CurrentChurchCardState extends State<CurrentChurchCard> {
     );
   }
 
-  Widget _collapsedView(AuthService auth) {
+  Widget _collapsedView(AuthService auth, TextTheme textTheme, ColorScheme colorScheme) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -71,76 +75,81 @@ class _CurrentChurchCardState extends State<CurrentChurchCard> {
             children: [
               Text(
                 auth.displayChurchName,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface,
+                  fontSize: 18.sp,
+                ),
               ),
               if (auth.parishName != null)
                 Text(
                   auth.parishName!,
-                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: 16.sp,
+                  ),
                 ),
             ],
           ),
         ),
-        Icon(_expanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down),
+        Icon(
+          _expanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+          color: colorScheme.onSurfaceVariant,
+        ),
       ],
     );
   }
 
-  Widget _expandedView(AuthService auth, BuildContext context, bool isScheduled, DateTime? deletionDate) {
+  Widget _expandedView(
+    AuthService auth, 
+    BuildContext context, 
+    TextTheme textTheme,
+    ColorScheme colorScheme,
+    bool isScheduled, 
+    DateTime? deletionDate,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          auth.churchFullName ?? "My Church",
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 10),
-        _detailRow("Church", auth.churchName),
-        _detailRow("Parish", auth.parishName),
-        _detailRow("Join Code", auth.accessCode ?? "Not available"),
-        _detailRow("Pastor", auth.pastorName ?? "Not listed"),
-        const SizedBox(height: 10),
+        Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            auth.churchFullName ?? "My Church",
+            style: textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+              fontSize: 18.sp,
+            ),
+          ),
+          // Up arrow to collapse
+          Icon(Icons.keyboard_arrow_up, color: colorScheme.onSurfaceVariant),
+        ],
+      ),
+        SizedBox(height: 10.sp),
+        _detailRow("Church", auth.churchName, textTheme, colorScheme),
+        _detailRow("Parish", auth.parishName, textTheme, colorScheme),
+        _detailRow("Join Code", auth.accessCode ?? "Not available", textTheme, colorScheme),
+        _detailRow("Pastor", auth.pastorName ?? "Not listed", textTheme, colorScheme),
+        SizedBox(height: 10.sp),
 
-        // Leave Church Button
+        // Leave & Share Buttons Row
         Align(
           alignment: Alignment.centerRight,
-          child: OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.red,
-              side: const BorderSide(color: Colors.red),
-            ),
-            onPressed: () async {
-              final confirm = await showDialog<bool>(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: const Text("Leave Church?"),
-                  content: const Text("You will no longer be connected to this church."),
-                  actions: [
-                    TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("Cancel")),
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx, true),
-                      child: const Text("Leave", style: TextStyle(color: Colors.red)),
-                    ),
-                  ],
-                ),
-              );
-
-              if (confirm == true) {
-                await AnalyticsService.logButtonClick('Leave_Church');
-                await auth.leaveChurch();
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("You have left the church")),
-                  );
-                }
-              }
-            },
-            child: const Text("Leave Church"),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ShareChurchButton(auth: auth),// Share Church Button
+              SizedBox(width: 8.sp),
+              LeaveChurchButton(auth: auth),// Leave Church Button
+            ],
           ),
         ),
-const SizedBox(height: 20),
-        const Divider(height: 1),
-        const SizedBox(height: 16),
+
+
+        SizedBox(height: 10.sp),
+        Divider(height: 1.sp, color: colorScheme.outline.withOpacity(0.3)),
+        SizedBox(height: 10.sp),
 
         // Delete Account Section
         Text(
@@ -148,19 +157,22 @@ const SizedBox(height: 20),
               ? "Account scheduled for permanent deletion on:\n${DateFormat('EEEE, MMMM d, yyyy').format(deletionDate!)}"
               : "Delete Account",
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 16.sp,
             fontWeight: FontWeight.bold,
-            color: isScheduled ? Colors.orange.shade700 : Colors.red.shade700,
+            color: isScheduled ? colorScheme.error : colorScheme.error,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8.sp),
         Text(
           isScheduled
               ? "Log in before this date to cancel deletion and restore your account."
               : "Your account and all data will be permanently deleted after 30 days.\nYou can cancel anytime by logging back in.",
-          style: TextStyle(color: Colors.grey[700], fontSize: 14),
+          style: textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+            fontSize: 14.sp,
+          ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12.sp),
 
         // Delete / Cancel Button
         SizedBox(
@@ -169,22 +181,48 @@ const SizedBox(height: 20),
             context: context,
             topColor: isScheduled ? AppColors.divineAccent : AppColors.primaryContainer,
             borderColor: Colors.transparent,
-            onPressed: isScheduled ? null : () async {
+            onPressed: isScheduled 
+              ? null
+              : () async {
               final confirm = await showDialog<bool>(
                 context: context,
                 builder: (ctx) => AlertDialog(
-                  title: const Text("Delete Account?"),
-                  content: const Text(
+                  title: Text(
+                    "Delete Account?", 
+                    style: textTheme.titleLarge?.copyWith(
+                      fontSize: 20.sp,  // Explicit size (overrides theme default)
+                      fontWeight: FontWeight.bold, // optional: make it stand out more
+                    ),
+                  ),
+                  content: Text(
                     "• Your account will be permanently deleted in 30 days.\n"
                     "• All your data (bookmarks, streaks, assignments, leaderboard) will be gone.\n"
                     "• You can cancel this anytime by simply logging back in.\n\n"
                     "Are you sure?",
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontSize: 14.sp,  // Adjust content font size here
+                    ),
                   ),
                   actions: [
-                    TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("Cancel")),
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false), 
+                      child: Text(
+                        "Cancel", 
+                        style: TextStyle(
+                          color: colorScheme.primary,
+                          fontSize: 16.sp,
+                        ),
+                      ),
+                    ),
                     TextButton(
                       onPressed: () => Navigator.pop(ctx, true),
-                      child: Text("Delete in 30 Days", style: TextStyle(color: AppColors.primaryContainer)),
+                      child: Text(
+                        "Delete in 30 Days",
+                        style: TextStyle(
+                          color: colorScheme.error,
+                          fontSize: 16.sp,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -196,9 +234,10 @@ const SizedBox(height: 20),
 
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Account scheduled for deletion in 30 days. Log in to cancel."),
-                      backgroundColor: Colors.orange,
+                    SnackBar(
+                      content: const Text(
+                        "Account scheduled for deletion in 30 days. Log in to cancel."),
+                      backgroundColor: colorScheme.errorContainer,
                     ),
                   );
                 }
@@ -206,44 +245,74 @@ const SizedBox(height: 20),
             },
             child: Text(
               isScheduled ? "Deletion Scheduled" : "Delete Account",
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.white, 
+                fontWeight: FontWeight.bold,
+                fontSize: 15.sp,
+              ),
             ),
             text: '',
           ),
         ),
 
         // Cancel Deletion Button (only if scheduled)
-        if (isScheduled)
+        if (isScheduled) ...[
+          //SizedBox(height: 16.sp),
           Center(
             child: TextButton(
               onPressed: () async {
                 await auth.cancelAccountDeletion();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Account deletion cancelled! Welcome back 🎉")),
+                    SnackBar(
+                      content: const Text("Account deletion cancelled! Welcome back 🎉"),
+                      backgroundColor: colorScheme.primaryContainer,
+                    ),
                   );
                 }
               },
-              child: const Text("Cancel Deletion", style: TextStyle(color: Colors.blue)),
+              child: Text(
+                "Cancel Deletion",
+                style: TextStyle(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ),
+        ],
 
-        const SizedBox(height: 8),
+        SizedBox(height: 10.sp),
       ],
     );
   }
 
-  Widget _detailRow(String label, String? value) {
+  Widget _detailRow(String label, String? value, TextTheme textTheme, ColorScheme colorScheme) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: EdgeInsets.symmetric(vertical: 4.sp),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 100,
-            child: Text("$label:", style: const TextStyle(fontWeight: FontWeight.w600)),
+            width: 100.sp,
+            child: Text(
+              "$label:",
+              style: textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 16.sp,
+              ),
+            ),
           ),
-          Expanded(child: Text(value ?? "—")),
+          Expanded(
+            child: Text(
+              value ?? "—",
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurface,
+                fontSize: 16.sp,
+              ),
+            ),
+          ),
         ],
       ),
     );

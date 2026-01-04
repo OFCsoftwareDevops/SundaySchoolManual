@@ -3,6 +3,7 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../UI/app_linear_progress_bar.dart';
 import '../../auth/login/auth_service.dart';
 import 'add_church_screen.dart';
@@ -96,32 +97,36 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
     required VoidCallback onTap,
   }) {
     return Card(
-      elevation: 8,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.sp)),
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(20.sp),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          padding: EdgeInsets.symmetric(horizontal: 24.sp, vertical: 32.sp),
           child: Row(
             children: [
               CircleAvatar(
-                radius: 32,
+                radius: 32.sp,
                 backgroundColor: color.withOpacity(0.15),
-                child: Icon(icon, size: 36, color: color),
+                child: Icon(
+                  icon, 
+                  size: 36.sp, 
+                  color: color,
+                ),
               ),
-              const SizedBox(width: 20),
+              SizedBox(width: 20.sp),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 6),
-                    Text(subtitle, style: TextStyle(color: Colors.grey[600], fontSize: 15)),
+                    Text(title, style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold)),
+                    SizedBox(height: 6.sp),
+                    Text(subtitle, style: TextStyle(color: Colors.grey[600], fontSize: 15.sp)),
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios, size: 20, color: Colors.grey),
+              Icon(Icons.arrow_forward_ios, size: 20.sp, color: Colors.grey),
             ],
           ),
         ),
@@ -183,29 +188,29 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
         extendBodyBehindAppBar: true,
         body: Container(
           decoration: const BoxDecoration(
-            gradient: LinearGradient(
+            /*gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [Color(0xFF5D8668), Color(0xFFEEFFEE)],
-            ),
+            ),*/
           ),
           child: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(20.sp),
               child: Column(
                 children: [
-                  const SizedBox(height: 40),
-                  const Text(
+                  SizedBox(height: 20.sp),
+                  Text(
                     "Welcome!",
-                    style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: TextStyle(fontSize: 36.sp, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
-                  const SizedBox(height: 12),
-                  const Text(
+                  SizedBox(height: 12.sp),
+                  Text(
                     "Let's get you connected to your church",
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 18, color: Colors.white70),
+                    style: TextStyle(fontSize: 18.sp, color: Colors.white70),
                   ),
-                  const SizedBox(height: 60),
+                  SizedBox(height: 10.sp),
       
                   // Create Church
                   _optionCard(
@@ -221,7 +226,7 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
                     },
                   ),
       
-                  const SizedBox(height: 24),
+                  SizedBox(height: 10.sp),
       
                   // Join with Code
                   _optionCard(
@@ -238,22 +243,25 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
                           content: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Text("Ask your pastor for the code"),
-                              const SizedBox(height: 16),
+                              Text("Ask your pastor for the code"),
+                              SizedBox(height: 16.sp),
                               TextField(
                                 controller: _codeController,
                                 maxLength: 6,
                                 textCapitalization: TextCapitalization.characters,
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(fontSize: 28, letterSpacing: 10),
+                                style: TextStyle(
+                                  fontSize: 28.sp, 
+                                  letterSpacing: 10.sp,
+                                ),
                                 decoration: const InputDecoration(
                                   hintText: "ABC123",
                                   border: OutlineInputBorder(),
                                 ),
                               ),
                               if (_isJoining)
-                                const Padding(
-                                  padding: EdgeInsets.only(top: 16),
+                                Padding(
+                                  padding: EdgeInsets.only(top: 16.sp),
                                   child: LinearProgressBar(),
                                 ),
                             ],
@@ -269,7 +277,7 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
                       );
                     },
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24.sp),
                 ],
               ),
             ),

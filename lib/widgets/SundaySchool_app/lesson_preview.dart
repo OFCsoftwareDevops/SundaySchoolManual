@@ -4,11 +4,13 @@ import 'package:app_demo/UI/app_colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
 import '../../UI/app_buttons.dart';
 import '../../backend_data/database/lesson_data.dart';
 import '../../backend_data/service/analytics/analytics_service.dart';
+import '../../utils/media_query.dart';
+import '../../utils/share_lesson.dart';
 import '../bible_app/bible.dart';
 import '../bible_app/bible_actions/highlight_manager.dart';
 import '../helpers/main_screen.dart';
@@ -34,101 +36,142 @@ class BeautifulLessonPage extends StatelessWidget {
 
   // ← the rest of the file is 100% identical to the previous message
   // (share function + _buildBlock + full build method)
+  void _showShareOptions(BuildContext context) {
+    final lessonShare = LessonShare(
+      data: data,
+      title: title,
+      lessonDate: lessonDate,
+      logoPath: 'assets/images/rccg_jhfan_share_image.png' // Optionally provide a logo path
+      
+    );
 
-  void _shareLesson() {
-    final buffer = StringBuffer();
-    buffer.writeln("*$title*");
-    buffer.writeln("${data.topic}");
-    if (data.biblePassage.isNotEmpty) buffer.writeln("_${data.biblePassage}_");
-    buffer.writeln();
-
-    for (var block in data.blocks) {
-      switch (block.type) {
-        case "heading": 
-          buffer.writeln("\n*${block.text}*"); 
-          break;
-        case "text":
-          buffer.writeln("${block.text}\n"); 
-          break;
-        case "memory_verse": 
-          buffer.writeln("Memory Verse\n“${block.text}”\n"); 
-          break;
-        case "numbered_list":
-          for (var i = 0; i < block.items!.length; i++) {
-            buffer.writeln("${i + 1}. ${block.items![i]}");
-          }
-          buffer.writeln();
-          break;
-        case "bullet_list":
-          block.items!.forEach((item) => buffer.writeln("• $item"));
-          buffer.writeln();
-          break;
-        case "quote": 
-          buffer.writeln("> ${block.text}\n"); 
-          break;
-        case "prayer": 
-          buffer.writeln("Prayer\n${block.text}"); 
-          break;
-      }
-    }
-
-    Share.share(buffer.toString(), subject: "$title: ${data.topic}");
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.sp)),
+      ),
+      builder: (_) {
+        return SafeArea(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 12.sp, horizontal: 24.sp),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Share Lesson",
+                  style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 12.sp),
+                ListTile(
+                  leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
+                  title: const Text("Share as PDF"),
+                  onTap: () async {
+                    Navigator.pop(context); // Close bottom sheet
+                    await lessonShare.shareAsPdf();
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.link, color: Colors.blue),
+                  title: const Text("Share Link"),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    await lessonShare.shareAsLink();
+                  },
+                ),
+                SizedBox(height: 8.sp),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
-  Widget _buildBlock(BuildContext context, ContentBlock block) {
+  Widget _buildBlock(BuildContext context, ContentBlock block, ColorScheme colorScheme, TextTheme textTheme) {
     // ← exact same _buildBlock from the previous message (heading, text, memory_verse, numbered_list, bullet_list, quote, prayer)
     switch (block.type) {
       case "heading":
         return Padding(
-          padding: const EdgeInsets.only(top: 10, bottom: 10),
+          padding: EdgeInsets.only(top: 10.sp, bottom: 10.sp),
           child: Text(
             block.text!, 
-            style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w600),
+            style: textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: 22.sp,
+              color: colorScheme.onBackground,
+            ),
+            //style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w600),
           ),
         );
       case "text":
         return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: buildRichText(context, block.text!),
+          padding: EdgeInsets.only(bottom: 10.sp),
+          child: buildRichText(context, block.text!, colorScheme),
         );
       case "memory_verse":
         return Padding(
-          padding: const EdgeInsets.only(bottom: 32),
+          padding: EdgeInsets.only(bottom: 10.sp),
           child: Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(24.sp),
             decoration: BoxDecoration(
-              color: const Color(0xFFF5F5F5),
-              borderRadius: BorderRadius.circular(16),
-              border: const Border(left: BorderSide(color: Colors.deepPurple, width: 5)),
+              color: colorScheme.surfaceVariant.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(16.sp),
+              border: Border(
+                left: BorderSide(color: colorScheme.primary, width: 5.sp),
+              ),
             ),
             child: Text(
-              block.text!, 
-              style: const TextStyle(fontSize: 18, height: 1.7, fontStyle: FontStyle.italic), 
+              block.text!,
+              style: textTheme.titleMedium?.copyWith(
+                fontStyle: FontStyle.italic,
+                fontSize: 15.sp,
+                height: 1.4.sp,
+                color: colorScheme.onBackground,
+              ),
               textAlign: TextAlign.center,
             ),
           ),
         );
       case "numbered_list":
         return Padding(
-          padding: const EdgeInsets.only(bottom: 32),
+          padding: EdgeInsets.only(bottom: 10.sp),
           child: Column(
             children: block.items!.asMap().entries.map((e) {
               final i = e.key + 1;
               return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
+                padding: EdgeInsets.symmetric(vertical: 1.5.sp),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      width: 25, 
-                      height: 25,
-                      decoration: const BoxDecoration(color: Color.fromARGB(255, 100, 13, 74), shape: BoxShape.rectangle),
+                      width: 25.sp, 
+                      height: 25.sp,
+                      decoration: BoxDecoration(
+                        color: colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(4.sp),
+                      ),
                       child: Center(
-                        child: Text('$i', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                        child: Text(
+                          '$i',
+                          style: TextStyle(
+                            color: colorScheme.onPrimaryContainer,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13.sp,
+                          ),
+                        ),
+                      ),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(child: Text(e.value, style: const TextStyle(fontSize: 17, height: 1.5))),
+                    SizedBox(width: 16.sp),
+                    Expanded(
+                      child: Text(
+                        e.value,
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontSize: 15.sp,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               );
@@ -137,15 +180,20 @@ class BeautifulLessonPage extends StatelessWidget {
         );
       case "bullet_list":
         return Padding(
-          padding: const EdgeInsets.only(bottom: 24),
+          padding: EdgeInsets.only(bottom: 10.sp),
           child: Column(
             children: block.items!.map((item) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
+              padding: EdgeInsets.symmetric(vertical: 6.sp),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("• ", style: TextStyle(fontSize: 17)),
-                  Expanded(child: Text(item, style: const TextStyle(fontSize: 17, height: 1.5))),
+                  Text("• ", style: textTheme.bodyMedium),
+                  Expanded(
+                    child: Text(
+                      item,
+                      style: textTheme.bodyMedium?.copyWith(height: 5.sp),
+                    ),
+                  ),
                 ],
               ),
             )).toList(),
@@ -153,25 +201,42 @@ class BeautifulLessonPage extends StatelessWidget {
         );
       case "quote":
         return Container(
-          margin: const EdgeInsets.only(bottom: 32),
-          padding: const EdgeInsets.all(20),
+          margin: EdgeInsets.only(bottom: 10.sp),
+          padding: EdgeInsets.all(10.sp),
           decoration: BoxDecoration(
-            color: Colors.grey.shade50, 
-            borderRadius: BorderRadius.circular(12), 
-            border: Border.all(color: Colors.grey.shade300),
+            color: colorScheme.surfaceVariant,
+            borderRadius: BorderRadius.circular(12.sp), 
+            border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
           ),
-          child: Text(block.text!, style: const TextStyle(fontSize: 17, fontStyle: FontStyle.italic, height: 1.6)),
+          child: Text(
+            block.text!,
+            style: textTheme.bodyMedium?.copyWith(
+              fontStyle: FontStyle.italic,
+              height: 1.4.sp,
+            ),
+          ),
         );
       case "prayer":
         return Container(
-          margin: const EdgeInsets.only(bottom: 40),
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(color: Colors.deepPurple.shade50, borderRadius: BorderRadius.circular(16)),
+          margin: EdgeInsets.only(bottom: 10.sp),
+          padding: EdgeInsets.all(10.sp),
+          decoration: BoxDecoration(
+            color: colorScheme.primary.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(16.sp),
+          ),
           child: Column(
             children: [
-              const Text("Prayer", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12),
-              Text(block.text!, style: const TextStyle(fontSize: 17, height: 1.6)),
+              Text(
+                "Prayer",
+                style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 16.sp),
+              Text(
+                block.text!,
+                style: textTheme.bodyMedium?.copyWith(
+                  fontSize: 18.sp,
+                  height: 1.4.sp),
+              ),
             ],
           ),
         );
@@ -181,10 +246,17 @@ class BeautifulLessonPage extends StatelessWidget {
   }
 
   // Wherever you show lesson text (e.g. in your lesson detail screen)
-  Widget buildRichText(BuildContext context, String text) {
+  Widget buildRichText(BuildContext context, String text, ColorScheme colorScheme) {
     final refs = findBibleReferences(text);
     if (refs.isEmpty) {
-      return Text(text, style: const TextStyle(fontSize: 17, height: 1.6));
+      return Text(
+        text, 
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          height: 1.4.sp,
+          fontSize: 15.sp,
+        ),
+      );
+        //style: const TextStyle(fontSize: 17, height: 1.6));
     }
 
     final parts = <TextSpan>[];
@@ -209,7 +281,6 @@ class BeautifulLessonPage extends StatelessWidget {
           style: const TextStyle(
             color: AppColors.scriptureHighlight,
             fontWeight: FontWeight.w600,
-            //decoration: TextDecoration.underline,
           ),
           recognizer: TapGestureRecognizer()
             ..onTap = () {
@@ -275,7 +346,11 @@ class BeautifulLessonPage extends StatelessWidget {
 
     return RichText(
       text: TextSpan(
-        style: const TextStyle(fontSize: 17, height: 1.6, color: Colors.black87),
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          height: 1.4.sp,
+          fontSize: 15.sp,
+          color: colorScheme.onBackground,
+        ),
         children: parts,
       ),
     );
@@ -283,20 +358,29 @@ class BeautifulLessonPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final style = CalendarDayStyle.fromContainer(context, 50);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
     final user = FirebaseAuth.instance.currentUser;
-    final auth = Provider.of<AuthService>(context, listen: false);
-    final service = SavedItemsService();
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        elevation: 0,
+        centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, size: 20, color: AppColors.onPrimary),
+          icon: Icon(Icons.arrow_back_ios),
+          iconSize: style.monthFontSize.sp, 
+          color: theme.colorScheme.onPrimary,
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(title, style: const TextStyle(color: AppColors.onPrimary, fontSize: 20, fontWeight: FontWeight.w600)),
+        title: Text(
+          title, 
+          style: theme.appBarTheme.titleTextStyle?.copyWith(
+            fontSize: style.monthFontSize.sp,
+            fontWeight: FontWeight.bold),
+        ),
         actions: [
           // Smart Save Lesson Button
           _SmartSaveLessonButton(
@@ -307,50 +391,70 @@ class BeautifulLessonPage extends StatelessWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _shareLesson,
-        backgroundColor: AppColors.success,
-          icon: const Icon(
+
+      floatingActionButton: SizedBox(
+        width: 160.sp,
+        height: 50.sp,
+        child: FloatingActionButton.extended(
+          onPressed: () => _showShareOptions(context),
+          backgroundColor: Theme.of(context).colorScheme.onSurface,
+          foregroundColor: Theme.of(context).colorScheme.surface,
+          icon: Icon(
             Icons.ios_share,
-            color: AppColors.darkOnBackground, // <-- makes the icon white
+            size: 20.sp,
           ),
-          label: const Text(
-          "Share Lesson",
-          style: TextStyle(
-            color: AppColors.darkOnBackground,
-            fontWeight: FontWeight.bold, // <-- makes the text white
+          label: Text(
+            "Share Lesson",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16.sp,
+            ),
           ),
         ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 30),
+          padding: EdgeInsets.symmetric(horizontal: 30.sp, vertical: 20.sp),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 10),
-              Text(data.topic, style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w300, height: 1.2)),
+              SizedBox(height: 10.sp),
+              // Topic Title — dynamic and theme-aware
+              Text(
+                data.topic,
+                style: textTheme.headlineLarge?.copyWith(
+                  fontWeight: FontWeight.w300,
+                  fontSize: 32.sp,
+                  height: 1.4.sp,
+                  color: colorScheme.onBackground,
+                ) ?? TextStyle(fontSize: 36.sp, fontWeight: FontWeight.w300),
+              ),
               if (data.biblePassage.isNotEmpty) ...[
-                const SizedBox(height: 5),
-                Text(data.biblePassage, style: const TextStyle(fontSize: 18, color: Colors.black54, fontStyle: FontStyle.italic)),
+                SizedBox(height: 1.4.sp),
+                Text(
+                  data.biblePassage,
+                  style: textTheme.titleMedium?.copyWith(
+                    fontStyle: FontStyle.italic,
+                    fontSize: 16.sp,
+                    color: colorScheme.onBackground.withOpacity(0.7),
+                  ),
+                ),
               ],
-              const SizedBox(height: 20),
-              ...data.blocks.map((block) => _buildBlock(context, block)),
+              SizedBox(height: 20.sp),
+              ...data.blocks.map((block) => _buildBlock(context, block, colorScheme, textTheme)),
               // REAL ASSIGNMENT FROM YOUR NEW COLLECTION
-              const SizedBox(height: 20),
+              SizedBox(height: 20.sp),
 
               Center(
                 child: AssignmentWidgetButton(
                   context: context,
                   text: user != null && !user.isAnonymous
-                      ? "Answer This Week's Assignment"
-                      : "Login to access assignment",
+                      ? "Answer Weekly Assignment"
+                      : "Login For Assignment",
                   icon: Icon(
                     user != null && !user.isAnonymous ? Icons.edit_note_rounded : Icons.login,
-                    color: AppColors.onPrimary,
                   ),
                   topColor: AppColors.primaryContainer,
-                  borderColor: const Color.fromARGB(0, 0, 0, 0),
                   onPressed: () async {
                     await AnalyticsService.logButtonClick('assignment_attempt_from_lesson_preview');
                     if (user != null && !user.isAnonymous) {
@@ -375,7 +479,7 @@ class BeautifulLessonPage extends StatelessWidget {
                   },
                 ),
               ),
-              const SizedBox(height: 100),
+              SizedBox(height: 100.sp),
             ],
           ),
         ),
@@ -405,6 +509,8 @@ class _SmartSaveLessonButton extends StatefulWidget {
 class _SmartSaveLessonButtonState extends State<_SmartSaveLessonButton> {
   bool _isSaved = false;
   bool _isChecking = true;
+
+  CalendarDayStyle get style => CalendarDayStyle.fromContainer(context, 50);
 
   @override
   void initState() {
@@ -485,18 +591,21 @@ class _SmartSaveLessonButtonState extends State<_SmartSaveLessonButton> {
       tooltip: _isSaved ? 'Already saved' : 'Save this lesson',
       onPressed: _saveLesson,
       icon: _isChecking
-          ? const SizedBox(
-              width: 24,
-              height: 24,
+          ? SizedBox(
+              width: style.monthFontSize.sp, 
+              height: style.monthFontSize.sp, 
               child: CircularProgressIndicator(
-                strokeWidth: 2,
+                strokeWidth: 2.sp,
                 color: AppColors.onPrimary,
               ),
             )
           : Icon(
-              _isSaved ? Icons.bookmark : Icons.bookmark_add,
-              color: _isSaved ? AppColors.success : AppColors.onPrimary,
-            ),
+            _isSaved ? Icons.bookmark : Icons.bookmark_add,
+            color: _isSaved 
+                ? AppColors.success 
+                : AppColors.onPrimary,
+            size: style.monthFontSize.sp,
+          ),
     );
   }
 }

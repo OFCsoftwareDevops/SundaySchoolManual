@@ -5,69 +5,146 @@ import 'app_colors.dart';
 
 class AppTheme {
   static ThemeData get lightTheme => ThemeData(
-        useMaterial3: true,
-        cardColor: AppColors.primaryContainer,
-        colorScheme: ColorScheme.light(
-          primary: AppColors.primary,
-          onPrimary: AppColors.onPrimary,
-          primaryContainer: AppColors.primaryContainer,
-          secondary: AppColors.secondary,
-          onSecondary: AppColors.onSecondary,
-          background: AppColors.background,
-          onBackground: AppColors.onBackground,
-          surface: AppColors.surface,
-          onSurface: AppColors.onSurface,
-          error: AppColors.error,
-          onError: AppColors.onError,
-        ),
-        scaffoldBackgroundColor: AppColors.background,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.onPrimary,
-          elevation: 0,
-          titleTextStyle: TextStyle(
-            fontFamily: 'Inter',
-            fontWeight: FontWeight.w600,
-            fontSize: 20,
-          ),
-        ),
+    useMaterial3: true,
+    brightness: Brightness.light,
+
+    colorScheme: ColorScheme.light(
+      primary: AppColors.primary,
+      onPrimary: AppColors.onPrimary,
+      primaryContainer: AppColors.primaryContainer,
+      onPrimaryContainer: AppColors.onPrimary,
+
+      secondary: AppColors.secondary,
+      onSecondary: AppColors.onSecondary,
+      secondaryContainer: AppColors.secondaryContainer,
+      onSecondaryContainer: AppColors.secondary,
+
+      background: AppColors.background,
+      onBackground: AppColors.onBackground,
+
+      surface: AppColors.surface,
+      onSurface: AppColors.onSurface,
+      surfaceVariant: AppColors.grey100,
+
+      error: AppColors.error,
+      onError: AppColors.onError,
+    ),
+
+    scaffoldBackgroundColor: AppColors.background,
+
+    appBarTheme: const AppBarTheme(
+      backgroundColor: AppColors.primary,
+      foregroundColor: AppColors.onPrimary,
+      elevation: 1.5,
+      titleTextStyle: TextStyle(
         fontFamily: 'Inter',
-        textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme),
-        typography: Typography.material2021(
-          // or Typography.material2018 if you prefer older scale
-        ),
-      );
+        fontWeight: FontWeight.w600,
+        fontSize: 20,
+        color: AppColors.onPrimary,
+      ),
+    ),
+
+    cardTheme: CardThemeData(
+      color: AppColors.surface,
+      elevation: 1.5,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    ),
+
+    fontFamily: 'Inter',
+    textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme),
+  );
 
   static ThemeData get darkTheme => ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.dark(
-          primary: AppColors.primary,
-          onPrimary: AppColors.onPrimary,
-          primaryContainer: AppColors.primaryContainer,
-          secondary: AppColors.secondary,
-          onSecondary: AppColors.onSecondary,
-          background: AppColors.darkBackground,
-          onBackground: AppColors.darkOnBackground,
-          surface: AppColors.darkSurface,
-          onSurface: AppColors.darkOnBackground,
-          error: AppColors.error,
-          onError: AppColors.onError,
-        ),
-        scaffoldBackgroundColor: AppColors.darkBackground,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.onPrimary,
-          elevation: 0,
-          titleTextStyle: TextStyle(
-            fontFamily: 'Inter',
-            fontWeight: FontWeight.w600,
-            fontSize: 20,
-          ),
-        ),
+    useMaterial3: true,
+    brightness: Brightness.dark,
+
+    colorScheme: ColorScheme.dark(
+      primary: AppColors.primary,                    // Keep brand blue consistent
+      onPrimary: AppColors.onPrimary,
+      primaryContainer: AppColors.primaryContainer,  // Wine red stays rich in dark
+      onPrimaryContainer: AppColors.onPrimary,
+
+      secondary: AppColors.onSecondary,
+      onSecondary: AppColors.secondary,
+      secondaryContainer: AppColors.secondary.withOpacity(0.3),
+      onSecondaryContainer: AppColors.darkBackground,
+
+      background: AppColors.darkBackground,
+      onBackground: AppColors.darkOnBackground,
+
+      surface: AppColors.darkSurface,
+      onSurface: AppColors.darkOnSurface,
+      surfaceVariant: AppColors.grey800.withOpacity(0.4),
+
+      error: AppColors.error,
+      onError: AppColors.onError,
+    ),
+
+    scaffoldBackgroundColor: AppColors.darkBackground,
+
+    appBarTheme: AppBarTheme(
+      backgroundColor: AppColors.darkSurfaceHigh.withOpacity(0.9),
+      foregroundColor: AppColors.onPrimary,
+      elevation: 1.5,
+      scrolledUnderElevation: 4,
+      shadowColor: Colors.black54,
+      surfaceTintColor: Colors.transparent,
+      titleTextStyle: TextStyle(
         fontFamily: 'Inter',
-        textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme),
-        typography: Typography.material2021(
-          // or Typography.material2018 if you prefer older scale
-        ),
-      );
+        fontWeight: FontWeight.w600,
+        fontSize: 20,
+        color: AppColors.onPrimary,
+      ),
+      iconTheme: IconThemeData(color: AppColors.onPrimary),
+    ),
+
+    cardTheme: CardThemeData(
+      color: AppColors.darkSurface,
+      elevation: 1.5,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    ),
+
+    fontFamily: 'Inter',
+    textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
+
+    // Optional: better disabled state
+    disabledColor: AppColors.darkDisabled,
+  );
+}
+
+
+class CalendarTheme {
+  const CalendarTheme._();
+
+  // Selected date background
+  static Color selectedBackground(BuildContext context) =>
+      Theme.of(context).colorScheme.primary; // Your brand blue (#344862) – perfect in both modes
+
+  // Selected date text/icon color
+  static Color selectedForeground(BuildContext context) =>
+      Theme.of(context).colorScheme.onPrimary; // White
+
+  // Today's date background (special highlight)
+  static Color todayBackground(BuildContext context) =>
+      AppColors.divineAccent; // Sacred muted gold (#BCAA73) – warm & meaningful
+
+  // Today's date text color
+  static Color todayForeground(BuildContext context) =>
+      AppColors.onPrimary; // White – high contrast on gold
+
+  // Lesson indicator dot (active)
+  static Color lessonDotActive(BuildContext context) =>
+      AppColors.secondary; // Calm blue (#405A7C) – subtle but visible
+
+  // Further Reading indicator dot (active)
+  static Color readingDotActive(BuildContext context) =>
+      AppColors.primaryContainer; // Rich wine red (#983D3D) – stands out beautifully
+
+  // Inactive dot color (both types when no content)
+  static Color indicatorInactive(BuildContext context) =>
+      Theme.of(context).colorScheme.onSurface.withOpacity(0.2);
+
+  // Weekday header text color
+  static Color weekdayText(BuildContext context) =>
+      Theme.of(context).colorScheme.onSurface.withOpacity(0.7);
 }

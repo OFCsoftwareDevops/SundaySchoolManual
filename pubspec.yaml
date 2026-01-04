@@ -30,27 +30,38 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  device_info_plus: ^11.1.0
-  firebase_core: ^3.6.0
-  firebase_analytics: ^11.6.0
-  firebase_auth: ^5.3.1
-  cloud_firestore: ^5.4.4
-  cloud_functions: ^5.1.3
+  device_info_plus: ^12.3.0
+  firebase_core: ^4.3.0
+  firebase_analytics: ^12.1.0
+  firebase_auth: ^6.1.3
+  cloud_firestore: ^6.1.1
+  cloud_functions: ^6.0.5
   google_sign_in: ^6.2.1
-  sign_in_with_apple: ^6.1.2
+  sign_in_with_apple: ^7.0.1
   shared_preferences: ^2.3.2
-  connectivity_plus: ^6.0.5
-  firebase_messaging: ^15.1.3
+  connectivity_plus: ^7.0.0
+  firebase_messaging: ^16.1.0
   flutter_localizations:
     sdk: flutter
   intl: ^0.20.2
-  share_plus: ^7.2.2
+  share_plus: ^12.0.1
+  path_provider: ^2.0.14
   provider: ^6.1.2
   http: ^1.2.1
   intl_phone_field: ^3.2.0
   url_launcher: ^6.1.7
   google_fonts: ^6.2.1
-  google_mobile_ads: ^5.1.0
+  google_mobile_ads: ^7.0.0
+  shorebird_code_push: ^2.0.5
+  flutter_local_notifications: ^19.5.0
+  flutter_timezone: ^5.0.1
+  permission_handler: ^12.0.1
+  timezone: ^0.10.1
+  background_fetch: ^1.5.0
+  workmanager: ^0.6.0
+  pdf: ^3.11.1
+  flutter_screenutil: ^5.9.3
+  flutter_rating_bar: ^4.0.1
 
 
 
@@ -82,7 +93,9 @@ flutter:
   uses-material-design: true
 
   assets:
+    - shorebird.yaml
     - assets/images/rccg_logo.png
+    - assets/images/rccg_jhfan_share_image.png
     - assets/images/google_logo.png
     - assets/images/apple_logo.png
     - assets/images/anonymous_user.png
@@ -128,3 +141,6 @@ l10n:
   arb-dir: lib/l10n
   template-arb-file: app_en.arb
   output-dir: lib/generated
+
+dependency_overrides:
+  path_provider_android: 2.2.20

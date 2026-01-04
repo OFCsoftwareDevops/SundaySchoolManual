@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../UI/app_colors.dart';
+import '../../utils/media_query.dart';
 
 class StreakPage extends StatelessWidget {
   const StreakPage({super.key});
@@ -11,6 +12,8 @@ class StreakPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     final uid = user?.uid;
+
+    final style = CalendarDayStyle.fromContainer(context, 50);
 
     if (uid == null) {
       return Scaffold(
@@ -22,7 +25,25 @@ class StreakPage extends StatelessWidget {
     final docRef = FirebaseFirestore.instance.collection('users').doc(uid);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Reading Streak')),
+      backgroundColor: Theme.of(context).colorScheme.background,
+      appBar: AppBar(
+        centerTitle: true,
+        title: FittedBox(
+          fit: BoxFit.scaleDown, // Scales down text if it would overflow
+          child: Text(
+            "Reading Streak",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: style.monthFontSize.sp, // Matches your other screen's style
+            ),
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          iconSize: style.monthFontSize.sp, // Consistent sizing
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         stream: docRef.snapshots(),
         builder: (context, snapshot) {
@@ -51,83 +72,143 @@ class StreakPage extends StatelessWidget {
           final double progress = (mod) / 7.0;
 
           return Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(16.sp),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 8),
+                SizedBox(height: 8.sp),
                 Center(
                   child: Column(
                     children: [
                       Text(
                         '$streak',
-                        style: const TextStyle(fontSize: 64, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 60.sp, fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 6),
-                      const Text('day streak', style: TextStyle(fontSize: 18)),
+                      SizedBox(height: 5.sp),
+                      Text('day streak', style: TextStyle(fontSize: 15.sp)),
                     ],
                   ),
                 ),
-                const SizedBox(height: 18),
+                SizedBox(height: 10.sp),
 
                 // Freeze count card
                 Card(
                   child: ListTile(
-                    leading: const Icon(Icons.ac_unit),
-                    title: const Text('Freezes available'),
-                    trailing: Text('$freezeCount', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                    subtitle: const Text('Freezes let you skip a day without breaking your streak.'),
+                    leading: Icon(
+                      Icons.ac_unit,
+                      size: 24.sp,
+                      //color: Theme.of(context).colorScheme.primary,
+                    ),
+                    title: Text(
+                      'Freezes available',
+                      style: TextStyle(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    trailing: Text(
+                      '$freezeCount',
+                       style: TextStyle(
+                        fontSize: 20.sp, 
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Freezes let you skip a day without breaking your streak.',
+                      style: TextStyle(
+                        fontSize: 15.sp, 
+                        //fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
 
-                const SizedBox(height: 12),
+                SizedBox(height: 5.sp),
                 Card(
                   child: ListTile(
-                    leading: const Icon(Icons.calendar_today),
-                    title: const Text('Last Completed'),
-                    subtitle: Text(last),
+                    leading: Icon(
+                      Icons.calendar_today,
+                      size: 24.sp,
+                      //color: Theme.of(context).colorScheme.primary,
+                    ),
+                    title: Text(
+                      'Last Completed',
+                      style: TextStyle(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    subtitle: Text(
+                      last,
+                      style: TextStyle(
+                        fontSize: 15.sp
+                      ),
+                    ),
+                    //contentPadding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: 12.sp),
                   ),
                 ),
 
-                const SizedBox(height: 12),
+                SizedBox(height: 5.sp),
                 Card(
                   child: Padding(
-                    padding: const EdgeInsets.all(12.0),
+                    padding: EdgeInsets.all(16.sp),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Progress to next freeze', style: TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
+                        Text(
+                          'Progress to next freeze', 
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15.sp,
+                            color: Theme.of(context).colorScheme.onBackground,
+                          ),
+                        ),
+                        SizedBox(height: 5.sp),
                         LinearProgressIndicator(
                           value: progress,
                           backgroundColor: AppColors.grey300,
                         ),
-                        const SizedBox(height: 8),
-                        Text('$daysToNext day(s) until next freeze (every 7-day streak awards 1 freeze)'),
+                        SizedBox(height: 5.sp),
+                        Text(
+                          '$daysToNext day(s) until next freeze (every 7-day streak awards 1 freeze)',
+                          style: TextStyle(
+                            //fontWeight: FontWeight.bold,
+                            fontSize: 15.sp,
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ),
 
-                const SizedBox(height: 12),
+                SizedBox(height: 5.sp),
                 Card(
                   child: ListTile(
-                    leading: const Icon(Icons.info_outline),
-                    title: const Text('How freezes work'),
-                    subtitle: const Text('If you miss a day, a freeze will be consumed to keep your streak. Freezes are awarded every time your streak reaches a multiple of 7.'),
+                    leading: Icon(
+                      Icons.info_outline,
+                      size: 24.sp,
+                      //color: Theme.of(context).colorScheme.primary,
+                    ),
+                    title: Text(
+                      'How freezes work',
+                      style: TextStyle(
+                        fontSize: 15.sp,
+                        //height: 1.5.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'If you miss a day, a freeze will be consumed to keep your streak.',
+                      style: TextStyle(
+                        fontSize: 15.sp,
+                        //height: 1.2.sp,
+                      ),
+                    ),
+                    //contentPadding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: 12.sp),
                   ),
                 ),
 
                 const Spacer(),
-                /*nter(
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Keep reading to grow your streak!')));
-                    },
-                    child: const Text('Keep Reading'),
-                  ),
-                ),
-                const SizedBox(height: 20),*/
               ],
             ),
           );

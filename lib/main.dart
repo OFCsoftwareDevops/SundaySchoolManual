@@ -1,5 +1,5 @@
 import 'dart:io';
-
+import 'package:app_demo/backend_data/service/notification/background_task.dart';
 import 'package:app_demo/l10n/fallback_localizations.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,10 +8,15 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/foundation.dart'; 
+import 'package:flutter/foundation.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
+import 'package:workmanager/workmanager.dart'; 
 import 'UI/app_linear_progress_bar.dart';
 import 'UI/app_theme.dart';
 import 'backend_data/database/constants.dart';
@@ -19,6 +24,7 @@ import 'auth/login/auth_service.dart';
 import 'auth/login/login_page.dart';
 import 'backend_data/service/assignment_dates_provider.dart';
 import 'backend_data/service/firestore_service.dart';
+import 'backend_data/service/notification/notification_service.dart';
 import 'backend_data/service/submitted_dates_provider.dart';
 import 'widgets/bible_app/bible_actions/highlight_manager.dart';
 import 'backend_data/service/analytics/firebase_options.dart';
@@ -41,6 +47,29 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  // Notification caller
+  tz.initializeTimeZones();
+  tz.setLocalLocation(tz.getLocation('America/New_York'));
+  await NotificationService().initialize();
+  Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+
+  // Request notification permission (Android 13+)
+  if (Platform.isAndroid) {
+    final status = await Permission.notification.request();
+    debugPrint('Notification permission: $status');
+  }
+
+  /*final allowed = await NotificationService().isExactAlarmsAllowed();
+  debugPrint('Exact alarms allowed: $allowed');*/
+
+  // Initialize Firebase Messaging topics and get token
+  final fcm = FirebaseMessaging.instance;
+  await fcm.subscribeToTopic('all_users');
+  final token = await fcm.getToken();
+  debugPrint('FCM Token: $token');
+
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  
   // Initialize Google Mobile Ads SDK
   MobileAds.instance.initialize();
 
@@ -57,7 +86,7 @@ Future<void> main() async {
     cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
   );
 
-  // FCM setup (only mobile)
+  // // ==================== FCM SETUP ====================
   if (!kIsWeb /*&& (Platform.isAndroid || Platform.isIOS)*/) {
     await FirebaseMessaging.instance.requestPermission();
     await FirebaseMessaging.instance.subscribeToTopic("all_users");
@@ -75,8 +104,6 @@ Future<void> main() async {
   if (currentUser != null && ownerEmails.contains(currentUser.email)) {
     await FirebaseMessaging.instance.subscribeToTopic("owner_notifications");
   }
-
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   // ←←←← NEW: Initialize the AuthService sync ←←←←
   await AuthService.instance.init();
@@ -188,64 +215,71 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver{
 
   @override
   Widget build(BuildContext context) {
-      return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        locale: _locale,
-      
-        // THIS IS THE ONLY LIST THAT WORKS FOR en + fr + yo
-        localizationsDelegates: const [
-          AppLocalizations.delegate,     
-          GlobalMaterialLocalizations.delegate, // ← supports en + fr fully
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-          FallbackMaterialLocalizationsDelegate(),
-          FallbackCupertinoLocalizationsDelegate(),
-        ],
-        supportedLocales: AppLocalizations.supportedLocales, // en, fr, yo
-        /*theme: ThemeData(
-          useMaterial3: true,
-          colorSchemeSeed: Color.fromARGB(255, 255, 255, 255).withOpacity(0.3), // APP THEME COLOR
-          fontFamily: 'Roboto', // Set default font family
-        ),*/
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system,
-        home: Consumer<AuthService>(
-          builder: (context, auth, child) {  
-            // Show intro only on very first app open ever
-            if (_showIntro) {
-              return IntroPage(
-                preloadDone: preloadDone,
-                isLoading: !preloadDone,
-                preloadProgress: preloadProgress,
-                totalPreloadSteps: totalPreloadSteps,
-                onFinish: preloadDone
-                    ? () => setState(() => _showIntro = false)
-                    : null, 
-              );
-            }
-
-            // Still loading auth state / church / roles
-            if (auth.isLoading) {
-              return const Scaffold(
-                body: Center(child: LinearProgressBar()),
-              );
-            }
-            
-            // No user signed in → go to your login / signup flow
-            if (auth.currentUser == null) {
-              return const AuthScreen();
-            }
-            // User signed in but no church selected yet
-            // Skip church selection if user is anonymous (guest mode)
-            final user = auth.currentUser!;
-            if (!auth.hasChurch && !user.isAnonymous) {
-              return const ChurchOnboardingScreen();
-            }
-            // Everything ready → go to main app
-            return MainScreen();
-          },
-        ),
-      );
+    return ScreenUtilInit(
+      designSize: Size(448, 998),  // Your design mockup size (e.g., common phone)
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (context, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          locale: _locale,
+        
+          // THIS IS THE ONLY LIST THAT WORKS FOR en + fr + yo
+          localizationsDelegates: const [
+            AppLocalizations.delegate,     
+            GlobalMaterialLocalizations.delegate, // ← supports en + fr fully
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            FallbackMaterialLocalizationsDelegate(),
+            FallbackCupertinoLocalizationsDelegate(),
+          ],
+          supportedLocales: AppLocalizations.supportedLocales, // en, fr, yo
+          /*theme: ThemeData(
+            useMaterial3: true,
+            colorSchemeSeed: Color.fromARGB(255, 255, 255, 255).withOpacity(0.3), // APP THEME COLOR
+            fontFamily: 'Roboto', // Set default font family
+          ),*/
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: ThemeMode.system,
+          home: Consumer<AuthService>(
+            builder: (context, auth, child) {  
+              // Show intro only on very first app open ever
+              if (_showIntro) {
+                return IntroPage(
+                  preloadDone: preloadDone,
+                  isLoading: !preloadDone,
+                  preloadProgress: preloadProgress,
+                  totalPreloadSteps: totalPreloadSteps,
+                  onFinish: preloadDone
+                      ? () => setState(() => _showIntro = false)
+                      : null, 
+                );
+              }
+        
+              // Still loading auth state / church / roles
+              if (auth.isLoading) {
+                return const Scaffold(
+                  body: Center(child: LinearProgressBar()),
+                );
+              }
+              
+              // No user signed in → go to your login / signup flow
+              if (auth.currentUser == null) {
+                return const AuthScreen();
+              }
+              // User signed in but no church selected yet
+              // Skip church selection if user is anonymous (guest mode)
+              final user = auth.currentUser!;
+              if (!auth.hasChurch && !user.isAnonymous) {
+                return const ChurchOnboardingScreen();
+              }
+              // Everything ready → go to main app
+              return MainScreen();
+            },
+          ),
+        );
+      }
+    );
   }
 }

@@ -1,11 +1,12 @@
 import 'package:app_demo/UI/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../auth/login/auth_service.dart';
 import '../../backend_data/service/saved_items_service.dart';
 import '../../backend_data/service/firestore_service.dart';
-import '../../backend_data/database/lesson_data.dart';
+import '../../utils/media_query.dart';
 import '../SundaySchool_app/lesson_preview.dart';
 import '../SundaySchool_app/further_reading/further_reading_dialog.dart';
 
@@ -38,31 +39,47 @@ class _SavedItemsPageState extends State<SavedItemsPage>
     final user = FirebaseAuth.instance.currentUser;
     final authService = context.read<AuthService>();
 
+    final style = CalendarDayStyle.fromContainer(context, 50);
+
     // If not logged in or no church, show a message
     if (user == null || user.isAnonymous || !authService.hasChurch) {
       return Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.background,
         appBar: AppBar(
-          title: const Text('Saved Items'),
           centerTitle: true,
-          backgroundColor: AppColors.primary,
+          title: FittedBox(
+            fit: BoxFit.scaleDown, // Scales down text if it would overflow
+            child: Text(
+              "Saved Items",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: style.monthFontSize.sp, // Matches your other screen's style
+              ),
+            ),
+          ),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            iconSize: style.monthFontSize.sp, // Consistent sizing
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
         body: Center(
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: EdgeInsets.all(24.sp),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.bookmark, size: 64, color: Colors.grey),
-                const SizedBox(height: 16),
-                const Text(
+                Icon(Icons.bookmark, size: 64.sp, color: Colors.grey),
+                SizedBox(height: 16.sp),
+                Text(
                   'Sign in to save your favorites',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8.sp),
                 Text(
                   'Bookmarks, lessons, and readings will sync across your devices.',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -77,10 +94,24 @@ class _SavedItemsPageState extends State<SavedItemsPage>
 
     if (churchId == null) {
       return Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.background,
         appBar: AppBar(
-          title: const Text('Saved Items'),
           centerTitle: true,
-          backgroundColor: AppColors.primary,
+          title: FittedBox(
+            fit: BoxFit.scaleDown, // Scales down text if it would overflow
+            child: Text(
+              "Saved Items",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: style.monthFontSize.sp, // Matches your other screen's style
+              ),
+            ),
+          ),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            iconSize: style.monthFontSize.sp, // Consistent sizing
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
         body: const Center(
           child: Text('No church selected'),
@@ -89,19 +120,51 @@ class _SavedItemsPageState extends State<SavedItemsPage>
     }
 
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title: const Text('Saved Items'),
         centerTitle: true,
-        backgroundColor: AppColors.primary,
+        title: FittedBox(
+          fit: BoxFit.scaleDown, // Scales down text if it would overflow
+          child: Text(
+            "Saved Items",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: style.monthFontSize.sp, // Matches your other screen's style
+            ),
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          iconSize: style.monthFontSize.sp, // Consistent sizing
+          onPressed: () => Navigator.pop(context),
+        ),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Colors.white,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
-          tabs: const [
-            Tab(icon: Icon(Icons.bookmark), text: 'Bookmarks'),
-            Tab(icon: Icon(Icons.school), text: 'Lessons'),
-            Tab(icon: Icon(Icons.library_books), text: 'Readings'),
+          labelStyle: TextStyle(
+            fontSize: 13.sp,        // Clear, readable tab labels
+            fontWeight: FontWeight.w600,
+          ),
+          unselectedLabelStyle: TextStyle(
+            fontSize: 13.sp,
+          ),
+          indicatorSize: TabBarIndicatorSize.tab, // Optional: makes indicator match full tab width
+          indicatorWeight: 2.0,                    // Slightly thicker for emphasis
+          tabs: [
+            Tab(
+              icon: Icon(Icons.bookmark, size: 18.sp),
+              text: 'Bookmarks',
+            ),
+            Tab(
+              icon: Icon(Icons.school, size: 18.sp),
+              text: 'Lessons',
+            ),
+            Tab(
+              icon: Icon(Icons.library_books, size: 18.sp),
+              text: 'Readings',
+            ),
           ],
         ),
       ),
@@ -161,7 +224,7 @@ class _BookmarksTab extends StatelessWidget {
         final bookmarks = snapshot.data!;
 
         return ListView.builder(
-          padding: const EdgeInsets.all(8),
+          padding: EdgeInsets.all(8.sp),
           itemCount: bookmarks.length,
           itemBuilder: (context, index) {
             final bookmark = bookmarks[index];
@@ -207,11 +270,11 @@ class _BookmarkCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(12.sp),
       child: Card(
-        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+        margin: EdgeInsets.symmetric(vertical: 8.sp, horizontal: 8.sp),
         elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.sp)),
         child: Stack(
           children: [
             ExpansionTile(
@@ -221,23 +284,23 @@ class _BookmarkCard extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 16,
+                  style: TextStyle(
+                    fontSize: 16.sp,
                     fontWeight: FontWeight.w600,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (text != null) ...[
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4.sp),
                   Text(
                     text!.length > 60 
                         ? "${text!.substring(0, 60)}..." 
                         : text!,
                     style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                      height: 1.3,
+                      fontSize: 12.sp,
+                      //color: Colors.grey[600],
+                      height: 1.3.sp,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -246,51 +309,51 @@ class _BookmarkCard extends StatelessWidget {
               ],
             ),
             trailing: IconButton(
-              icon: const Icon(Icons.delete, color: AppColors.grey700, size: 20),
+              icon: Icon(Icons.delete, color: AppColors.grey700, size: 20.sp),
               onPressed: onDelete,
               tooltip: 'Delete bookmark',
             ),
-            tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            tilePadding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: 8.sp),
+            childrenPadding: EdgeInsets.fromLTRB(16.sp, 0, 16.sp, 12.sp),
             initiallyExpanded: false, // ← Starts minimized (collapsed)
             expandedAlignment: Alignment.topLeft,
             expandedCrossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Full content shown when expanded
               if (text != null) ...[
-                const SizedBox(height: 8),
+                SizedBox(height: 8.sp),
                 Text(
                   text!,
                   style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[800],
-                    height: 1.4,
+                    fontSize: 14.sp,
+                    //color: Colors.grey[800],
+                    height: 1.4.sp,
                   ),
                 ),
               ],
               if (note != null && note!.isNotEmpty) ...[
-                const SizedBox(height: 16),
+                SizedBox(height: 16.sp),
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: EdgeInsets.all(12.sp),
                   decoration: BoxDecoration(
                     color: Colors.amber[50],
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(8.sp),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         "Your Note",
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 14.sp,
                           fontWeight: FontWeight.bold,
                           color: Color.fromARGB(255, 244, 174, 82),
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4.sp),
                       Text(
                         note!,
-                        style: const TextStyle(fontSize: 13, height: 1.4),
+                        style: TextStyle(fontSize: 13.sp, height: 1.4.sp),
                       ),
                     ],
                   ),
@@ -298,7 +361,7 @@ class _BookmarkCard extends StatelessWidget {
               ],
               // Optional: Add edit note button or field here if you want
               if (note != null || text != null)
-                const SizedBox(height: 12),
+                SizedBox(height: 12.sp),
             ],
           ),
         ],
@@ -306,84 +369,6 @@ class _BookmarkCard extends StatelessWidget {
     ));
   }
 }
-/*class _BookmarkCard extends StatelessWidget {
-  final String title;
-  final String? text;
-  final String? note;
-  final VoidCallback onDelete;
-  final Function(String) onEditNote;
-
-  const _BookmarkCard({
-    required this.title,
-    required this.text,
-    required this.note,
-    required this.onDelete,
-    required this.onEditNote,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red, size: 20),
-                  onPressed: onDelete,
-                  tooltip: 'Delete bookmark',
-                ),
-              ],
-            ),
-            if (text != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                text!,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[700],
-                  fontStyle: FontStyle.italic,
-                ),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-            if (note != null && note!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.amber[50],
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  'Note: $note',
-                  style: const TextStyle(fontSize: 13),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}*/
 
 // ──────────────── SAVED LESSONS TAB ──────────────────
 class _SavedLessonsTab extends StatelessWidget {
@@ -510,13 +495,13 @@ class _LessonCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(12.sp),
       child: Card(
-        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+        margin: EdgeInsets.symmetric(vertical: 8.sp, horizontal: 8.sp),
         elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.sp)),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16.sp),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -526,28 +511,28 @@ class _LessonCard extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        fontSize: 16,
+                      style: TextStyle(
+                        fontSize: 16.sp,
                         fontWeight: FontWeight.w600,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (preview != null && preview!.isNotEmpty) ...[
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8.sp),
                       Text(
                         preview!.length > 120 ? "${preview!.substring(0, 120)}..." : preview!,
-                        style: TextStyle(fontSize: 13, color: Colors.grey[700], height: 1.4),
+                        style: TextStyle(fontSize: 13.sp, /*color: Colors.grey[700],*/ height: 1.4.sp),
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
                     if (note != null && note!.isNotEmpty) ...[
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8.sp),
                       Container(
                         padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(6)),
-                        child: Text('Note: $note', style: const TextStyle(fontSize: 13)),
+                        decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(6.sp)),
+                        child: Text('Note: $note', style: TextStyle(fontSize: 13.sp)),
                       ),
                     ],
                   ],
@@ -562,7 +547,7 @@ class _LessonCard extends StatelessWidget {
                     tooltip: 'Open lesson',
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete, color: AppColors.grey700, size: 20),
+                    icon: Icon(Icons.delete, color: AppColors.grey700, size: 20.sp),
                     onPressed: onDelete,
                     tooltip: 'Delete lesson',
                   ),
@@ -575,102 +560,6 @@ class _LessonCard extends StatelessWidget {
     );
   }
 }
-
-/*class _LessonCard extends StatelessWidget {
-  final String title;
-  final String type;
-  final String? preview;
-  final String? note;
-  final VoidCallback onDelete;
-  final Function(String) onEditNote;
-
-  const _LessonCard({
-    required this.title,
-    required this.type,
-    required this.preview,
-    required this.note,
-    required this.onDelete,
-    required this.onEditNote,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Card(
-        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (type.isNotEmpty)
-                        Text(
-                          'Type: ${type.capitalize()}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red, size: 20),
-                  onPressed: onDelete,
-                  tooltip: 'Delete lesson',
-                ),
-              ],
-            ),
-            if (preview != null && preview!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                preview!,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey[700],
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-            if (note != null && note!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  'Note: $note',
-                  style: const TextStyle(fontSize: 13),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}*/
 
 // ──────────────── FURTHER READINGS TAB ──────────────────
 class _FurtherReadingsTab extends StatelessWidget {
@@ -704,7 +593,7 @@ class _FurtherReadingsTab extends StatelessWidget {
         final readings = snapshot.data!;
 
         return ListView.builder(
-          padding: const EdgeInsets.all(8),
+          padding: EdgeInsets.all(8.sp),
           itemCount: readings.length,
           itemBuilder: (context, index) {
             final reading = readings[index];
@@ -754,11 +643,11 @@ class _ReadingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(12.sp),
       child: Card(
-        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+        margin: EdgeInsets.symmetric(vertical: 8.sp, horizontal: 8.sp),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: EdgeInsets.all(12.sp),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -768,8 +657,8 @@ class _ReadingCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       title,
-                      style: const TextStyle(
-                        fontSize: 16,
+                      style: TextStyle(
+                        fontSize: 15.sp,
                         fontWeight: FontWeight.w600,
                       ),
                       maxLines: 2,
@@ -777,48 +666,23 @@ class _ReadingCard extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete, color:  AppColors.grey700, size: 20),
+                    icon: Icon(Icons.delete, /*color:  AppColors.grey700,*/ size: 20.sp),
                     onPressed: onDelete,
                     tooltip: 'Delete reading',
                   ),
                 ],
               ),
-              /*if (readingText != null && readingText!.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                InkWell(
-                  onTap: () {
-                    if (onTap != null) {
-                      onTap!();
-                      return;
-                    }
-      
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Opening: $readingText')),
-                    );
-                  },
-                  child: Text(
-                    readingText!,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Colors.blue,
-                      decoration: TextDecoration.underline,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],*/
               if (note != null && note!.isNotEmpty) ...[
-                const SizedBox(height: 8),
+                SizedBox(height: 8.sp),
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: EdgeInsets.all(8.sp),
                   decoration: BoxDecoration(
-                    color: Colors.green[50],
-                    borderRadius: BorderRadius.circular(4),
+                    //color: Colors.green[50],
+                    borderRadius: BorderRadius.circular(4.sp),
                   ),
                   child: Text(
                     'Note: $note',
-                    style: const TextStyle(fontSize: 13),
+                    style: TextStyle(fontSize: 13.sp),
                   ),
                 ),
               ],
@@ -846,25 +710,25 @@ class _EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: EdgeInsets.all(24.sp),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 64, color: Colors.grey[400]),
-            const SizedBox(height: 16),
+            Icon(icon, size: 64.sp/*, color: Colors.grey[400]*/),
+            SizedBox(height: 16.sp),
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 18,
+              style: TextStyle(
+                fontSize: 18.sp,
                 fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8.sp),
             Text(
               message,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 14.sp,
                 color: Colors.grey[600],
               ),
               textAlign: TextAlign.center,

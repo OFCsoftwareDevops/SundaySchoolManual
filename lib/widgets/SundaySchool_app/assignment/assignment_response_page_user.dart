@@ -3,9 +3,11 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../UI/app_buttons.dart';
+import '../../../UI/app_colors.dart';
 import '../../../UI/app_linear_progress_bar.dart';
 import '../../../auth/login/auth_service.dart';
 import '../../../backend_data/database/assignment_data.dart';
@@ -13,6 +15,7 @@ import '../../../backend_data/service/analytics/analytics_service.dart';
 import '../../../backend_data/service/firestore_service.dart';
 import '../../../backend_data/service/submitted_dates_provider.dart';
 import '../../../backend_data/database/lesson_data.dart';
+import '../../../utils/media_query.dart';
 
 class AssignmentResponsePage extends StatefulWidget {
   final DateTime date;
@@ -297,242 +300,289 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
   @override
   Widget build(BuildContext context) {
     final dateFormatted = DateFormat('MMMM d, yyyy').format(widget.date);
+    final style = CalendarDayStyle.fromContainer(context, 50);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("My Assignment"),
-        backgroundColor: Colors.deepPurple,
+        centerTitle: true,
+        title: FittedBox(
+          fit: BoxFit.scaleDown, // Scales down text if it would overflow
+          child: Text(
+            "My Assignment",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: style.monthFontSize.sp, // Matches your other screen's style
+            ),
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          iconSize: style.monthFontSize.sp, // Consistent sizing
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: _isLoading
           ? const Center(child: LinearProgressBar())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+          : Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(0),
+              ),
+              padding: EdgeInsets.all(20.sp),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Assignment text
                   Card(
-                    color: Colors.deepPurple.shade50,
                     child: Padding(
-                      padding: const EdgeInsets.all(20),
+                      padding: EdgeInsets.all(20.sp),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             "This Week's Assignment",
-                            style: TextStyle(
-                              fontSize: 20,
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: Colors.deepPurple,
+                              fontSize: 20.sp,
+                              //color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 10.sp),
                           Text(
                             _currentQuestion,
-                            style: const TextStyle(fontSize: 17, height: 1.6),
+                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              fontSize: 15.sp,
+                              height: 1.5,
+                            ),
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12.sp),
                           Text(
                             "Due: $dateFormatted",
-                            style: const TextStyle(fontStyle: FontStyle.italic),
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontStyle: FontStyle.italic,
+                              fontSize: 13.sp,
+                            ),
                           ),
                         ],
                       ),
                     ),
                   ),
-
-                  const SizedBox(height: 20),
-                  /*const Text(
-                    "My Responses:",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  Divider(
+                    thickness: 0.8.sp,
+                    height: 10.sp,
+                    indent: 16.sp,
+                    endIndent: 16.sp,
+                    color: AppColors.grey600.withOpacity(0.6),
                   ),
-                  const SizedBox(height: 16),*/
-                  // After the assignment question card
 
-                  if (_isGradedByAdmin)
-                    Card(
-                      color: Colors.green.shade50,
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(Icons.verified, color: Colors.green.shade700),
-                                const SizedBox(width: 10),
-                                Text(
-                                  "Graded by Teacher",
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.green.shade800,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            // Total Score — now uses saved totalScore if available, falls back to calculated
-                            Text(
-                              "Your Score: ${_loadedResponse?.totalScore ?? _scores.fold(0, (a, b) => a! + b)} / ${_savedResponses.length}",
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.deepPurple,
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.only(bottom: 0),
+                      child: Column(
+                        children: [
+                          if (_isGradedByAdmin)
+                            Card(
+                              elevation: 2, // Slight increase for emphasis
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16.sp), // Slightly rounder than default
                               ),
-                            ),
-
-                            const SizedBox(height: 16),
-
-                            // Teacher Feedback
-                            if (_feedback != null && _feedback!.trim().isNotEmpty)
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Teacher's Feedback:",
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.grey.shade800,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: Colors.green.shade300, width: 1.5),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.green.shade100,
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 4),
+                              child: Padding(
+                                padding: EdgeInsets.all(20.sp),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.verified,
+                                          //color: Theme.of(context).colorScheme.primary, // Brand blue = trusted & positive
+                                          size: 20.sp,
+                                        ),
+                                        SizedBox(width: 10.sp),
+                                        Text(
+                                          "Graded by Teacher",
+                                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18.sp,
+                                                //color: Theme.of(context).colorScheme.primary,
+                                          ),
                                         ),
                                       ],
                                     ),
-                                    child: Text(
-                                      _feedback!,
-                                      style: const TextStyle(fontSize: 16, height: 1.6),
+                                    SizedBox(height: 10.sp),
+
+                                    // Total Score
+                                    Text(
+                                      "Your Score: ${_loadedResponse?.totalScore ?? _scores.fold(0, (a, b) => a! + b)} / ${_savedResponses.length}",
+                                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        //color: Theme.of(context).colorScheme.primary,
+                                        fontSize: 15.sp,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              )
-                            else
-                              Text(
-                                "No feedback provided.",
-                                style: TextStyle(fontSize: 16, color: Colors.grey.shade600, fontStyle: FontStyle.italic),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  Text(
-                    _isGradedByAdmin 
-                        ? "This assignment has been graded" 
-                        : (_isSubmitted && !_isEditing ? "Your submitted responses" : "My Responses:"),
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: _isGradedByAdmin ? Colors.grey : null,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
 
-                  ..._controllers.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final controller = entry.value;
+                                    SizedBox(height: 10.sp),
 
-                    final bool isFieldLocked = _isSubmitted && !_isEditing || _isGradedByAdmin;
-
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: controller,
-                              maxLines: null,
-                              readOnly: isFieldLocked,
-                              decoration: InputDecoration(
-                                hintText: isFieldLocked
-                                  ? (_isGradedByAdmin ? "Graded — cannot edit" : "Submitted — tap Edit to change")
-                                  : "Write your response #${index + 1} here...",
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                    // Teacher Feedback
+                                    if (_feedback != null && _feedback!.trim().isNotEmpty)
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "Teacher's Feedback:",
+                                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: Theme.of(context).colorScheme.onSurface,
+                                              fontSize: 15.sp,
+                                            ),
+                                          ),
+                                          SizedBox(height: 10.sp),
+                                          Container(
+                                            width: double.infinity,
+                                            padding: EdgeInsets.all(16.sp),
+                                            decoration: BoxDecoration(
+                                              color: Theme.of(context).colorScheme.surface, // Clean elevated surface
+                                              borderRadius: BorderRadius.circular(10.sp),
+                                              border: Border.all(
+                                                color: Theme.of(context).colorScheme.primary.withOpacity(0.4),
+                                                width: 1.5.sp,
+                                              ),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.15),
+                                                  blurRadius: 10.sp,
+                                                  offset: const Offset(0, 4),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Text(
+                                              _feedback!,
+                                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                                    fontSize: 12.sp,
+                                                    height: 1.2.sp,
+                                                  ),
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    else
+                                      Text(
+                                        "No teacher feedback provided.",
+                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                              fontStyle: FontStyle.italic,
+                                              fontSize: 15.sp,
+                                            ),
+                                      ),
+                                  ],
                                 ),
-                                filled: true,
-                                fillColor: isFieldLocked 
-                                  ? Colors.grey.shade200 
-                                  : Colors.grey[50],
                               ),
+                            ),
+
+                          Text(
+                            _isGradedByAdmin 
+                                ? "This assignment has been graded" 
+                                : (_isSubmitted && !_isEditing ? "Your submitted responses" : "My Responses:"),
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.bold,
+                              color: _isGradedByAdmin ? Colors.grey : null,
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          if (!isFieldLocked)
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.grey),
-                              onPressed: () {
-                                setState(() {
-                                  controller.dispose();
-                                  _controllers.removeAt(index);
-                                });
-                              },
+                          SizedBox(height: 10.sp),
+
+                          ..._controllers.asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final controller = entry.value;
+
+                            final bool isFieldLocked = _isSubmitted && !_isEditing || _isGradedByAdmin;
+
+                            return Padding(
+                              padding: EdgeInsets.only(bottom: 10.sp),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      controller: controller,
+                                      maxLines: null,
+                                      readOnly: isFieldLocked,
+                                      decoration: InputDecoration(
+                                        hintText: isFieldLocked
+                                          ? (_isGradedByAdmin ? "Graded — cannot edit" : "Submitted — tap Edit to change")
+                                          : "Write your response #${index + 1} here...",
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(12.sp),
+                                        ),
+                                        filled: true,
+                                        fillColor: isFieldLocked 
+                                          ? AppColors.primary.withOpacity(0.5)
+                                          : null,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 8.sp),
+                                  if (!isFieldLocked)
+                                    IconButton(
+                                      icon: Icon(Icons.delete, color: Colors.grey,size: 24.sp),
+                                      onPressed: () {
+                                        setState(() {
+                                          controller.dispose();
+                                          _controllers.removeAt(index);
+                                        });
+                                      },
+                                    ),
+                                ],
+                              ),
+                            );
+                          }),
+
+                          // Hide "Add response" when locked
+                          if (!_isSubmitted || _isEditing)
+                            Center(
+                              child: IconButton(
+                                onPressed: _addResponseBox,
+                                icon: Icon(Icons.add_circle_outline, size: 24.sp),
+                                color: Colors.grey[600],
+                                tooltip: "Add another response",
+                              ),
                             ),
+
+                          SizedBox(height: 10.sp),
+                          SizedBox(
+                            width: double.infinity,
+                            child: AssignmentWidgetButton(
+                              context: context,
+                              text: _isGradedByAdmin 
+                                ? "Graded by Teacher" 
+                                : (_isSubmitted && !_isEditing ? "Edit Responses" : "Submit"),
+                              icon: Icon(_isGradedByAdmin 
+                                ? Icons.verified 
+                                : (_isSubmitted && !_isEditing ? Icons.edit : Icons.save_rounded),
+                              ),
+                              topColor: _isGradedByAdmin 
+                                ? const Color.fromARGB(255, 76, 112, 175) 
+                                : (_isSubmitted && !_isEditing ? const Color.fromARGB(255, 62, 134, 71) : Colors.deepPurple),
+                              onPressed: _isGradedByAdmin
+                                ? null // Fully disabled
+                                : () async {
+                                    if (_isSubmitted && !_isEditing) {
+                                      await AnalyticsService.logButtonClick('unlock_for_editing');
+                                      // Unlock for editing
+                                      setState(() {
+                                        _isEditing = true;
+                                      });
+                                    } else {
+                                      // Submit (new or update)
+                                      await AnalyticsService.logButtonClick('save_responses');
+                                      // Submit (new or update)
+                                      _saveResponses();
+                                    }
+                                  },
+                            ),
+                          ),
                         ],
                       ),
-                    );
-                  }),
-
-                  // Hide "Add response" when locked
-                  if (!_isSubmitted || _isEditing)
-                    Center(
-                      child: IconButton(
-                        onPressed: _addResponseBox,
-                        icon: const Icon(Icons.add_circle_outline, size: 48),
-                        color: Colors.grey[600],
-                        tooltip: "Add another response",
-                      ),
-                    ),
-
-                  const SizedBox(height: 30),
-                  SizedBox(
-                    width: double.infinity,
-                    child: AssignmentWidgetButton(
-                      context: context,
-                      text: _isGradedByAdmin 
-                        ? "Graded by Teacher" 
-                        : (_isSubmitted && !_isEditing ? "Edit Responses" : "Submit"),
-                      icon: Icon(_isGradedByAdmin 
-                        ? Icons.verified 
-                        : (_isSubmitted && !_isEditing ? Icons.edit : Icons.save_rounded),
-                      ),
-                      topColor: _isGradedByAdmin 
-                        ? const Color.fromARGB(255, 76, 112, 175) 
-                        : (_isSubmitted && !_isEditing ? const Color.fromARGB(255, 62, 134, 71) : Colors.deepPurple),
-                      onPressed: _isGradedByAdmin
-                        ? null // Fully disabled
-                        : () async {
-                            if (_isSubmitted && !_isEditing) {
-                              await AnalyticsService.logButtonClick('unlock_for_editing');
-                              // Unlock for editing
-                              setState(() {
-                                _isEditing = true;
-                              });
-                            } else {
-                              // Submit (new or update)
-                              await AnalyticsService.logButtonClick('save_responses');
-                              // Submit (new or update)
-                              _saveResponses();
-                            }
-                          },
-                    ),
-                  ),
+                    )),
                 ],
               ),
             ),

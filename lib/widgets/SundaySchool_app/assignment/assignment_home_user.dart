@@ -2,6 +2,7 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import '../../../UI/app_colors.dart';
 import '../../../UI/segment_sliding.dart';
@@ -10,6 +11,7 @@ import '../../../backend_data/database/constants.dart';
 import '../../../backend_data/service/assignment_dates_provider.dart';
 import '../../../backend_data/service/firestore_service.dart';
 import '../../../backend_data/service/submitted_dates_provider.dart';
+import '../../../utils/media_query.dart';
 import 'assignment_response_page_user.dart';
 
 
@@ -21,9 +23,13 @@ class UserAssignmentsPage extends StatefulWidget {
 }
 
 class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
-  bool _isTeen = false;
+  int _selectedAgeGroup = 0; // 0 = Adult, 1 = Teen
+  // Add a getter instead
+  bool get _isTeen => _selectedAgeGroup == 1;
   int _selectedQuarter = 0;
   bool _ensuredSubmittedDatesLoaded = false;
+
+  final List<String> _ageGroups = ["Adult", "Teen"];
 
   @override
   void initState() {
@@ -48,7 +54,8 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
     final submittedProvider = Provider.of<SubmittedDatesProvider>(context);
     final auth = context.read<AuthService>();
     final user = FirebaseAuth.instance.currentUser;
-    final churchName = auth.churchName ?? "Your Church";
+    final parishName = auth.parishName ?? "Your Church";
+    final style = CalendarDayStyle.fromContainer(context, 50);
 
     if (!_ensuredSubmittedDatesLoaded && user != null) {
       _ensuredSubmittedDatesLoaded = true;
@@ -72,64 +79,47 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
     // If no user, show a friendly message (optional fallback)
     if (user == null) {
       return Scaffold(
-        appBar: AppBar(title: Text("My Assignments — $churchName")),
+        appBar: AppBar(title: Text("My Assignments — $parishName")),
         body: const Center(
           child: Text("Please log in to view your assignments."),
         ),
       );
     }
 
-    /*// Ensure submitted dates are loaded once when the user first opens this page.
-    if (!_ensuredSubmittedDatesLoaded && user != null) {
-      _ensuredSubmittedDatesLoaded = true;
-
-      final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
-      if (userId.isNotEmpty) {
-        final auth = context.read<AuthService>();
-        final service = FirestoreService(churchId: auth.churchId);
-        // Fire-and-forget refresh; provider will notify listeners when done
-        submittedProvider.refresh(service, userId).catchError((e) {
-          debugPrint('Error auto-refreshing submitted dates on page open: $e');
-        });
-      }
-    }
-
-    // Show loading only on first load (if provider hasn't finished)
-    if (submittedProvider.isLoading || datesProvider.isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }*/
-
     // No loading state needed — data is preloaded!
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title: Text("My Assignments — $churchName"),
-        backgroundColor: AppColors.primary,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 10),
-            child: Center(
-              child: ToggleButtons(
-                isSelected: [!_isTeen, _isTeen],
-                onPressed: (i) => setState(() => _isTeen = i == 1),
-                borderRadius: BorderRadius.circular(30),
-                selectedColor: AppColors.onSurface,
-                fillColor: AppColors.secondaryContainer,
-                color: AppColors.onSurface,
-                children: const [
-                  Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: Text("Adult")),
-                  Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: Text("Teen")),
-                ],
-              ),
+        centerTitle: true,
+        title: FittedBox(
+          fit: BoxFit.scaleDown, // Prevents overflow on small screens
+          child: Text(
+            "Assignments — $parishName",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: style.monthFontSize.sp, // Matches the style from your Bible screen
+              //color: Theme.of(context).colorScheme.onBackground,
             ),
           ),
-        ],
+        ),
+        leading: IconButton( // Optional: explicitly define back button if needed
+          icon: const Icon(Icons.arrow_back),
+          iconSize: style.monthFontSize.sp, // Consistent with your Bible app bar
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(10),
+            padding: EdgeInsets.all(10.sp),
+            child: segmentedControl(
+              selectedIndex: _selectedAgeGroup,
+              items: _ageGroups.map((e) => SegmentItem(e)).toList(),
+              onChanged: (i) => setState(() => _selectedAgeGroup = i),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(10.sp, 0, 10.sp, 0),
             child: segmentedControl(
               selectedIndex: _selectedQuarter,
               items: AppConstants.quarterLabels
@@ -174,10 +164,13 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
     }
 
     if (sundaysByMonthYear.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           "No assignments in this quarter.",
-          style: TextStyle(fontSize: 18, color: Colors.grey),
+          style: TextStyle(
+            fontSize: 18.sp, 
+            color: Colors.grey,
+          ),
         ),
       );
     }
@@ -203,22 +196,22 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
 
       monthWidgets.add(
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: EdgeInsets.symmetric(vertical: 12.sp),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 "${AppConstants.monthNames[month - 1]} $year",
-                style: const TextStyle(
-                  fontSize: 18,
+                style: TextStyle(
+                  fontSize: 18.sp,
                   fontWeight: FontWeight.bold,
-                  color: Colors.deepPurple,
+                  color: Theme.of(context).colorScheme.secondary,
                 ),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12.sp),
               Wrap(
-                spacing: 12,
-                runSpacing: 12,
+                spacing: 12.sp,
+                runSpacing: 12.sp,
                 children: sundays.map((sunday) {
                   final normalized = DateTime(sunday.year, sunday.month, sunday.day);
 
@@ -250,9 +243,9 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
 
                   return Material(
                     color: cardColor,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(16.sp),
                     child: InkWell(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(16.sp),
                       onTap: () {
                         Navigator.push(
                           context,
@@ -265,22 +258,24 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
                         );
                       },
                       child: Padding(
-                        padding: const EdgeInsets.all(16),
+                        padding: EdgeInsets.all(16.sp),
                         child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Text(
                               "${sunday.day}",
                               style: TextStyle(
-                                fontSize: 22,
+                                fontSize: 22.sp,
                                 fontWeight: FontWeight.bold,
                                 color: textColor,
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8.sp),
                             Icon(
                               icon,
                               color: textColor,
-                              size: 24,
+                              size: 24.sp,
                             ),
                           ],
                         ),

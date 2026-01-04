@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'app_colors.dart';
+
 class LinearProgressBar extends StatelessWidget {
   final double height;
   final Color backgroundColor;
@@ -14,8 +16,8 @@ class LinearProgressBar extends StatelessWidget {
     super.key,
     this.value = 0.0,
     this.height = 6.0,
-    this.backgroundColor = const Color.fromARGB(255, 83, 15, 15),
-    this.valueColor = const Color.fromARGB(255, 224, 8, 8), // Your app's green
+    this.backgroundColor = AppColors.grey600,
+    this.valueColor = AppColors.success, // Your app's green
     this.borderRadius,
     this.margin,
     this.message,

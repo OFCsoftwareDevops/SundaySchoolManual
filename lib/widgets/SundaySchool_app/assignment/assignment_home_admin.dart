@@ -1,7 +1,6 @@
-// lib/widgets/admin_responses_grading_page.dart
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import '../../../UI/app_colors.dart';
 import '../../../UI/segment_sliding.dart';
@@ -9,6 +8,7 @@ import '../../../auth/login/auth_service.dart';
 import '../../../backend_data/database/constants.dart';
 import '../../../backend_data/service/assignment_dates_provider.dart';
 import '../../../backend_data/service/firestore_service.dart';
+import '../../../utils/media_query.dart';
 import 'assignment_response_page_admin.dart';
 
 
@@ -20,11 +20,16 @@ class AdminResponsesGradingPage extends StatefulWidget {
 }
 
 class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
-  bool _isTeen = false;
+  int _selectedAgeGroup = 0; // 0 = Adult, 1 = Teen
+  // Add a getter instead
+  bool get _isTeen => _selectedAgeGroup == 1;
+
   int _selectedQuarter = 0;
 
   // Cache for submission counts to avoid repeated queries
   final Map<String, Map<String, int>> _submissionCache = {}; // { "2025-12-26_adult": {"total": 5, "graded": 3}, ... }  
+
+  final List<String> _ageGroups = ["Adult", "Teen"];
 
   String _formatDateId(DateTime date) =>
     "${date.year}-${date.month.toString().padLeft(2,'0')}-${date.day.toString().padLeft(2,'0')}";
@@ -69,56 +74,94 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
   Widget build(BuildContext context) {
     final datesProvider = Provider.of<AssignmentDatesProvider>(context);
     final auth = context.read<AuthService>();
-    final churchName = auth.churchName ?? "Global";
+    final parishName = auth.parishName ?? "Global";
+    final style = CalendarDayStyle.fromContainer(context, 50);
 
     if (datesProvider.isLoading) {
       return Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.background,
         appBar: AppBar(
-          title: Text("Grade Responses — $churchName"),
-          backgroundColor: AppColors.primary,
+          centerTitle: true,
+          title: FittedBox(
+            fit: BoxFit.scaleDown, // Prevents overflow on small screens
+            child: Text(
+              "Admin — $parishName",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: style.monthFontSize.sp, // Matches the style from your Bible screen
+                //color: Theme.of(context).colorScheme.onBackground,
+              ),
+            ),
+          ),
+          leading: IconButton( // Optional: explicitly define back button if needed
+            icon: const Icon(Icons.arrow_back),
+            iconSize: style.monthFontSize.sp, // Consistent with your Bible app bar
+            onPressed: () => Navigator.pop(context),
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              iconSize: style.monthFontSize.sp, // Same size as in Bible app bar
+              tooltip: "Refresh assignments",
+              onPressed: () {
+                final service = FirestoreService(churchId: auth.churchId);
+                datesProvider.refresh(service);
+                _submissionCache.clear();
+                setState(() {});
+              },
+            ),
+          ],
         ),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title: Text("Grade Responses — $churchName"),
-        backgroundColor: AppColors.primary,
+        centerTitle: true,
+        title: FittedBox(
+          fit: BoxFit.scaleDown, // Prevents overflow on small screens
+          child: Text(
+            "Admin — $parishName",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: style.monthFontSize.sp, // Matches the style from your Bible screen
+              //color: Theme.of(context).colorScheme.onBackground,
+            ),
+          ),
+        ),
+        leading: IconButton( // Optional: explicitly define back button if needed
+          icon: const Icon(Icons.arrow_back),
+          iconSize: style.monthFontSize.sp, // Consistent with your Bible app bar
+          onPressed: () => Navigator.pop(context),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
+            iconSize: style.monthFontSize.sp, // Same size as in Bible app bar
             tooltip: "Refresh assignments",
             onPressed: () {
               final service = FirestoreService(churchId: auth.churchId);
               datesProvider.refresh(service);
-              _submissionCache.clear(); // Clear cache so counts refresh
-              setState(() {}); // Rebuild to reload counts
+              _submissionCache.clear();
+              setState(() {});
             },
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 10),
-            child: Center(
-              child: ToggleButtons(
-                isSelected: [!_isTeen, _isTeen],
-                onPressed: (i) => setState(() => _isTeen = i == 1),
-                borderRadius: BorderRadius.circular(30),
-                selectedColor: AppColors.primary,
-                fillColor: AppColors.onPrimary,
-                color: Colors.white70,
-                children: const [
-                  Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: Text("Adult")),
-                  Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: Text("Teen")),
-                ],
-              ),
-            ),
           ),
         ],
       ),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(10),
+            padding: EdgeInsets.symmetric(horizontal: 16.sp),
+            child: segmentedControl(
+              selectedIndex: _selectedAgeGroup,
+              items: _ageGroups.map((e) => SegmentItem(e)).toList(),
+              onChanged: (i) => setState(() => _selectedAgeGroup = i),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: 8.sp),
             child: segmentedControl(
               selectedIndex: _selectedQuarter,
               items: AppConstants.quarterLabels.map((l) => SegmentItem(l)).toList(),
@@ -138,7 +181,6 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
   }
 
   Widget _buildQuarterContent(int quarterIndex, Set<DateTime> allDates) {
-    final service = FirestoreService(churchId: context.read<AuthService>().churchId);
     final months = AppConstants.quarterMonths[quarterIndex];
     final List<Widget> monthWidgets = [];
 
@@ -158,21 +200,21 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
 
         monthWidgets.add(
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
+            padding: EdgeInsets.symmetric(vertical: 12.sp),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   "${AppConstants.monthNames[month - 1]} $year",
-                  style: const TextStyle(fontSize: 18, 
+                  style: TextStyle(fontSize: 18.sp, 
                     fontWeight: FontWeight.bold, 
-                    color: AppColors.primaryContainer,
+                    color: Theme.of(context).colorScheme.secondary,
                   ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12.sp),
                 Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
+                  spacing: 12.sp,
+                  runSpacing: 12.sp,
                   children: yearSundays.map((sunday) {
                     final type = _isTeen ? "teen" : "adult";
 
@@ -180,8 +222,9 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
                       future: _getSubmissionInfo(sunday, type),
                       builder: (context, snapshot) {
                         if (!snapshot.hasData) {
-                          return const SizedBox(
-                            width: 100, height: 140,
+                          return SizedBox(
+                            width: 100.sp, 
+                            height: 140.sp,
                             child: Center(child: CircularProgressIndicator()),
                           );
                         }
@@ -189,13 +232,13 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
                         final total = snapshot.data!['total'] ?? 0;
                         final graded = snapshot.data!['graded'] ?? 0;
 
-                        final label = total == 0 ? "No submissions" : "$graded / $total graded";
+                        final label = total == 0 ? "Empty!" : "$graded / $total \n Graded";
 
                         return Material(
                           color: total > 0 ? Colors.green.shade100 : AppColors.grey200,
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(16.sp),
                           child: InkWell(
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(16.sp),
                             onTap: total == 0 ? null : () {
                               Navigator.push(
                                 context,
@@ -208,8 +251,8 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
                               );
                             },
                             child: SizedBox(
-                              width: 100,
-                              height: 140,
+                              width: 100.sp,
+                              height: 140.sp,
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -217,24 +260,25 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
                                   Text(
                                     "${sunday.day}",
                                     style: TextStyle(
-                                      fontSize: 28,
+                                      fontSize: 28.sp,
                                       fontWeight: FontWeight.bold,
                                       color: total > 0 ? Colors.green.shade800 : Colors.grey.shade700,
                                     ),
                                   ),
-                                  const SizedBox(height: 5),
+                                  SizedBox(height: 5.sp),
                                   Icon(
                                     total > 0 ? Icons.check_circle : Icons.pending,
-                                    size: 20,
+                                    size: 20.sp,
                                     color: total > 0 ? Colors.green.shade800 : Colors.grey.shade700,
                                   ),
-                                  const SizedBox(height: 5),
+                                  SizedBox(height: 5.sp),
                                   Text(
                                     label,
                                     style: TextStyle(
-                                      fontSize: 11,
+                                      fontSize: 11.sp,
                                       color: total > 0 ? Colors.green.shade800 : Colors.grey.shade700,
                                     ),
+                                    textAlign: TextAlign.center,
                                   ),
                                 ],
                               ),
@@ -253,16 +297,16 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
     }
 
     if (monthWidgets.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           "No assignments in this quarter.",
-          style: TextStyle(fontSize: 18, color: Colors.grey),
+          style: TextStyle(fontSize: 18.sp, color: Colors.grey),
         ),
       );
     }
 
     return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.symmetric(horizontal: 16.sp),
       children: monthWidgets,
     );
   }
