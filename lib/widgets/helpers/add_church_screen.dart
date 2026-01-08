@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../UI/timed_button.dart';
+import '../../UI/app_buttons.dart';
 
 class AddChurchScreen extends StatefulWidget {
   const AddChurchScreen({super.key});
@@ -240,28 +240,13 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
               child: SizedBox(
                 width: double.infinity,
                 height: 60.sp,
-                child: PreloadProgressButton(
+                child: LoginButtons(
                   context: context,
                   text: "Submit Request",
-                  preloadDone: null,
-                  progress: null,
-                  totalSteps: null,
-                  //activeColor: Theme.of(context).colorScheme.surface,
-                  activeColor: Theme.of(context).colorScheme.onSurface,
+                  topColor: Theme.of(context).colorScheme.primaryContainer,
+                  borderColor: Colors.transparent,
                   onPressed: _isLoading ? null : _createChurch,
                 ),
-               /* ElevatedButton(
-                  onPressed: _isLoading ? null : _createChurch,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.onSurface,
-                    foregroundColor: Theme.of(context).colorScheme.surface,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.sp)),
-                    elevation: 2,
-                  ),
-                  child: _isLoading
-                      ? LinearProgressBar()
-                      : Text("Submit Request", style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold)),
-                ),*/
               ),
             ),
 

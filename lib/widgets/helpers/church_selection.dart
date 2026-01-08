@@ -17,7 +17,6 @@ class ChurchOnboardingScreen extends StatefulWidget {
 }
 
 class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
-  final TextEditingController _codeController = TextEditingController();
   bool _isJoining = false;
 
   @override
@@ -37,55 +36,83 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
       return; // Optional: early return to skip rest of init
     }
   }
-
-  Future<void> _joinWithCode() async {
-    final code = _codeController.text.trim().toUpperCase();
-    if (code.length != 6) {
+  
+  Future<void> _joinWithCode(String code) async {
+    final trimmedCode = code.trim().toUpperCase();
+    if (trimmedCode.length != 6) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please enter a valid 6-digit code")),
       );
       return;
     }
 
+    if (!mounted) return;
     setState(() => _isJoining = true);
+
+    // Capture navigator early — safe to use after async
+    final navigator = Navigator.of(context);
 
     try {
       final callable = FirebaseFunctions.instance.httpsCallable('joinChurchWithCode');
-      final result = await callable.call({'code': code});
+      final result = await callable.call({'code': trimmedCode});
 
-      final data = result.data as Map<String, dynamic>;
+      final resultData = result.data;
+      if (resultData is! Map<String, dynamic>) {
+        throw Exception("Invalid server response");
+      }
+      final data = resultData;
 
-      final message = data['message'] as String;
+      final message = data['message'] as String? ?? "Joined successfully!";
 
-      // NEW: Extract and save church context locally
-      if (data['churchId'] != null && data['churchName'] != null) {
-        await AuthService.instance.setCurrentChurch(
-        //await CurrentChurch.instance.setChurch(
-          data['churchId'] as String,
-          data['churchName'] as String,
-        );
+      final churchId = data['churchId'] as String?;
+      final churchName = data['churchName'] as String?;
+      if (churchId != null && churchName != null) {
+        await AuthService.instance.setCurrentChurch(churchId, churchName);
       }
 
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
+        SnackBar( 
           backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+          content: SizedBox(
+            child: Text(
+              message,
+              softWrap: true,
+              style: TextStyle(
+                fontSize: 15.sp,
+              )
+            ),
+          ),
         ),
       );
 
+      // Delay the navigation so the SnackBar overlay finishes
+      Future.delayed(const Duration(milliseconds: 50), () {
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => MainScreen()),
+          );
+        }
+      });
     } catch (e) {
-      String errorMsg = e.toString().replaceFirst('Exception: ', '');
+      if (!mounted) return;
+
+      String errorMsg = "Failed to join church";
       if (e is FirebaseFunctionsException) {
         errorMsg = e.message ?? errorMsg;
+      } else {
+        errorMsg = e.toString();
       }
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMsg),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text(errorMsg), backgroundColor: Colors.red),
       );
     } finally {
-      setState(() => _isJoining = false);
+      if (mounted) {
+        setState(() => _isJoining = false);
+      }
     }
   }
 
@@ -188,97 +215,119 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
         extendBodyBehindAppBar: true,
         body: Container(
           decoration: const BoxDecoration(
-            /*gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFF5D8668), Color(0xFFEEFFEE)],
-            ),*/
           ),
           child: SafeArea(
-            child: Padding(
-              padding: EdgeInsets.all(20.sp),
-              child: Column(
-                children: [
-                  SizedBox(height: 20.sp),
-                  Text(
-                    "Welcome!",
-                    style: TextStyle(fontSize: 36.sp, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                  SizedBox(height: 12.sp),
-                  Text(
-                    "Let's get you connected to your church",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 18.sp, color: Colors.white70),
-                  ),
-                  SizedBox(height: 10.sp),
-      
-                  // Create Church
-                  _optionCard(
-                    icon: Icons.add_business,
-                    color: Colors.deepPurple,
-                    title: "Create My Church",
-                    subtitle: "Set up your parish and become its admin",
-                    onTap: () async {
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const AddChurchScreen()),
-                      );
-                    },
-                  ),
-      
-                  SizedBox(height: 10.sp),
-      
-                  // Join with Code
-                  _optionCard(
-                    icon: Icons.vpn_key,
-                    color: Colors.teal,
-                    title: "Join with Church Code",
-                    subtitle: "Enter the 6-digit code from your pastor",
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                          title: const Text("Enter Church Code"),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text("Ask your pastor for the code"),
-                              SizedBox(height: 16.sp),
-                              TextField(
-                                controller: _codeController,
-                                maxLength: 6,
-                                textCapitalization: TextCapitalization.characters,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 28.sp, 
-                                  letterSpacing: 10.sp,
-                                ),
-                                decoration: const InputDecoration(
-                                  hintText: "ABC123",
-                                  border: OutlineInputBorder(),
-                                ),
-                              ),
-                              if (_isJoining)
-                                Padding(
-                                  padding: EdgeInsets.only(top: 16.sp),
-                                  child: LinearProgressBar(),
-                                ),
-                            ],
-                          ),
-                          actions: [
-                            TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
-                            ElevatedButton(
-                              onPressed: _isJoining ? null : _joinWithCode,
-                              child: const Text("Join"),
-                            ),
-                          ],
+            child: Center(
+              child: SingleChildScrollView(  // ← Key fix: allows scrolling on any device
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(20.sp, 0, 20.sp, 0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,  // Important: don't force max height
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        "Welcome!",
+                        style: TextStyle(fontSize: 30.sp, 
+                        fontWeight: FontWeight.bold,
                         ),
-                      );
-                    },
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 10.sp),
+                      Text(
+                        "Let's get you connected to your church",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                        ),
+                      ),
+                      SizedBox(height: 10.sp),
+                      
+                      // Create Church
+                      _optionCard(
+                        icon: Icons.add_business,
+                        color: Colors.deepPurple,
+                        title: "Create My Church",
+                        subtitle: "Set up your parish and become its admin",
+                        onTap: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const AddChurchScreen()),
+                          );
+                        },
+                      ),
+                      
+                      SizedBox(height: 10.sp),
+                      
+                      // Join with Code
+                      _optionCard(
+                        icon: Icons.vpn_key,
+                        color: Colors.teal,
+                        title: "Join with Church Code",
+                        subtitle: "Enter the 6-digit code from your pastor",
+                        onTap: () {
+                          final localController = TextEditingController();
+
+                          showDialog(
+                            context: context,
+                            builder: (dialogContext) => AlertDialog(
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.sp)),
+                              title: const Text("Enter Church Code"),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text("Ask your pastor for the code"),
+                                  SizedBox(height: 16.sp),
+                                  TextField(
+                                    controller: localController,
+                                    maxLength: 6,
+                                    textCapitalization: TextCapitalization.characters,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 28.sp, 
+                                      letterSpacing: 10.sp,
+                                    ),
+                                    decoration: const InputDecoration(
+                                      hintText: "ABC123",
+                                      border: OutlineInputBorder(),
+                                      counterText: "",
+                                    ),
+                                  ),
+                                  if (_isJoining)
+                                    Padding(
+                                      padding: EdgeInsets.only(top: 16.sp),
+                                      child: LinearProgressBar(),
+                                    ),
+                                ],
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    //localController.dispose();
+                                    Navigator.pop(dialogContext);
+                                  },
+                                  child: const Text("Cancel"),
+                                ),
+                                ElevatedButton(
+                                  onPressed: _isJoining
+                                      ? null
+                                      : () {
+                                          final code = localController.text;
+                                          //localController.dispose(); // Clean up early
+                                          Navigator.pop(dialogContext); // Close dialog
+                                          _joinWithCode(code); // Call your method with the code
+                                        },
+                                  child: const Text("Join"),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                      SizedBox(height: 24.sp),
+                    ],
                   ),
-                  SizedBox(height: 24.sp),
-                ],
+                ),
               ),
             ),
           ),
@@ -287,9 +336,9 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
     );
   }
 
-  @override
+ /* @override
   void dispose() {
     _codeController.dispose();
     super.dispose();
-  }
+  }*/
 }

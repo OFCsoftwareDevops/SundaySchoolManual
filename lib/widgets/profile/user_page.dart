@@ -1,11 +1,11 @@
 // lib/screens/user_profile_screen.dart
 
-import 'package:app_demo/UI/app_colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import '../../UI/app_buttons.dart';
+import '../../UI/app_colors.dart';
 import '../../auth/login/auth_service.dart';
 import '../../backend_data/service/analytics/analytics_service.dart';
 import '../../backend_data/service/current_church_service.dart';
@@ -31,10 +31,10 @@ class UserProfileScreen extends StatelessWidget {
     final email = user?.email ?? "guest mode";
     final photoUrl = user?.photoURL;
 
+    final auth = context.read<AuthService>();
     final style = CalendarDayStyle.fromContainer(context, 50);
     final theme = Theme.of(context);
     final colorScheme = Theme.of(context).colorScheme;
-    final double scale = introScale(context);
 
     return Scaffold(
       //extendBodyBehindAppBar: true,
@@ -65,7 +65,6 @@ class UserProfileScreen extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(0),
           // Optional subtle inner glow in dark mode
-          //color: Theme.of(context).colorScheme.background, // Automatically adapts!
         ),
         child: Column(
           children: [
@@ -126,7 +125,6 @@ class UserProfileScreen extends StatelessWidget {
                 //physics: const BouncingScrollPhysics(),
                   child: Column(
                     children: [  
-
                       const CurrentChurchCard(),   
                       Divider(
                         thickness: 0.8.sp,
@@ -196,9 +194,7 @@ class UserProfileScreen extends StatelessWidget {
                               // Item 4: Assignments / Teachers (with Consumer)
                               Consumer<AuthService>(
                                 builder: (context, auth, child) {
-                                  final bool isAdmin = auth.isGlobalAdmin ||
-                                      auth.hasChurch && auth.adminStatus.isChurchAdmin ||
-                                      auth.adminStatus.isGroupAdmin;
+                                  final bool isAdmin = auth.isGlobalAdmin || auth.isGroupAdminFor("Sunday School");
               
                                   return _profileGridButton(
                                     context: context,
@@ -231,22 +227,8 @@ class UserProfileScreen extends StatelessWidget {
                                     MaterialPageRoute(builder: (_) => const FeedbackScreen()),
                                   );
                                 },
-                              ),
-              
-                              // Admin-only full-width Color Palette button (spans both columns)
-                              if (context.watch<AuthService>().isGlobalAdmin)
-                                _profileGridButton(
-                                  context: context,
-                                  icon: Icons.palette,
-                                  title: "Color Palette",
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (_) => const ColorPalettePage()),
-                                      );
-                                    },
-                                  ),
-                              if (context.watch<AuthService>().isGlobalAdmin)
+                              ),              
+                              if (auth.isGlobalAdmin || auth.isChurchAdmin )
                                 _profileGridButton(
                                   context: context,
                                   icon: Icons.admin_panel_settings,
@@ -258,7 +240,20 @@ class UserProfileScreen extends StatelessWidget {
                                       MaterialPageRoute(builder: (_) => const AdminToolsScreen()),
                                     );
                                   },
-                                ), 
+                                ),
+                              // Admin-only full-width Color Palette button (spans both columns)
+                              if (auth.isGlobalAdmin)
+                                _profileGridButton(
+                                  context: context,
+                                  icon: Icons.palette,
+                                  title: "Color Palette",
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (_) => const ColorPalettePage()),
+                                    );
+                                  },
+                                ),
                             ],
                           ],
                         ),
@@ -277,36 +272,33 @@ class UserProfileScreen extends StatelessWidget {
                         padding: EdgeInsets.symmetric(horizontal: 24.sp),
                         child: Column(
                           children: [
-                            // Invite Friends (Share)
-                            LoginButtons(
-                              context: context,
-                              topColor: AppColors.primaryContainer,
-                              //borderColor: Colors.transparent,
-                              //backOffset: 4.0,
-                              //backDarken: 0.5,
-                              onPressed: () async {
-                                await AnalyticsService.logButtonClick('Share_invite_friends');
-                                // Implement share/invite functionality
-                                // ignore: use_build_context_synchronously
-                                await shareApp(context);
-                              },
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.share, color: AppColors.onPrimary, size: 22.sp),
-                                  SizedBox(width: 10.sp),
-                                  Text(
-                                    "Invite Your Friends",
-                                    style: TextStyle(
-                                      color: AppColors.onPrimary,
-                                      fontSize: 15.sp,
-                                      fontWeight: FontWeight.bold,
+                            if (auth.isGlobalAdmin)
+                              // Invite Friends (Share)
+                              LoginButtons(
+                                context: context,
+                                topColor: AppColors.primaryContainer,
+                                onPressed: () async {
+                                  await AnalyticsService.logButtonClick('Share_invite_friends');
+
+                                  await shareApp(context);
+                                },
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.share, color: AppColors.onPrimary, size: 22.sp),
+                                    SizedBox(width: 10.sp),
+                                    Text(
+                                      "Invite Your Friends",
+                                      style: TextStyle(
+                                        color: AppColors.onPrimary,
+                                        fontSize: 15.sp,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
+                                text: '',
                               ),
-                              text: '',
-                            ),
                             SizedBox(height: 10.sp),
                             // Sign Out
                             LoginButtons(

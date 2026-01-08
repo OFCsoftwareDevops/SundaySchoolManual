@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
@@ -56,7 +57,9 @@ class NotificationService {
     await _notifications.initialize(
       initSettings,
       onDidReceiveNotificationResponse: (details) {
-        debugPrint('Notification tapped: ${details.payload}');
+        if (kDebugMode) {
+          debugPrint('Notification tapped: ${details.payload}');
+        }
       },
     );
 
@@ -148,7 +151,9 @@ class NotificationService {
           "minute": time.minute,
         },
       );
-      debugPrint("Scheduled Android daily reminder via WorkManager");
+      if (kDebugMode) {
+        debugPrint("Scheduled Android daily reminder via WorkManager");
+      }
     } else if (Platform.isIOS) {
       // iOS: schedule zoned notification once, reschedule after firing
       final now = tz.TZDateTime.now(tz.local);
@@ -191,7 +196,9 @@ class NotificationService {
         payload: 'daily_reminder', // Optional payload
       );
 
-      debugPrint("Scheduled iOS daily reminder via zonedSchedule");
+      if (kDebugMode) {
+        debugPrint("Scheduled iOS daily reminder via zonedSchedule");
+      }
     }
   }
 
@@ -201,7 +208,9 @@ class NotificationService {
     if (Platform.isAndroid) {
       await Workmanager().cancelByUniqueName("daily_reminder_$id");
     }
-    debugPrint("Cancelled reminder ID: $id");
+    if (kDebugMode) {
+      debugPrint("Cancelled reminder ID: $id");
+    }
   }
 
   /// Checks last fired date to avoid duplicates

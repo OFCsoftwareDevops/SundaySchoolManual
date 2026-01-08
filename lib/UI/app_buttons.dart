@@ -1,6 +1,7 @@
-import 'package:app_demo/utils/device_check.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:rccg_sunday_school/utils/device_check.dart';
 import 'app_colors.dart';
 
 /// ---------------------------------------------------------------------------

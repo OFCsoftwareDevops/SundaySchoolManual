@@ -1,11 +1,9 @@
-import 'package:app_demo/utils/device_check.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import '../../UI/app_buttons.dart';
-import '../../UI/app_colors.dart';
-import '../../UI/app_linear_progress_bar.dart';
+import '../../utils/device_check.dart';
 import '../../utils/media_query.dart';
 import 'bible_actions/highlight_manager.dart';
 import 'bible.dart';
@@ -60,7 +58,7 @@ class BiblePage extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 30),
-                  LinearProgressBar(),
+                  CircularProgressIndicator(),
                 ],
               ),
             ),
@@ -81,7 +79,7 @@ class BiblePage extends StatelessWidget {
                 padding: EdgeInsets.only(right: 10.sp),
                 child: Center(
                   child: manager.isLoading
-                    ? const LinearProgressBar()
+                    ? const CircularProgressIndicator()
                     : DropdownButton<String>(
                       value: manager.currentVersion,
                       dropdownColor: theme.colorScheme.onSecondaryContainer,
@@ -247,7 +245,7 @@ class BookReader extends StatelessWidget {
               child: Consumer<BibleVersionManager>(
                 builder: (context, manager, child) {
                   return manager.isLoading
-                      ? const LinearProgressBar()
+                      ? const CircularProgressIndicator()
                       : DropdownButton<String>(
                           value: manager.currentVersion,
                           dropdownColor: theme.colorScheme.onSecondaryContainer,
@@ -449,7 +447,7 @@ class _ChapterReaderState extends State<ChapterReader> {
                           ? SizedBox(
                               width: 24.sp,
                               height: 24.sp,
-                              child: LinearProgressBar(),
+                              child: CircularProgressIndicator(),
                             )
                           : DropdownButton<String>(
                               value: manager.currentVersion,
@@ -523,26 +521,21 @@ class _ChapterReaderState extends State<ChapterReader> {
                         });
                       },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 5),
+                      padding: EdgeInsets.symmetric(vertical: 5.sp),
                       decoration: BoxDecoration(
-                        color: isSelected ? colorScheme.primary.withOpacity(0.2) : highlightColor?.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(8),
+                        color: isSelected 
+                          ? colorScheme.primary.withOpacity(0.2) 
+                          : highlightColor?.withOpacity(0.3),
                       ),
                       child: Container(
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: highlightColor?.withOpacity(isSelected ? 0.4 : 0.3),
-                        ),
                         child: RichText(
                           text: TextSpan(
                             style: textTheme.bodyLarge?.copyWith(
-                            //style: TextStyle(
-                              //fontSize: 17,
                               fontSize: fontstyle.monthFontSize.sp * 0.9,
                               height: 1.5,
                               color: isSelected ? colorScheme.primary : colorScheme.onBackground,
-                              //fontWeight: isSelected ? colorScheme.primary : colorScheme.onBackground,
                             ),
                             children: [
                               TextSpan(
@@ -552,11 +545,6 @@ class _ChapterReaderState extends State<ChapterReader> {
                                   color: colorScheme.primaryContainer,
                                   fontSize: fontstyle.monthFontSize.sp * 0.8,
                                 ),
-                                /*style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primaryContainer,
-                                  fontSize: 12,
-                                ),*/
                               ),
                               TextSpan(text: text),
                             ],

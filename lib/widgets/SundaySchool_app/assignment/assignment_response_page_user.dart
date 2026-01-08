@@ -2,6 +2,7 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
@@ -105,7 +106,9 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
   }
 
   Future<void> _loadAssignmentAndResponses() async {
-    print(">>> ENTERED _loadAssignmentAndResponses");
+    if (kDebugMode) {
+      debugPrint(">>> ENTERED _loadAssignmentAndResponses");
+    }
 
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -119,16 +122,22 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
       assignmentDay = await _service.loadAssignment(widget.date).timeout(
         const Duration(seconds: 6),
         onTimeout: () {
-          print("loadAssignment TIMEOUT");
+          if (kDebugMode) {
+            debugPrint("loadAssignment TIMEOUT");
+          }
           return null;
         },
       );
     } catch (e, st) {
-      print("Error during loadAssignment: $e\n$st");
+      if (kDebugMode) {
+        debugPrint("Error during loadAssignment: $e\n$st");
+      }
       assignmentDay = null;
     }
 
-    print("Assignment loaded: $assignmentDay");
+    if (kDebugMode) {
+      debugPrint("Assignment loaded: $assignmentDay");
+    }
 
     // ── Extract the single question from teen or adult section ──
     String currentQuestion = "No question available for this day.";
@@ -182,7 +191,9 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
         });
       }
     } catch (e, st) {
-      print("Error loading user response: $e\n$st");
+      if (kDebugMode) {
+        debugPrint("Error loading user response: $e\n$st");
+      }
     }
 
     // ── Dispose old controllers ──
@@ -208,9 +219,11 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
       });
     }
 
-    print(">>> FINISHED _loadAssignmentAndResponses");
-    print(">>> Question: $_currentQuestion");
-    print(">>> Number of answer boxes: ${_controllers.length}");
+    if (kDebugMode) {
+      debugPrint(">>> FINISHED _loadAssignmentAndResponses");
+      debugPrint(">>> Question: $_currentQuestion");
+      debugPrint(">>> Number of answer boxes: ${_controllers.length}");
+    }
   }
 
   Future<void> _saveResponses() async {
@@ -273,11 +286,15 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
         await submittedProvider.refresh(_service, user.uid);
       } catch (e) {
         // Swallow any errors here - not critical for user save flow
-        debugPrint('Error refreshing submitted dates: $e');
+        if (kDebugMode) {
+          debugPrint('Error refreshing submitted dates: $e');
+        }
       }
       
     } catch (e, st) {
-      print("Error saving responses: $e\n$st");
+      if (kDebugMode) {
+        debugPrint("Error saving responses: $e\n$st");
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Failed to save your answers. Please try again."),

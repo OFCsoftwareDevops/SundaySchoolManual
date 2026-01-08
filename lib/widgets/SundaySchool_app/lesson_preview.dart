@@ -1,12 +1,12 @@
 // lib/screens/lesson_preview.dart
 
-import 'package:app_demo/UI/app_colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import '../../UI/app_buttons.dart';
+import '../../UI/app_colors.dart';
 import '../../backend_data/database/lesson_data.dart';
 import '../../backend_data/service/analytics/analytics_service.dart';
 import '../../utils/media_query.dart';
@@ -35,7 +35,6 @@ class BeautifulLessonPage extends StatelessWidget {
   });
 
   // ← the rest of the file is 100% identical to the previous message
-  // (share function + _buildBlock + full build method)
   void _showShareOptions(BuildContext context) {
     final lessonShare = LessonShare(
       data: data,
@@ -47,7 +46,7 @@ class BeautifulLessonPage extends StatelessWidget {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.background,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16.sp)),
       ),
@@ -60,11 +59,14 @@ class BeautifulLessonPage extends StatelessWidget {
               children: [
                 Text(
                   "Share Lesson",
-                  style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 20.sp, 
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                SizedBox(height: 12.sp),
+                SizedBox(height: 6.sp),
                 ListTile(
-                  leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
+                  leading: const Icon(Icons.picture_as_pdf, color: AppColors.primaryContainer),
                   title: const Text("Share as PDF"),
                   onTap: () async {
                     Navigator.pop(context); // Close bottom sheet
@@ -72,14 +74,14 @@ class BeautifulLessonPage extends StatelessWidget {
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.link, color: Colors.blue),
+                  leading: const Icon(Icons.link, color: AppColors.secondary),
                   title: const Text("Share Link"),
                   onTap: () async {
                     Navigator.pop(context);
                     await lessonShare.shareAsLink();
                   },
                 ),
-                SizedBox(height: 8.sp),
+                SizedBox(height: 6.sp),
               ],
             ),
           ),

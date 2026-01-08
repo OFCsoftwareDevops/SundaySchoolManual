@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../database/lesson_data.dart';
 
@@ -125,7 +126,9 @@ class FirestoreService {
 
       return _parseLessonData(data, date);
     } catch (e) {
-      debugPrint("Error loading day $id: $e");
+      if (kDebugMode) {
+        debugPrint("Error loading day $id: $e");
+      }
       return null;
     }
   }
@@ -219,7 +222,9 @@ class FirestoreService {
       }
       return dates;
     } catch (e) {
-      debugPrint("Error loading dates: $e");
+      if (kDebugMode) {
+        debugPrint("Error loading dates: $e");
+      }
       return {};
     }
   }
@@ -241,15 +246,6 @@ class FirestoreService {
         .doc(type)
         .collection(userId)
         .doc(dateStr);
-        
-    
-    /*final indexRef = _churchSubcollection('assignment_response_indexes')
-      .doc("${type}_$dateStr")
-      .collection('users')
-      .doc(userId);
-
-    final summaryRef = _churchSubcollection('assignment_response_summaries')
-      .doc("${type}_$dateStr");*/
 
     batch.set(
       responseRef,
@@ -267,25 +263,6 @@ class FirestoreService {
       },
       SetOptions(merge: true),
     );
-
-    /*batch.set(
-      indexRef,
-      {
-        'submittedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
-
-    batch.set(
-      summaryRef,
-      {
-        'type': type,
-        'date': dateStr,
-        'count': FieldValue.increment(1),
-        'lastSubmittedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );*/
 
     await batch.commit();
   }
@@ -443,8 +420,6 @@ class FirestoreService {
     return snapshot.docs.length;
   }
 
-
-
   // ── FURTHER READINGS ──
   Future<Map<DateTime, String>> getFurtherReadingsWithText() async {
     final Map<DateTime, String> result = {};
@@ -510,10 +485,14 @@ class FirestoreService {
         }
       }
     } catch (e) {
-      debugPrint("Error loading further readings: $e");
+      if (kDebugMode) {
+        debugPrint("Error loading further readings: $e");
+      }
     }
 
-    debugPrint("Further readings loaded: ${result.length} days");
+    if (kDebugMode) {
+      debugPrint("Further readings loaded: ${result.length} days");
+    }
     return result;
   }
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
 
@@ -44,6 +45,8 @@ Future<void> checkAndApplyShorebirdUpdate(BuildContext context) async {
     // If upToDate or restartRequired (already downloaded), just continue
   } catch (error) {
     // Silent fail – don't block the user
-    debugPrint('Shorebird update check failed: $error');
+    if (kDebugMode) {
+      debugPrint('Shorebird update check failed: $error');
+    }
   }
 }

@@ -1,5 +1,6 @@
 // services/highlight_manager.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -123,7 +124,9 @@ class HighlightManager extends ChangeNotifier {
         }
         notifyListeners();
       } catch (e) {
-        debugPrint("Error loading highlights: $e");
+        if (kDebugMode) {
+          debugPrint("Error loading highlights: $e");
+        }
       }
     _isLoaded = true;
     notifyListeners();

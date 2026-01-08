@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
 import '../../UI/app_buttons.dart';
 import '../../UI/app_colors.dart';
 import '../../auth/login/auth_service.dart';
@@ -53,7 +52,7 @@ class _CurrentChurchCardState extends State<CurrentChurchCard> {
             child: Padding(
               padding: EdgeInsets.all(16.sp),
               child: AnimatedCrossFade(
-                duration: const Duration(milliseconds: 1),
+                duration: const Duration(milliseconds: 300),
                 crossFadeState: _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
                 firstChild: _collapsedView(auth, textTheme, colorScheme),
                 secondChild: _expandedView(auth, context, textTheme, colorScheme, isScheduled, deletionDate),
@@ -115,7 +114,9 @@ class _CurrentChurchCardState extends State<CurrentChurchCard> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            auth.churchFullName ?? "My Church",
+            auth.churchFullName?.isNotEmpty == true 
+              ? auth.churchFullName! 
+              : auth.displayChurchName,
             style: textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
               color: colorScheme.onSurface,

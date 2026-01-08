@@ -1,8 +1,9 @@
 // widgets/verse_action_sheet.dart
-import 'package:app_demo/UI/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:rccg_sunday_school/UI/app_colors.dart';
 import 'package:share_plus/share_plus.dart';
 import 'highlight_manager.dart';
 import '../../../../auth/login/auth_service.dart';
@@ -128,6 +129,9 @@ class _VerseActionSheetState extends State<VerseActionSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     final manager = Provider.of<HighlightManager>(context, listen: false);
 
     // Smart reference
@@ -146,21 +150,21 @@ class _VerseActionSheetState extends State<VerseActionSheet> {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
       curve: Curves.easeOut,
-      decoration: const BoxDecoration(
-        color: AppColors.secondaryContainer,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(2)),
+      decoration: BoxDecoration(
+        color: colorScheme.background,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(2.sp)),
       ),
       padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 12,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+        left: 20.sp,
+        right: 20.sp,
+        top: 10.sp,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 20.sp,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(width: 40, height: 5, decoration: BoxDecoration(color: AppColors.secondaryContainer, borderRadius: BorderRadius.circular(10))),
-          const SizedBox(height: 16),
+          Container(width: 40.sp, height: 5.sp, decoration: BoxDecoration(color: AppColors.secondaryContainer, borderRadius: BorderRadius.circular(10))),
+          SizedBox(height: 10.sp),
           // Verse preview
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -193,12 +197,16 @@ class _VerseActionSheetState extends State<VerseActionSheet> {
             child: _showColorPicker
               ? Column(
                 children: [
-                  const SizedBox(height: 16),
-                  const Text("Highlight color", style: TextStyle(fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 10.sp),
+                  Text("Highlight color", 
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15.sp,
+                    )),
+                  SizedBox(height: 10.sp),
                   Wrap(
-                    spacing: 16,
-                    runSpacing: 16,
+                    spacing: 16.sp,
+                    runSpacing: 16.sp,
                     alignment: WrapAlignment.center,
                     children: colors.map((color) {
                       final isSelected = currentColor == color;
@@ -218,8 +226,8 @@ class _VerseActionSheetState extends State<VerseActionSheet> {
                           HapticFeedback.selectionClick();
                         },
                         child: Container(
-                          width: 48,
-                          height: 48,
+                          width: 40.sp,
+                          height: 40.sp,
                           decoration: BoxDecoration(
                             color: color,
                             shape: BoxShape.circle,
@@ -228,17 +236,16 @@ class _VerseActionSheetState extends State<VerseActionSheet> {
                               width: isSelected ? 2 : 1,
                             ),
                           ),
-                          child: isSelected ? const Icon(Icons.check, color: AppColors.darkSurface , size: 28) : null,
+                          child: isSelected ? Icon(Icons.check, color: AppColors.darkSurface , size: 28.sp) : null,
                         ),
                       );
                     }).toList(),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 10.sp),
                 ],
               )
             : const SizedBox.shrink(),
           ),
-          const SizedBox(height: 10),
         ],
       ),
     );
@@ -255,22 +262,28 @@ class _Action extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return InkWell(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(16.sp),
       onTap: onTap,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16.sp),
             decoration: BoxDecoration(
-              color: AppColors.onPrimary.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(10),
+              color: colorScheme.background,
+              borderRadius: BorderRadius.circular(10.sp),
             ),
-            child: Icon(icon, size: 28, color: AppColors.primaryContainer),
+            child: Icon(icon, size: 28.sp, color: AppColors.primaryContainer),
           ),
-          const SizedBox(height: 6),
-          Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.primary)),
+          SizedBox(height: 6.sp),
+          Text(label, style: TextStyle(
+            fontSize: 14.sp, 
+            fontWeight: FontWeight.w600,
+          )),
         ],
       ),
     );

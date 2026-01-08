@@ -3,7 +3,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
-import 'package:app_demo/UI/app_colors.dart';
 import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +10,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../../UI/app_buttons.dart';
+import '../../UI/app_colors.dart';
 import '../../backend_data/service/analytics/analytics_service.dart';
 import 'auth_service.dart';
 import '../../UI/loading_overlay.dart';
@@ -172,8 +172,9 @@ class _AuthScreenState extends State<AuthScreen> {
   Widget build(BuildContext context) {
     //return Container(
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.background,
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -189,11 +190,14 @@ class _AuthScreenState extends State<AuthScreen> {
                 // Logo
                 Center(
                   child: Container(
-                    padding: const EdgeInsets.all(0),
+                    padding: EdgeInsets.all(0),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 3.sp),
-                      color: Colors.white.withOpacity(0.2),
+                      border: Border.all(
+                        color: Colors.white, 
+                        width: 3.sp,
+                      ),
+                      //color: Colors.white.withOpacity(0.2),
                     ),
                     child: ClipOval(
                       child: Image.asset(
@@ -265,6 +269,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16.sp,
+                                        color: _selectedTab == 0 ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onPrimary.withOpacity(0.5),
                                       )
                                     ),
                                   ],
@@ -297,6 +302,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 16.sp,
+                                          color: _selectedTab == 1 ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onPrimary.withOpacity(0.5),
                                         )
                                       ),
                                     ],
@@ -325,6 +331,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16.sp,
+                                    color: _selectedTab == (Platform.isIOS ? 2 : 1) ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onPrimary.withOpacity(0.5),
                                   ),
                                 ),
                               ),
@@ -406,94 +413,6 @@ class _AuthScreenState extends State<AuthScreen> {
                   style: TextStyle(color: AppColors.onPrimary, fontSize: 14.sp),
                 ),
 
-
-                /*/ Segmented Toggle: Google | Guest
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => setState(() => _selectedTab = 0),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            decoration: BoxDecoration(
-                              color: _selectedTab == 0 ? Colors.white : Colors.transparent,
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Image.asset('assets/images/google_logo.png', height: 20),
-                                const SizedBox(width: 8),
-                                const Text("Google", style: TextStyle(fontWeight: FontWeight.bold)),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => setState(() => _selectedTab = 1),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            decoration: BoxDecoration(
-                              color: _selectedTab == 1 ? Colors.white : Colors.transparent,
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            child: const Text("Guest", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold)),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 60),
-
-                // Large Action Button
-                // Custom LoginButtons with dynamic content
-                LoginButtons(
-                  text: "",
-                  context: context,
-                  topColor: Colors.white, // Your signature white top
-                  borderColor: Colors.transparent,
-                  onPressed: _isLoading
-                      ? () {} // Disable when loading
-                      : (_selectedTab == 0 ? _handleGoogleSignIn : _handleAnonymousLogin),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(
-                            color: Color.fromARGB(221, 188, 22, 22),
-                            strokeWidth: 3,
-                          ),
-                        )
-                      : Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (_selectedTab == 0) ...[
-                              Image.asset('assets/images/google_logo.png', height: 24),
-                              const SizedBox(width: 12),
-                            ] else ...[
-                              const Icon(Icons.person_outline, size: 26, color: Colors.black87),
-                              const SizedBox(width: 12),
-                            ],
-                            Text(
-                              _selectedTab == 0 ? "Continue with Google" : "Continue as Guest",
-                              style: const TextStyle(
-                                color: Colors.black87,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                ),*/
                 const Spacer(),
 
                 // Subtle info text

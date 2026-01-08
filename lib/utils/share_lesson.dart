@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
@@ -149,7 +150,9 @@ class LessonShare {
         subject: "$title: ${data.topic}",
       );
     } catch (e) {
-      debugPrint("Error sharing PDF lesson: $e");
+      if (kDebugMode) {
+        debugPrint("Error sharing PDF lesson: $e");
+      }
     }
   }
 

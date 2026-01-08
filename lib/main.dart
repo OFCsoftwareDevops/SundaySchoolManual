@@ -1,6 +1,4 @@
 import 'dart:io';
-import 'package:app_demo/backend_data/service/notification/background_task.dart';
-import 'package:app_demo/l10n/fallback_localizations.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -8,10 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:provider/provider.dart';
+import 'package:provider/provider.dart' as provider;
+import 'package:rccg_sunday_school/l10n/fallback_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -24,6 +24,7 @@ import 'auth/login/auth_service.dart';
 import 'auth/login/login_page.dart';
 import 'backend_data/service/assignment_dates_provider.dart';
 import 'backend_data/service/firestore_service.dart';
+import 'backend_data/service/notification/background_task.dart';
 import 'backend_data/service/notification/notification_service.dart';
 import 'backend_data/service/submitted_dates_provider.dart';
 import 'widgets/bible_app/bible_actions/highlight_manager.dart';
@@ -37,7 +38,9 @@ import 'widgets/helpers/main_screen.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);  // Required in v15.1.3+
-  print("Background: ${message.notification?.title}");
+  if (kDebugMode) {
+    debugPrint("Background: ${message.notification?.title}");
+  }
 }
 
 Future<void> main() async {
@@ -56,17 +59,18 @@ Future<void> main() async {
   // Request notification permission (Android 13+)
   if (Platform.isAndroid) {
     final status = await Permission.notification.request();
-    debugPrint('Notification permission: $status');
+    if (kDebugMode) {
+      debugPrint('Notification permission: $status');
+    }
   }
-
-  /*final allowed = await NotificationService().isExactAlarmsAllowed();
-  debugPrint('Exact alarms allowed: $allowed');*/
 
   // Initialize Firebase Messaging topics and get token
   final fcm = FirebaseMessaging.instance;
   await fcm.subscribeToTopic('all_users');
   final token = await fcm.getToken();
-  debugPrint('FCM Token: $token');
+  if (kDebugMode) {
+    debugPrint('FCM Token: $token');
+  }
 
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   
@@ -91,7 +95,9 @@ Future<void> main() async {
     await FirebaseMessaging.instance.requestPermission();
     await FirebaseMessaging.instance.subscribeToTopic("all_users");
     final token = await FirebaseMessaging.instance.getToken();
-    print("FCM Token: $token");
+    if (kDebugMode) {
+      debugPrint("FCM Token: $token");
+    }
   }
 
   // 3. Now safely read SharedPreferences (already loaded above)
@@ -110,20 +116,22 @@ Future<void> main() async {
 
   // 4. Run the app with ALL providers
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => BibleVersionManager()),
-        ChangeNotifierProvider(create: (_) => HighlightManager()), // Already loaded!
-        // AuthService now provides church + roles + loading state
-        ChangeNotifierProvider<AuthService>(create: (_) => AuthService.instance),
-        // Load Firestore
-        Provider<FirestoreService>(create: (_) => FirestoreService(churchId: null)),
-        // Add more providers here later (ThemeManager, UserManager, etc.)
-        ChangeNotifierProvider(create: (_) => AssignmentDatesProvider()),
-        ChangeNotifierProvider(create: (_) => SubmittedDatesProvider()),
-      ],
-      child: MyApp(
-        initialLocale: Locale(savedLang),
+    ProviderScope(
+      child: provider.MultiProvider(
+        providers: [
+          provider.ChangeNotifierProvider(create: (_) => BibleVersionManager()),
+          provider.ChangeNotifierProvider(create: (_) => HighlightManager()), // Already loaded!
+          // AuthService now provides church + roles + loading state
+          provider.ChangeNotifierProvider<AuthService>(create: (_) => AuthService.instance),
+          // Load Firestore
+          provider.Provider<FirestoreService>(create: (_) => FirestoreService(churchId: null)),
+          // Add more providers here later (ThemeManager, UserManager, etc.)
+          provider.ChangeNotifierProvider(create: (_) => AssignmentDatesProvider()),
+          provider.ChangeNotifierProvider(create: (_) => SubmittedDatesProvider()),
+        ],
+        child: MyApp(
+          initialLocale: Locale(savedLang),
+        ),
       ),
     ),
   );
@@ -173,7 +181,6 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver{
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.detached) {
       _showIntro = true;
-      print("📴 App fully closed → will show intro next time");
     }
   }
 
@@ -192,7 +199,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver{
     setState(() => preloadProgress = 2);
 
     final service = context.read<FirestoreService>();
-    await Provider.of<AssignmentDatesProvider>(context, listen: false).load(service);
+    await provider.Provider.of<AssignmentDatesProvider>(context, listen: false).load(service);
     setState(() => preloadProgress = 3);
 
     // Step 5
@@ -234,15 +241,10 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver{
             FallbackCupertinoLocalizationsDelegate(),
           ],
           supportedLocales: AppLocalizations.supportedLocales, // en, fr, yo
-          /*theme: ThemeData(
-            useMaterial3: true,
-            colorSchemeSeed: Color.fromARGB(255, 255, 255, 255).withOpacity(0.3), // APP THEME COLOR
-            fontFamily: 'Roboto', // Set default font family
-          ),*/
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: ThemeMode.system,
-          home: Consumer<AuthService>(
+          home: provider.Consumer<AuthService>(
             builder: (context, auth, child) {  
               // Show intro only on very first app open ever
               if (_showIntro) {

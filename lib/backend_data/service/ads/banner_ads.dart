@@ -1,104 +1,115 @@
-// lib/widgets/banner_ad_widget.dart
-import 'dart:io'; // ← Add this import
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // Add this
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-class BannerAdWidget extends StatefulWidget {
+import 'premium_provider.dart';
+// Remove: import '../../../auth/login/auth_service.dart'; (no longer needed)
+
+class BannerAdWidget extends ConsumerStatefulWidget {
   const BannerAdWidget({super.key});
 
   @override
-  State<BannerAdWidget> createState() => _BannerAdWidgetState();
+  ConsumerState<BannerAdWidget> createState() => _BannerAdWidgetState();
 }
 
-class _BannerAdWidgetState extends State<BannerAdWidget> {
+class _BannerAdWidgetState extends ConsumerState<BannerAdWidget> {
   BannerAd? _bannerAd;
   bool _isLoaded = false;
-  bool _isFailed = false;
 
   @override
-  void initState() {
-    super.initState();
-    _loadAd();
+  void dispose() {
+    _disposeAd();
+    super.dispose();
+  }
+
+  void _disposeAd() {
+    _bannerAd?.dispose();
+    _bannerAd = null;
+    _isLoaded = false;
   }
 
   void _loadAd() {
     final adUnitId = Platform.isAndroid
-        ? 'ca-app-pub-3940256099942544/6300978111' // Android test banner
-        : 'ca-app-pub-3940256099942544/2934735716'; // iOS test banner
-
-    print("Loading banner ad with ID: $adUnitId");
+        ? 'ca-app-pub-3940256099942544/6300978111'
+        : 'ca-app-pub-3940256099942544/2934735716';
 
     _bannerAd = BannerAd(
       adUnitId: adUnitId,
       size: AdSize.banner,
       request: const AdRequest(),
       listener: BannerAdListener(
-        onAdLoaded: (ad) {
-          debugPrint("Banner ad loaded successfully!");
+        onAdLoaded: (_) {
           if (mounted) {
-            setState(() {
-              _isLoaded = true;
-              _isFailed = false;
-            });
+            setState(() => _isLoaded = true);
           }
         },
-        onAdFailedToLoad: (ad, error) {
-          debugPrint("Banner ad failed to load: $error");
+        onAdFailedToLoad: (ad, _) {
           ad.dispose();
-          if (mounted) {
-            setState(() => _isFailed = true);
-          }
-          // Retry after delay
-          Future.delayed(const Duration(seconds: 15), () {
-            if (mounted && _isFailed) _loadAd();
-          });
+          _disposeAd();
         },
       ),
-    );
-
-    _bannerAd!.load();
-  }
-
-  @override
-  void dispose() {
-    _bannerAd?.dispose();
-    super.dispose();
+    )..load();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Loading or failed → subtle placeholder that blends in
-    if (!_isLoaded || _bannerAd == null) {
-      return Container(
-        height: 50,
-        color: Theme.of(context).colorScheme.surface.withOpacity(0.7),
-        child: Center(
-          child: _isFailed
-              ? Text(
-                  "Ad unavailable",
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-                    fontSize: 12,
-                  ),
-                )
-              : const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: Text("")/*CircularProgressIndicator(strokeWidth: 2)*/,
-                ),
-        ),
-      );
-    }
+    final asyncPremium = ref.watch(isPremiumProvider);
 
-    // Loaded → beautiful integrated ad
+    return asyncPremium.when(
+      data: (isPremium) {
+        // Premium: no ads, ever
+        if (isPremium) {
+          if (_bannerAd != null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _disposeAd();
+            });
+          }
+          return const SizedBox.shrink();
+        }
+
+        // Non-premium: ensure ad is loaded
+        if (_bannerAd == null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && _bannerAd == null) {
+              _loadAd();
+            }
+          });
+        }
+
+        if (!_isLoaded || _bannerAd == null) {
+          return _placeholder(context);
+        }
+
+        return _adContainer(context);
+      },
+      loading: () => _placeholder(context),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _placeholder(BuildContext context) {
+    return Container(
+      height: 50,
+      alignment: Alignment.center,
+      color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
+      child: const CircularProgressIndicator(),
+    );
+  }
+
+  Widget _adContainer(BuildContext context) {
     return Container(
       height: 50,
       width: double.infinity,
+      alignment: Alignment.center,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         border: Border(
           top: BorderSide(
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
+            color: Theme.of(context)
+                .colorScheme
+                .onSurface
+                .withOpacity(0.1),
           ),
         ),
         boxShadow: [
@@ -109,7 +120,6 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
           ),
         ],
       ),
-      alignment: Alignment.center,
       child: AdWidget(ad: _bannerAd!),
     );
   }

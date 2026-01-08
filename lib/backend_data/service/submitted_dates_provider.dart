@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'firestore_service.dart';
 
@@ -31,7 +32,9 @@ class SubmittedDatesProvider with ChangeNotifier {
         _loadForType(service, userId, 'teen', _teenSubmitted, _teenGraded),
       ]);
     } catch (e) {
-      debugPrint('Error loading submitted dates: $e');
+      if (kDebugMode) {
+        debugPrint('Error loading submitted dates: $e');
+      }
     } finally {
       _isLoading = false;
       notifyListeners();

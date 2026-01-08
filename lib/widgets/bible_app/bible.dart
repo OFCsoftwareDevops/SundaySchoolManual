@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../SundaySchool_app/lesson_bible_ref_parser.dart';
@@ -192,26 +193,36 @@ class BibleVersionManager extends ChangeNotifier {
   // In your BibleVersionManager class
 
   String? getVerseText(String reference) {
-    print('DEBUG: getVerseText called with: $reference'); // ← add this
+    if (kDebugMode) {
+      debugPrint('DEBUG: getVerseText called with: $reference');
+    } // ← add this
     
     final refs = findBibleReferences(reference);
-    print('DEBUG: Parsed references: $refs');
+    if (kDebugMode) {
+      debugPrint('DEBUG: Parsed references: $refs');
+    }
 
     if (refs.isEmpty) {
-      print('DEBUG: No references parsed from: "$reference"');
+      if (kDebugMode) {
+        debugPrint('DEBUG: No references parsed from: "$reference"');
+      }
       return null;
     }
 
     final ref = refs.first;
 
-    print('DEBUG: Using ref - book: "${ref.book}", chapter: ${ref.chapter}, verse: ${ref.verseStart}-${ref.verseEnd}');
-    print('DEBUG: Available books: ${books.map((b) => b['name']).toList()}');
+    if (kDebugMode) {
+      debugPrint('DEBUG: Using ref - book: "${ref.book}", chapter: ${ref.chapter}, verse: ${ref.verseStart}-${ref.verseEnd}');
+      debugPrint('DEBUG: Available books: ${books.map((b) => b['name']).toList()}');
+    }
 
     // 1. Find book with super-tolerant matching
     final book = books.firstWhereOrNull((b) {
       final name = (b['name'] as String).toLowerCase();
       final search = ref.book.toLowerCase();
-      print('DEBUG: Comparing "$name" with "$search"');
+      if (kDebugMode) {
+        debugPrint('DEBUG: Comparing "$name" with "$search"');
+      }
 
       // Exact match
       if (name == search) return true;

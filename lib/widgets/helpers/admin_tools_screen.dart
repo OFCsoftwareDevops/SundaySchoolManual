@@ -1,61 +1,89 @@
 // lib/screens/admin_tools_screen.dart
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:provider/provider.dart';
-import 'package:app_demo/UI/app_colors.dart';
-import 'package:app_demo/UI/app_buttons.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:provider/provider.dart' show WatchContext, ReadContext;
+import '../../UI/app_buttons.dart';
+import '../../UI/app_colors.dart';
 import '../../auth/login/auth_service.dart';
-import '../../backend_data/service/analytics/analytics_service.dart';
+import '../../backend_data/service/ads/premium_provider.dart';
+import '../../backend_data/service/ads/premium_subscription_screen.dart';
+import '../../backend_data/service/ads/subscribe_button.dart';
 import '../../utils/media_query.dart';
 
 class AdminToolsScreen extends StatefulWidget {
   const AdminToolsScreen({super.key});
 
   @override
-  State<AdminToolsScreen> createState() => _AdminToolsScreenState();
+  State<AdminToolsScreen> createState() => AdminToolsScreenState();
 }
 
-class _AdminToolsScreenState extends State<AdminToolsScreen> {
-  final _emailController = TextEditingController();
-  final _churchIdController = TextEditingController();
-  final _groupIdController = TextEditingController();
+class AdminToolsScreenState extends State<AdminToolsScreen> {
+  final emailController = TextEditingController();
 
-  bool _isLoading = false;
+  bool _isChurchAdminLoading = false;
+  bool _isGroupAdminLoading = false;
+  bool _isRemovingChurchAdmin = false;
+  bool _isRemovingGroupAdmin = false;
+
+  String? _selectedAdminToRemove;
+  String? _selectedGroupToRemove;
+
   String? _message;
   bool _isSuccess = false;
 
+  // Hardcoded allowed groups (you can change/add later)
+  final List<String?> _allowedGroups = [
+    "Sunday School",
+    null,
+    //"Teens",
+    //"Youth",
+    //"Children",
+    //"Adults",
+    //"Women",
+    //"Men",
+    //"Couples",
+    //"Singles",
+  ];
+
+  String? _selectedGroup;
+
   @override
   void dispose() {
-    _emailController.dispose();
-    _churchIdController.dispose();
-    _groupIdController.dispose();
+    emailController.dispose();
     super.dispose();
   }
 
-  Future<void> _makeAdmin({required bool isGroupAdmin}) async {
-    final email = _emailController.text.trim().toLowerCase();
-    final churchId = _churchIdController.text.trim();
-    final groupId = isGroupAdmin ? _groupIdController.text.trim() : "";
+  Future<void> _makeAdmin({required bool isMakingGroupAdmin}) async {
+    final email = emailController.text.trim().toLowerCase();
+    final auth = context.read<AuthService>();
 
-    if (email.isEmpty || churchId.isEmpty) {
+    if (email.isEmpty) {
       setState(() {
-        _message = "Email and Church ID are required";
+        _message = "Email is required";
         _isSuccess = false;
       });
       return;
     }
 
-    if (isGroupAdmin && groupId.isEmpty) {
+    // Validation: require group only when making group admin
+    if (isMakingGroupAdmin && (_selectedGroup == null || _selectedGroup!.isEmpty)) {
       setState(() {
-        _message = "Group ID is required for group admin";
+        _message = "Please select a group";
         _isSuccess = false;
       });
       return;
     }
 
     setState(() {
-      _isLoading = true;
+      if (isMakingGroupAdmin) {
+        _isGroupAdminLoading = true;
+      } else {
+        _isChurchAdminLoading = true;
+      }
       _message = null;
     });
 
@@ -65,18 +93,21 @@ class _AdminToolsScreenState extends State<AdminToolsScreen> {
 
       await callable.call({
         'userEmail': email,
-        'churchId': churchId,
-        'groupId': groupId,
+        'churchId': auth.churchId,
+        'groupId': isMakingGroupAdmin ? _selectedGroup : null,
       });
 
       setState(() {
-        _message =
-            "Success! $email is now ${isGroupAdmin ? 'group' : 'church'} admin${isGroupAdmin ? ' for group \"$groupId\"' : ''}.";
+        _message = isMakingGroupAdmin
+            ? "Success! $email is now a group admin for \"$_selectedGroup\""
+            : "Success! $email is now a church admin";
         _isSuccess = true;
       });
 
-      // Clear fields after success
-      _groupIdController.clear();
+      // Clear inputs
+      emailController.clear();
+      _selectedGroup = null;
+
     } on FirebaseFunctionsException catch (e) {
       setState(() {
         _message = "Error: ${e.message ?? 'Unknown error'}";
@@ -88,29 +119,116 @@ class _AdminToolsScreenState extends State<AdminToolsScreen> {
         _isSuccess = false;
       });
     } finally {
-      setState(() => _isLoading = false);
+      setState(() {
+        _isChurchAdminLoading = false;
+        _isGroupAdminLoading = false;
+      });
+    }
+  }
+
+  Future<void> _removeAdmin({required bool isGroupSpecific}) async {
+    final auth = context.read<AuthService>();
+    if (kDebugMode) {
+      debugPrint("Selected UID: $_selectedAdminToRemove");
+      debugPrint("Church ID: ${auth.churchId}");
+    }
+
+    if (_selectedAdminToRemove == null) {
+      _message = "Please select an admin first";
+      return;
+    }
+
+    setState(() {
+      if (isGroupSpecific) {
+        _isRemovingGroupAdmin = true;
+      } else {
+        _isRemovingChurchAdmin = true;
+      }
+      _message = null;
+    });
+
+    try {
+      await FirebaseFunctions.instance
+          .httpsCallable('removeChurchOrGroupAdmin')
+          .call({
+        'userUid': _selectedAdminToRemove,
+        'churchId': auth.churchId!,
+        'groupId': isGroupSpecific ? _selectedGroupToRemove : null,
+      });
+
+      _message = isGroupSpecific
+        ? "Removed from group \"$_selectedGroupToRemove\""
+        : "All church admin rights removed";
+
+      setState(() {
+        _isSuccess = true;
+        _selectedAdminToRemove = null;
+        _selectedGroupToRemove = null;
+      });
+
+    } on FirebaseFunctionsException catch (e) {
+      setState(() {
+        _message = "Error: ${e.message ?? 'Failed'}";
+        _isSuccess = false;
+      });
+    } finally {
+      setState(() {
+        _isRemovingChurchAdmin = false;
+        _isRemovingGroupAdmin = false;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthService>();
-    final style = CalendarDayStyle.fromContainer(context, 50);
+    final themestyle = CalendarDayStyle.fromContainer(context, 50);
 
     // Extra safety: only global admins should see this
-    if (!auth.isGlobalAdmin) {
-      return const Scaffold(
-        body: Center(child: Text("Access Denied")),
+    if (!auth.isGlobalAdmin && !auth.isChurchAdmin) {
+      return Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.background,
+        appBar: AppBar(
+          centerTitle: true,
+          title: const Text("Access Restricted"),
+        ),
+        body: Center(
+          child: Padding(
+            padding: EdgeInsets.all(24.sp),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.lock_outline,
+                  size: 70.sp,
+                  //color: Colors.grey,
+                ),
+                SizedBox(height: 10.sp),
+                Text(
+                  "Access Denied",
+                  style: TextStyle(
+                    fontSize: 20.sp, 
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 10.sp),
+                Text(
+                  "This page is only available to church or global administrators.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 10.sp, 
+                    //color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       );
     }
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
-      /*appBar: AppBar(
-        title: const Text("Global Admin Tools"),
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.onPrimary,
-      ),*/
       appBar: AppBar(
         centerTitle: true,
         title: FittedBox(
@@ -119,63 +237,99 @@ class _AdminToolsScreenState extends State<AdminToolsScreen> {
             "Global Admin Tools",
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: style.monthFontSize.sp, // Matches your other screen's style
+              fontSize: themestyle.monthFontSize.sp, // Matches your other screen's style
             ),
           ),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          iconSize: style.monthFontSize.sp, // Consistent sizing
+          iconSize: themestyle.monthFontSize.sp, // Consistent sizing
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(20.sp),
+        padding: EdgeInsets.all(15.sp),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               "Promote User to Admin",
-              style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 8.sp),
             Text(
-              "You are logged in as global admin (${auth.currentUser?.email})",
-              //style: TextStyle(color: Colors.grey[600]),
+              "You are logged in as church admin (${auth.currentUser?.email})",
+              style: TextStyle(
+                fontSize: 15.sp,
+              ),
             ),
-            SizedBox(height: 30.sp),
+            SizedBox(height: 20.sp),
 
             // Email Field
             TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(
+              controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+              style: TextStyle(
+                fontSize: 15.sp,
+              ),
+              decoration: InputDecoration(
                 labelText: "User Email",
                 hintText: "e.g. pastor@example.com",
+
+                labelStyle: TextStyle(
+                  fontSize: 14.sp,
+                ),
+                hintStyle: TextStyle(
+                  fontSize: 13.sp,
+                ),
+
                 border: OutlineInputBorder(),
+                isDense: true, 
+                contentPadding: EdgeInsets.symmetric(horizontal: 12.sp, vertical: 12.sp),
               ),
-              keyboardType: TextInputType.emailAddress,
+              
             ),
             SizedBox(height: 10.sp),
 
-            // Church ID Field
-            TextField(
-              controller: _churchIdController,
-              decoration: const InputDecoration(
-                labelText: "Church ID (required)",
-                hintText: "Copy from Firestore churches collection document ID",
-                border: OutlineInputBorder(),
+            // Group ID Dropdown (only shown when making group admin)
+            DropdownButtonFormField<String?>(
+              value: _selectedGroup,
+              hint: Text("Select a group (optional for church admin)",
+              style: TextStyle(
+                fontSize: 15.sp,
+                ),
               ),
-            ),
-            SizedBox(height: 10.sp),
+              decoration: InputDecoration(
+                labelText: "Group",
+                hintText: "Leave empty for church admin",
 
-            // Group ID Field (only shown when needed)
-            TextField(
-              controller: _groupIdController,
-              decoration: const InputDecoration(
-                labelText: "Group ID (e.g. teens, adults, youth)",
-                hintText: "Leave empty for full church admin",
+                labelStyle: TextStyle(
+                  fontSize: 14.sp,
+                ),
+                hintStyle: TextStyle(
+                  fontSize: 13.sp,
+                ),
+
                 border: OutlineInputBorder(),
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(horizontal: 12.sp, vertical: 12.sp),
               ),
+              items: _allowedGroups.map((String? group) {
+                return DropdownMenuItem<String?>(
+                  value: group,
+                  child: Text(
+                    group ?? "(No group - Church Admin only)",
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                    ),
+                  ),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                setState(() {
+                  _selectedGroup = newValue;
+                });
+              },
             ),
             SizedBox(height: 20.sp),
 
@@ -186,17 +340,24 @@ class _AdminToolsScreenState extends State<AdminToolsScreen> {
                 Expanded(
                   child: LoginButtons(
                     context: context,
-                    topColor: AppColors.primaryContainer,
-                    onPressed: _isLoading ? null : () => _makeAdmin(isGroupAdmin: false),
-                    child: _isLoading
+                    topColor: AppColors.success,
+                    onPressed: _isChurchAdminLoading ? null : () => _makeAdmin(isMakingGroupAdmin: false),
+                    child: _isChurchAdminLoading
                         ? SizedBox(
                             height: 20.sp,
                             width: 20.sp,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.sp),
+                            child: CircularProgressIndicator(
+                              color: Colors.white, 
+                              strokeWidth: 2.sp,
+                            ),
                           )
-                        : const Text(
+                        : Text(
                             "Make Church Admin",
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              color: Colors.white, 
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15.sp,
+                            ),
                           ),
                     text: '',
                   ),
@@ -206,16 +367,23 @@ class _AdminToolsScreenState extends State<AdminToolsScreen> {
                   child: LoginButtons(
                     context: context,
                     topColor: AppColors.success,
-                    onPressed: _isLoading ? null : () => _makeAdmin(isGroupAdmin: true),
-                    child: _isLoading
+                    onPressed: _isGroupAdminLoading || _selectedGroup == null || _selectedGroup!.isEmpty? null : () => _makeAdmin(isMakingGroupAdmin: true),
+                    child: _isGroupAdminLoading
                         ? SizedBox(
                             height: 20.sp,
                             width: 20.sp,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.sp),
+                            child: CircularProgressIndicator(
+                              color: Colors.white, 
+                              strokeWidth: 2.sp,
+                            ),
                           )
-                        : const Text(
+                        : Text(
                             "Make Group Admin",
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              color: Colors.white, 
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15.sp,
+                            ),
                           ),
                     text: '',
                   ),
@@ -223,7 +391,7 @@ class _AdminToolsScreenState extends State<AdminToolsScreen> {
               ],
             ),
 
-            //SizedBox(height: 5.sp),
+            SizedBox(height: 15.sp),
 
             // Feedback Message
             if (_message != null)
@@ -244,6 +412,7 @@ class _AdminToolsScreenState extends State<AdminToolsScreen> {
                           style: TextStyle(
                             color: _isSuccess ? Colors.green.shade800 : Colors.red.shade800,
                             fontWeight: FontWeight.w600,
+                            fontSize: 12.sp,
                           ),
                         ),
                       ),
@@ -252,21 +421,291 @@ class _AdminToolsScreenState extends State<AdminToolsScreen> {
                 ),
               ),
 
-            SizedBox(height: 20.sp),
+            Divider(
+              thickness: 0.8,
+              height: 20.sp,
+              color: Colors.grey.shade400.withOpacity(0.6),
+            ),
+            // Fetch and show list of current admins
+            StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: FirebaseFirestore.instance
+                  .collection('churches')
+                  .doc(auth.churchId!)
+                  .collection('admins')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-            // Helpful Tips
-            Card(
-              child: Padding(
-                padding: EdgeInsets.all(16.sp),
-                child: Column(
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return Text(
+                    "No admins in this church yet",
+                    style: TextStyle(
+                      fontSize: 14.sp, 
+                      //color: Colors.grey,
+                    ),
+                  );
+                }
+
+                final admins = snapshot.data!.docs;
+
+                return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Tips:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15.sp)),
-                    SizedBox(height: 8.sp),
-                    Text("• Making someone Church Admin gives them full control over that church"),
-                    Text("• Group Admin only controls assignments/grading for their group"),
+                    Text(
+                      "Remove Admin Rights",
+                      style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 12.sp),
+
+                    // Admin dropdown
+                    DropdownButtonFormField<String>(
+                      value: _selectedAdminToRemove,
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        //color: Colors.black, // required or it may look disabled
+                      ),
+                      hint: Text(
+                        "Select admin to remove",
+                        style: TextStyle(fontSize: 13.sp),
+                      ),
+                      decoration: InputDecoration(
+                        labelText: "Admin",
+                        labelStyle: TextStyle(
+                          fontSize: 14.sp,
+                        ),
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12.sp, vertical: 12.sp),
+                      ),
+                      items: admins.map((doc) {
+                        final data = doc.data();
+                        final email = data['email'] ?? 'Unknown';
+                        final displayName = data['displayName'] ?? email;
+                        return DropdownMenuItem<String>(
+                          value: doc.id,
+                          child: Text("$displayName ($email)"),
+                        );
+                      }).toList(),
+                      onChanged: (String? uid) {
+                        setState(() {
+                          _selectedAdminToRemove = uid;
+                          _selectedGroupToRemove = null;
+                        });
+                      },
+                    ),
+
+                    SizedBox(height: 10.sp),
+
+                    // Group dropdown (only for specific group remove)
+                    if (_selectedAdminToRemove != null)
+                      StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                        stream: FirebaseFirestore.instance
+                            .collection('churches')
+                            .doc(auth.churchId!)
+                            .collection('admins')
+                            .doc(_selectedAdminToRemove)
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData) return const CircularProgressIndicator();
+                          final data = snapshot.data!.data()!;
+                          final List<String> groups = List<String>.from(data['groups'] ?? []);
+
+                          if (groups.isEmpty) {
+                            return Text(
+                              "This admin has no group priviledges",
+                              style: TextStyle(
+                                //color: Colors.grey, 
+                                fontSize: 14.sp,
+                              ),
+                            );
+                          }
+
+                          return DropdownButtonFormField<String>(
+                            value: _selectedGroupToRemove,
+                            hint: Text(
+                              "Select group to remove",
+                              style: TextStyle(fontSize: 13.sp),
+                            ),
+                            decoration: InputDecoration(
+                              labelText: "Group",
+                              labelStyle: TextStyle(
+                                fontSize: 14.sp,
+                              ),
+                              border: OutlineInputBorder(),
+                              isDense: true,
+                              contentPadding: EdgeInsets.symmetric(horizontal: 12.sp, vertical: 12.sp),
+                            ),
+                            items: groups.map((group) {
+                              return DropdownMenuItem<String>(
+                                value: group,
+                                child: Text(group),
+                              );
+                            }).toList(),
+                            onChanged: (String? group) => setState(() => _selectedGroupToRemove = group),
+                          );
+                        },
+                      ),
+
+                    SizedBox(height: 10.sp),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: LoginButtons(
+                            context: context,
+                            topColor: AppColors.primaryContainer,
+                            onPressed: _isRemovingChurchAdmin || _selectedAdminToRemove == null
+                                ? null
+                                : () => _removeAdmin(isGroupSpecific: false),
+                            child: _isRemovingChurchAdmin
+                                ? SizedBox(height: 20.sp, width: 20.sp, child: CircularProgressIndicator(
+                                  color: Colors.white, 
+                                  strokeWidth: 2.sp,
+                                ))
+                                : Text("Remove Church Admin", 
+                                style: TextStyle(
+                                  color: Colors.white, 
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15.sp,
+                                )),
+                            text: '',
+                          ),
+                        ),
+                        SizedBox(width: 16.sp),
+                        Expanded(
+                          child: LoginButtons(
+                            context: context,
+                            topColor: AppColors.primaryContainer,
+                            onPressed: _isRemovingGroupAdmin || _selectedAdminToRemove == null
+                                ? null
+                                : () => _removeAdmin(isGroupSpecific: true),
+                            child: _isRemovingGroupAdmin
+                                ? SizedBox(height: 20.sp, width: 20.sp, child: CircularProgressIndicator(
+                                  color: Colors.white, 
+                                  strokeWidth: 2.sp,
+                                ))
+                                : Text("Remove from Group", 
+                                style: TextStyle(
+                                  color: Colors.white, 
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15.sp,
+                                )),
+                            text: '',
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
+                );
+              },
+            ),
+
+            SizedBox(height: 10.sp),
+
+            // Helpful Tips
+            Center(
+              child: Card(
+                child: Padding(
+                  padding: EdgeInsets.all(10.sp),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Tips:", 
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10.sp,
+                        ),
+                      ),
+                      SizedBox(height: 8.sp),
+                      Text("• Making someone Church Admin gives them full control over that church", 
+                        style: TextStyle(
+                          //fontWeight: FontWeight.bold,
+                          fontSize: 8.sp,
+                        ),
+                      ),
+                      Text("• Group Admin only controls assignments/grading for their group",
+                        style: TextStyle(
+                          //fontWeight: FontWeight.bold,
+                          fontSize: 8.sp,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+              ),
+            ),
+
+            SizedBox(height: 10.sp),
+
+            // === NEW: Church Premium Subscription Button ===
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final asyncPremium = ref.watch(isPremiumProvider);
+                  
+                      return asyncPremium.when(
+                        data: (isPremium) {
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              subscribeButton(  // your styled LoginButtons version
+                                context: context,
+                                isPremium: isPremium,
+                                churchId: auth.churchId!,
+                              ),
+                              // Explanatory text — ONLY shown if NOT premium
+                              if (!isPremium) ...[
+                                SizedBox(height: 16.sp),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 32.sp),
+                                  child: Text(
+                                    "All features work perfect without premium purchase!\n"
+                                    "Premium exists to remove ads for your parish congregation!",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 10.sp,
+                                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              SizedBox(height: 10.sp),
+                            ],
+                          );
+                        },
+                        loading: () => const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          child: CircularProgressIndicator(),
+                        ),
+                        error: (_, __) => Text(
+                          "Could not load premium status",
+                          style: TextStyle(color: Colors.red.shade700),
+                        ),
+                      );
+                    },
+                  ),
+                  SizedBox(height: 15.sp),
+                  if (context.watch<AuthService>().isGlobalAdmin)
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => SubscriptionScreen(churchId: auth.churchId!),
+                          ),
+                        );
+                      },
+                      child: const Text("Manage Church Settings"),
+                    ),
+                ],
               ),
             ),
           ],

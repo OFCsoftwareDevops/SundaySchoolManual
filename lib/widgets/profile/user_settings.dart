@@ -1,13 +1,13 @@
-import 'dart:io';
+//import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:permission_handler/permission_handler.dart';
+//import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../backend_data/service/analytics/analytics_service.dart';
-import '../../backend_data/service/notification/notification_service.dart';
-import '../../backend_data/service/notification/reminder_tile.dart';
+/*import '../../backend_data/service/notification/notification_service.dart';
+import '../../backend_data/service/notification/reminder_tile.dart';*/
 import '../../utils/media_query.dart';
 import 'user_feedback.dart';
 
@@ -38,12 +38,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _reminderTime = TimeOfDay(hour: savedHour, minute: savedMinute);
     });
 
-    if (_dailyReminderEnabled) {
+    /*if (_dailyReminderEnabled) {
       await _scheduleNotification(_reminderTime);
-    }
+    }*/
   }
 
-  Future<void> _toggleDailyReminder(bool value) async {
+  /*Future<void> _toggleDailyReminder(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('daily_reminder_enabled', value);
 
@@ -105,7 +105,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         time: time,
       );
     } catch (e) {
-      debugPrint("Failed to schedule daily reminder: $e");
+      debugdebugPrint("Failed to schedule daily reminder: $e");
       // Fallback: show immediate test notification in 15 seconds
       Future.delayed(const Duration(seconds: 15), () async {
         await NotificationService().showNotification(
@@ -115,7 +115,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
       });
     }
-  }
+  }*/
 
   Future<void> _rateApp() async {
     final url = Uri.parse(
@@ -160,7 +160,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: EdgeInsets.all(16.sp),
         children: [
-          Padding(
+          /*Padding(
             padding: EdgeInsets.symmetric(vertical: 8.sp),
             child: Text(
               "Reminders",
@@ -172,9 +172,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: "Daily Bible Lesson Reminder 📖",
             body: "Time for today's Bible lesson! Open the app to study.",
           ),
-          const Divider(),
+          const Divider(),*/
           Padding(
-            padding: EdgeInsets.symmetric(vertical: 8.sp),
+            padding: EdgeInsets.symmetric(vertical: 2.sp),
             child: Text(
               "Feedback",
               style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
@@ -192,18 +192,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const Divider(),
           Padding(
-            padding: EdgeInsets.symmetric(vertical: 8.sp),
+            padding: EdgeInsets.symmetric(vertical: 2.sp),
             child: Text(
               "Preferences",
               style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
             ),
           ),
-          const ListTile(
+          /*const ListTile(
             leading: Icon(Icons.color_lens),
             title: Text("Theme"),
             subtitle: Text("Coming soon"),
             enabled: false,
-          ),
+          ),*/
           const ListTile(
             leading: Icon(Icons.language),
             title: Text("Language"),

@@ -17,7 +17,7 @@ class LastPositionManager {
   }) async {
 
     if (kDebugMode) {
-      print('🗂️ SAVING POSITION: screen=$screen, book=$bookName, chapter=$chapter, verse=$verse');
+      debugPrint('🗂️ SAVING POSITION: screen=$screen, book=$bookName, chapter=$chapter, verse=$verse');
     }
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyScreen, screen);
@@ -26,18 +26,18 @@ class LastPositionManager {
     if (verse != null) await prefs.setInt(_keyVerse, verse);
 
     if (kDebugMode) {
-      print('✅ SAVE COMPLETE: Data written to prefs');
+      debugPrint('✅ SAVE COMPLETE: Data written to prefs');
     }
   }
 
   // Get last position (returns null on first launch)
   static Future<Map<String, dynamic>?> getLast() async {
-    if (kDebugMode) print('📂 LOADING last position...');
+    if (kDebugMode) debugPrint('📂 LOADING last position...');
 
     final prefs = await SharedPreferences.getInstance();
     final screen = prefs.getString(_keyScreen);
     if (screen == null) {
-      if (kDebugMode) print('❌ No saved position found');
+      if (kDebugMode) debugPrint('❌ No saved position found');
       return null;
     }
 
@@ -47,7 +47,7 @@ class LastPositionManager {
       'chapter': prefs.getInt(_keyChapter),
       'verse': prefs.getInt(_keyVerse),
     };
-    if (kDebugMode) print('✅ LOADED: $data');
+    if (kDebugMode) debugPrint('✅ LOADED: $data');
     return data;
   }
 

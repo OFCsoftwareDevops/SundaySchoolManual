@@ -1,6 +1,7 @@
 // lib/screens/user_assignments_page.dart
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -64,7 +65,9 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
       final service = FirestoreService(churchId: auth.churchId ?? '');
 
       submittedProvider.load(service, user.uid).catchError((e) {
-        debugPrint('Error loading submitted dates on page open: $e');
+        if (kDebugMode) {
+          debugPrint('Error loading submitted dates on page open: $e');
+        }
       });
     }
 

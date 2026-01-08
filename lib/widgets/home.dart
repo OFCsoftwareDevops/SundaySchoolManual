@@ -1,19 +1,20 @@
 import 'dart:ui';
-import 'package:app_demo/UI/app_colors.dart';
-import 'package:app_demo/auth/login/auth_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:app_demo/main.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../UI/app_buttons.dart';
+import '../UI/app_colors.dart';
+import '../auth/login/auth_service.dart';
 import '../backend_data/service/analytics/analytics_service.dart';
 import '../backend_data/service/firestore_service.dart';
 import '../backend_data/database/lesson_data.dart';
 import '../l10n/app_localizations.dart';
+import '../main.dart';
 import '../utils/device_check.dart';
 import 'SundaySchool_app/further_reading/further_reading_dialog.dart';
 import 'calendar.dart';
@@ -98,7 +99,9 @@ class HomeState extends State<Home> {
       }
     } catch (e) {
       // Offline or error → keep last known data (Firestore cache works!)
-      debugPrint("Offline or error loading lesson: $e");
+      if (kDebugMode) {
+        debugPrint("Offline or error loading lesson: $e");
+      }
       // Optionally show a snackbar once
     }
   }
@@ -325,7 +328,7 @@ class HomeState extends State<Home> {
                                                   ? AppLocalizations.of(context)!.sundaySchoolLesson
                                                   : AppLocalizations.of(context)!.noLessonToday,
                                               style: TextStyle(
-                                                fontSize: 20.sp, 
+                                                fontSize: 18.sp, 
                                                 fontWeight: FontWeight.bold, 
                                                 color: hasLesson ? AppColors.onPrimary : AppColors.onSecondary),
                                             );

@@ -121,7 +121,7 @@ class _TimedFeedbackButtonStatefulState extends State<TimedFeedbackButtonStatefu
             ),
           ),
         ),
-        SizedBox(height: 6),
+        SizedBox(height: 10.sp),
         LinearProgressIndicator(
           value: _progress,
           minHeight: 5.sp,
@@ -138,18 +138,33 @@ class _TimedFeedbackButtonStatefulState extends State<TimedFeedbackButtonStatefu
 Widget PreloadProgressButton({
   required BuildContext context,
   required String text,
-  required bool? preloadDone,
-  required int? progress,        // 0 to 3
-  required int? totalSteps,     // 3
+  bool? preloadDone,
+  int? progress,        // 0 to 3
+  int? totalSteps,     // 3
   required Color activeColor,  // e.g., Colors.deepPurple
-  required VoidCallback? onPressed,
+  VoidCallback? onPressed,
   Color borderColor = const Color.fromARGB(0, 118, 118, 118),
-  double borderWidth = 2.0,
+  double borderWidth = 0.0,
   double backOffset = 4.0,
   double backDarken = 0.45,
 }) {
-  final bool isLoading = progress! < totalSteps!;
-  final double progressValue = totalSteps == 0 ? 1.0 : progress / totalSteps;
+  // Safely determine states
+  final bool hasProgressInfo = progress != null && totalSteps != null && totalSteps > 0;
+  final bool isLoading = hasProgressInfo ? progress! < totalSteps! : preloadDone == false;
+  final bool isReady = preloadDone == true;
+  final bool isEnabled = isReady && onPressed != null;
+
+  // Safe progress value (0.0 to 1.0)
+  final double progressValue = hasProgressInfo
+      ? (progress! / totalSteps!)
+      : (preloadDone == true ? 1.0 : 0.0);
+
+  // Display text
+  final String displayText = isReady
+      ? text
+      : hasProgressInfo
+          ? "Preparing... ($progress/$totalSteps)"
+          : "Preparing...";
 
   final screenSize = MediaQuery.of(context).size;
   final double buttonWidth = screenSize.width * 0.8;
@@ -163,10 +178,8 @@ Widget PreloadProgressButton({
         height: buttonHeight + backOffset,
         width: buttonWidth.sp,
         child: AnimatedPress3D(
-          onTap: preloadDone! ? onPressed : null,
-          topColor: preloadDone
-              ? activeColor
-              : AppColors.grey600,// your inactive grey
+          onTap: isEnabled ? onPressed : null,
+          topColor: isReady ? activeColor : AppColors.grey600,
           borderColor: borderColor,
           borderWidth: borderWidth,
           backOffset: backOffset,
@@ -174,11 +187,11 @@ Widget PreloadProgressButton({
           pressDepth: pressDepth,
           child: Center(
             child: Text(
-              preloadDone
-                  ? text
-                  : "Preparing... ($progress/$totalSteps)",
+              displayText,
               style: TextStyle(
-                color: preloadDone? Theme.of(context).colorScheme.surface : AppColors.onPrimary,
+                color: isReady
+                    ? Theme.of(context).colorScheme.surface
+                    : AppColors.onPrimary.withOpacity(0.7),
                 fontSize: 18.sp * 0.8,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.2.sp,
@@ -187,10 +200,10 @@ Widget PreloadProgressButton({
           ),
         ),
       ),
-      SizedBox(height: 6),
+      SizedBox(height: 10.sp),
       if (isLoading) // Only show progress bar while loading
         LinearProgressIndicator(
-          value: progressValue,
+          value: hasProgressInfo ? progressValue : null,
           minHeight: 5.sp,
           backgroundColor: Colors.grey.shade300,
           color: AppColors.success,
