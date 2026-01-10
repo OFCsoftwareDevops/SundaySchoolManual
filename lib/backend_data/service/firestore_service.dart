@@ -11,11 +11,9 @@ class FirestoreService {
   FirestoreService({this.churchId});
 
   /// FOR PRELOAD ALL in main.dart
-  //Future<Map<String, Set<DateTime>>> preload() async {
   Future<void> preload() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return; // No user → skip
-    //if (user == null) return {'adult': {}, 'teen': {}};
 
     final userId = user.uid;
 
@@ -72,7 +70,6 @@ class FirestoreService {
   }
 
   // ←←←←← PUBLIC STREAM (this is what home.dart will use)
-  //Stream<QuerySnapshot> get lessonsStream => churchLessonsCollection.snapshots();
   Stream<QuerySnapshot> get lessonsStream => globalLessonsCollection.snapshots();
   Stream<QuerySnapshot> get assignmentsStream => globalAssignmentsCollection.snapshots();
   Stream<QuerySnapshot> get furtherReadingsStream => furtherReadingsCollection.orderBy('date').snapshots();   // assuming you have a 'date' field (the Sunday)

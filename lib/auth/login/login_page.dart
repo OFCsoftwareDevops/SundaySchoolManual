@@ -108,7 +108,6 @@ class _AuthScreenState extends State<AuthScreen> {
       await FirebaseAuth.instance.signInWithCredential(oauthCredential);
 
       // Success - Firebase will handle linking automatically if user exists
-      // You can add navigation or success logic here if needed
 
     } on SignInWithAppleAuthorizationException catch (e) {
       // Handle Apple-specific errors
@@ -197,7 +196,6 @@ class _AuthScreenState extends State<AuthScreen> {
                         color: Colors.white, 
                         width: 3.sp,
                       ),
-                      //color: Colors.white.withOpacity(0.2),
                     ),
                     child: ClipOval(
                       child: Image.asset(

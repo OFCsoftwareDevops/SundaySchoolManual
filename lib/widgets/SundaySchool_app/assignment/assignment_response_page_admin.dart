@@ -1,10 +1,8 @@
 // lib/widgets/assignment_response_detail_page.dart
 
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-
 import '../../../UI/app_buttons.dart';
 import '../../../UI/app_colors.dart';
 import '../../../auth/login/auth_service.dart';
@@ -132,10 +130,6 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
       );
     }
 
-    /*final membersCollection = isGlobalAdmin || isGroupAdmin
-        ? null // Global admin sees all — we'll load responses directly
-        : FirebaseFirestore.instance.collection('churches').doc(churchId).collection('members');*/
-
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
@@ -170,7 +164,7 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
                     color: Theme.of(context).colorScheme.surface,
 
                     // Optional: add a slight surface tint or keep it clean
-                    // surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
+                    //surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
 
                     child: Padding(
                       padding: EdgeInsets.all(20.sp),
@@ -182,7 +176,6 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
                             style: TextStyle(
                               fontSize: 20.sp,
                               fontWeight: FontWeight.bold,
-                              //color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
                           SizedBox(height: 10.sp),
@@ -288,12 +281,6 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
                   ),
                   iconColor: Theme.of(context).colorScheme.onSurface,
                   collapsedIconColor: Theme.of(context).colorScheme.onSurface,
-                  // This forces the default chevron to appear and be styled nicely
-                  /*trailing: Icon(
-                    Icons.keyboard_arrow_down,
-                    size: 16.sp,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),*/
                   childrenPadding: EdgeInsets.all(16.sp),
                   children: [
                     ...response.responses.asMap().entries.map((entry) {
@@ -362,8 +349,6 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
                                 topColor: Theme.of(context).colorScheme.error,
                                 textColor: Theme.of(context).colorScheme.onError,
                                 backDarken: 0.5, // deeper shadow for red to enhance depth
-                                //borderColor: Theme.of(context).colorScheme.error.withOpacity(0.6),
-                                //borderWidth: 1.5,
                               ),
 
                               GradeButtons(
@@ -383,11 +368,9 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
                                 icon: Icons.check_circle_outline,
                                 topColor: Theme.of(context).colorScheme.onSurface,
                                 textColor: Theme.of(context).colorScheme.surface,
-                                //backDarken: 0.35, // softer shadow for primary
                               ),
                             ],
                           ),
-                          //SizedBox(height: 12.sp),
                         ],
                       );
                     }),

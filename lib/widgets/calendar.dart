@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
 import '../UI/app_theme.dart';
 import '../utils/media_query.dart';
 
@@ -167,11 +166,6 @@ class _MonthCalendarState extends State<MonthCalendar> {
                                   : isToday
                                       ? CalendarTheme.todayBackground(context)
                                       : Colors.transparent,
-                                /*color: isSelected
-                                    ? Colors.blue
-                                    : isToday
-                                        ? Colors.green
-                                        : Colors.transparent,*/
                                 borderRadius: BorderRadius.circular(style.dayBorderRadius),
                               ),
                               alignment: Alignment.center,
@@ -180,7 +174,6 @@ class _MonthCalendarState extends State<MonthCalendar> {
                                 style: TextStyle(
                                   fontSize: style.dayFontSize.sp,
                                   fontWeight: FontWeight.w500,
-                                  //color: isSelected || isToday ? Colors.white : null,
                                   color: isSelected
                                     ? CalendarTheme.selectedForeground(context)
                                     : isToday

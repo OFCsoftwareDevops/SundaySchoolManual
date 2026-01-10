@@ -4,6 +4,8 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../UI/app_buttons.dart';
+import '../../UI/app_colors.dart';
 import '../../UI/app_linear_progress_bar.dart';
 import '../../auth/login/auth_service.dart';
 import 'add_church_screen.dart';
@@ -171,10 +173,28 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
             title: const Text("Leave without joining?"),
             content: const Text("You'll be signed out and returned to the login screen."),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Stay")),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text("Sign Out", style: TextStyle(color: Colors.red)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  // "Stay" button - secondary / safe choice
+                  ChurchChoiceButtons(
+                    context: context,
+                    onPressed: () => Navigator.pop(context, false),
+                    text: "Stay",
+                    icon: Icons.home_rounded,           // or Icons.cancel, Icons.arrow_back
+                    topColor: Theme.of(context).colorScheme.onSurface,
+                    textColor: Theme.of(context).colorScheme.surface, // softer shadow for cancel-like action
+                  ),
+                  // "Sign Out" button - destructive / primary danger action
+                  ChurchChoiceButtons(
+                    context: context,
+                    onPressed: () => Navigator.pop(context, true),
+                    text: "Sign Out",
+                    icon: Icons.logout_rounded,         // very clear logout icon
+                    topColor: AppColors.primaryContainer,       // ← strong red for danger
+                    textColor: Colors.white,
+                  ),
+                ],
               ),
             ],
           ),
@@ -199,10 +219,28 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
                   title: const Text("Leave without joining?"),
                   content: const Text("You'll be signed out and returned to the login screen."),
                   actions: [
-                    TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Stay")),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      child: const Text("Sign Out", style: TextStyle(color: Colors.red)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        // "Stay" button - secondary / safe choice
+                        ChurchChoiceButtons(
+                          context: context,
+                          onPressed: () => Navigator.pop(context, false),
+                          text: "Stay",
+                          icon: Icons.cancel,           // or Icons.cancel, Icons.arrow_back
+                          topColor: Theme.of(context).colorScheme.onSurface,
+                          textColor: Theme.of(context).colorScheme.surface, // softer shadow for cancel-like action
+                        ),
+                        // "Sign Out" button - destructive / primary danger action
+                        ChurchChoiceButtons(
+                          context: context,
+                          onPressed: () => Navigator.pop(context, true),
+                          text: "Sign Out",
+                          icon: Icons.logout_rounded,         // very clear logout icon
+                          topColor: AppColors.primaryContainer,       // ← strong red for danger
+                          textColor: Colors.white,
+                        ),
+                      ],
                     ),
                   ],
                 ),);
@@ -301,9 +339,38 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
                                 ],
                               ),
                               actions: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    ChurchChoiceButtons(
+                                      context: context,
+                                      onPressed: () => Navigator.pop(dialogContext),
+                                      text: "Cancel",
+                                      icon: Icons.close_rounded,
+                                      topColor: Theme.of(context).colorScheme.onSurface,
+                                      textColor: Theme.of(context).colorScheme.surface,
+                                    ),
+
+                                    SizedBox(width: 24),  // ← nice breathing room between buttons
+
+                                    ChurchChoiceButtons(
+                                      context: context,
+                                      onPressed: _isJoining ? null : () {
+                                        final code = localController.text;
+                                        Navigator.pop(dialogContext);
+                                        _joinWithCode(code);
+                                      },
+                                      text: "Join",
+                                      icon: Icons.login_rounded,
+                                      topColor: Theme.of(context).colorScheme.primary,
+                                      textColor: Theme.of(context).colorScheme.onPrimary,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                              /*actions: [
                                 TextButton(
                                   onPressed: () {
-                                    //localController.dispose();
                                     Navigator.pop(dialogContext);
                                   },
                                   child: const Text("Cancel"),
@@ -313,13 +380,12 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
                                       ? null
                                       : () {
                                           final code = localController.text;
-                                          //localController.dispose(); // Clean up early
                                           Navigator.pop(dialogContext); // Close dialog
                                           _joinWithCode(code); // Call your method with the code
                                         },
                                   child: const Text("Join"),
                                 ),
-                              ],
+                              ],*/
                             ),
                           );
                         },

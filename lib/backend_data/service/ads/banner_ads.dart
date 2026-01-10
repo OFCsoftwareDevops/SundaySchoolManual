@@ -1,10 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // Add this
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-
 import 'premium_provider.dart';
-// Remove: import '../../../auth/login/auth_service.dart'; (no longer needed)
 
 class BannerAdWidget extends ConsumerStatefulWidget {
   const BannerAdWidget({super.key});
@@ -93,7 +92,7 @@ class _BannerAdWidgetState extends ConsumerState<BannerAdWidget> {
       height: 50,
       alignment: Alignment.center,
       color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
-      child: const CircularProgressIndicator(),
+      child: const _LoadingDots(),
     );
   }
 
@@ -115,12 +114,85 @@ class _BannerAdWidgetState extends ConsumerState<BannerAdWidget> {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.08),
-            blurRadius: 4,
-            offset: const Offset(0, -2),
+            blurRadius: 2,
+            offset: const Offset(0, -1),
           ),
         ],
       ),
       child: AdWidget(ad: _bannerAd!),
+    );
+  }
+}
+
+class _LoadingDots extends StatelessWidget {
+  const _LoadingDots();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 20.sp,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _Dot(),
+          _Dot(delay: 200),
+          _Dot(delay: 400),
+        ],
+      ),
+    );
+  }
+}
+
+class _Dot extends StatefulWidget {
+  final int delay;
+  const _Dot({this.delay = 0});
+
+  @override
+  State<_Dot> createState() => _DotState();
+}
+
+class _DotState extends State<_Dot> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat();
+
+    Future.delayed(Duration(milliseconds: widget.delay), () {
+      if (mounted) _controller.repeat();
+    });
+
+    _animation = Tween<double>(begin: 0.4, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 4.sp),
+      child: FadeTransition(
+        opacity: _animation,
+        child: Container(
+          width: 8.sp,
+          height: 8.sp,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primary,
+            shape: BoxShape.circle,
+          ),
+        ),
+      ),
     );
   }
 }

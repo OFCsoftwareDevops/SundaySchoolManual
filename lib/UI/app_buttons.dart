@@ -133,49 +133,6 @@ Widget AssignmentWidgetButton({
   );
 }
 
-Widget HomePageButtons({
-  required BuildContext context,
-  required String text,
-  VoidCallback? onPressed,
-  required Color topColor,
-  Color borderColor = const Color.fromARGB(0, 118, 118, 118),  // ← NEW: default white outline
-  double borderWidth = 0.0,          // ← NEW: thickness of border
-  double backOffset = 4.0,
-  double backDarken = 0.45,
-}) {
-  final scale = context.tabletScaleFactor;
-  final screenSize = MediaQuery.of(context).size;
-
-  final double buttonWidth = screenSize.width * 0.8;
-  final double buttonHeight = screenSize.height * 0.05 * scale;
-  const double pressDepth = 4.0;
-
-  return SizedBox(
-    height: buttonHeight + backOffset,
-    width: buttonWidth,
-    child: AnimatedPress3D(
-      onTap: onPressed,
-      topColor: topColor,
-      borderColor: borderColor,      // ← PASS THROUGH
-      borderWidth: borderWidth,      // ← PASS THROUGH
-      backOffset: backOffset,
-      backDarken: backDarken,
-      pressDepth: pressDepth,
-      child: Center(
-        child: Text(
-          text,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 15.sp,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.2,
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
 Widget LessonCardButtons({
   required BuildContext context,
   required VoidCallback onPressed,
@@ -219,27 +176,38 @@ Widget LessonCardButtons({
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    if (leadingIcon != null)
-                      Icon(
-                        leadingIcon,
-                        size: totalHeight * 0.5,
-                        color: iconColor,
+                Flexible(                                           // ← this gives bounded width to everything inside
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,                 // ← important: don't take all space
+                    children: [
+                      if (leadingIcon != null)
+                        Padding(
+                          padding: EdgeInsets.only(right: 12.sp),
+                          child: Icon(
+                            leadingIcon,
+                            size: totalHeight * 0.5,
+                            color: iconColor,
+                          ),
+                        ),
+
+                      Flexible(                                     // ← second Flexible for the Text itself
+                        child: Text(
+                          label,
+                          softWrap: true,
+                          overflow: TextOverflow.visible,           // or .ellipsis if you prefer
+                          maxLines: 3,                              // ← increase if you want more lines allowed
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: totalHeight * 0.25,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.2,
+                            height: 1.2.sp,                           // ← makes multi-line look better
+                            fontStyle: available ? FontStyle.normal : FontStyle.italic,
+                          ),
+                        ),
                       ),
-                    if (leadingIcon != null) SizedBox(width: 12.sp),
-                    Text(
-                      label,
-                      style: TextStyle(
-                        color: textColor,
-                        fontSize: totalHeight * 0.25,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.2,
-                        fontStyle: available ? FontStyle.normal : FontStyle.italic,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 Icon(
                   trailingIcon ?? (available ? Icons.arrow_forward_ios_rounded : Icons.lock_outline),
@@ -464,6 +432,64 @@ Widget GradeButtons({
   );
 }
 
+Widget ChurchChoiceButtons({
+  required BuildContext context,
+  required VoidCallback? onPressed,
+  required String text,
+  required IconData icon,
+  required Color topColor,
+  required Color textColor,
+  //required Widget child, // ← NEW
+  Color borderColor = Colors.transparent,
+  double borderWidth = 0.0,
+  double backOffset = 3.0,
+  double backDarken = 0.45,
+}) {
+  final screenSize = MediaQuery.of(context).size;
+
+  final double buttonWidth = screenSize.width * 0.25;
+  final double buttonHeight = 40.sp;
+  const double pressDepth = 3.0;
+
+  return SizedBox(
+    height: buttonHeight + backOffset,
+    width: buttonWidth,
+    child: AnimatedPress3D(
+      onTap: onPressed,
+      topColor: topColor,
+      borderColor: borderColor,
+      borderWidth: borderWidth,
+      backOffset: backOffset,
+      backDarken: backDarken,
+      pressDepth: pressDepth,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 10.sp), // comfortable text padding
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Icon(icon, 
+              color: textColor, 
+              size: 18.sp,
+            ),
+            Text(
+              text,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 15.sp,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.2,
+              ),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis, // for long names like "Song of Solomon"
+              maxLines: 2, // allow wrap if needed on very small screens
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
 Widget LoginButtons({
   required BuildContext context,
   required VoidCallback? onPressed,
@@ -576,9 +602,7 @@ class _AnimatedPress3DState extends State<AnimatedPress3D>
         return GestureDetector(
           //behavior: HitTestBehavior.opaque,
           onTapDown: (_) => _ctrl.forward(),
-          //onTapUp: (_) => _ctrl.reverse(),
           onTapCancel: () => _ctrl.reverse(),
-          //onTap: widget.onTap,
           onTapUp: (_) async {
             await _ctrl.forward();
             await _ctrl.reverse();

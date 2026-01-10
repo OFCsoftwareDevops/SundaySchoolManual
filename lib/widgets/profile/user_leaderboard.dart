@@ -58,10 +58,6 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      /*appBar: AppBar(
-        title: const Text("Leaderboard"),
-        backgroundColor: AppColors.primary,
-      ),*/
       body: Column(
         children: [
           // Top: Adult / Teen toggle
@@ -121,7 +117,6 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
               Padding(
                 padding: EdgeInsets.all(5.sp),
                 child: Card(
-                  //color: Colors.deepPurple.shade50,
                   child: Padding(
                     padding: EdgeInsets.all(16.sp),
                     child: Text(

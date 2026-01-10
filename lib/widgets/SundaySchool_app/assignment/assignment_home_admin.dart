@@ -89,7 +89,6 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: style.monthFontSize.sp, // Matches the style from your Bible screen
-                //color: Theme.of(context).colorScheme.onBackground,
               ),
             ),
           ),
@@ -127,7 +126,6 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: style.monthFontSize.sp, // Matches the style from your Bible screen
-              //color: Theme.of(context).colorScheme.onBackground,
             ),
           ),
         ),

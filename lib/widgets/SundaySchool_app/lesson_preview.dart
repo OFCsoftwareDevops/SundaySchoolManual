@@ -103,7 +103,6 @@ class BeautifulLessonPage extends StatelessWidget {
               fontSize: 22.sp,
               color: colorScheme.onBackground,
             ),
-            //style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w600),
           ),
         );
       case "text":
@@ -258,7 +257,6 @@ class BeautifulLessonPage extends StatelessWidget {
           fontSize: 15.sp,
         ),
       );
-        //style: const TextStyle(fontSize: 17, height: 1.6));
     }
 
     final parts = <TextSpan>[];

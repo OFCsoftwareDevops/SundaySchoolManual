@@ -26,8 +26,6 @@ Widget segmentedControl({
       final backgroundColor = Theme.of(context).colorScheme.onPrimary;
       final indicatorColor = Theme.of(context).colorScheme.primaryContainer;
 
-       //final segmentWidth = constraints.maxWidth / items.length;
-
       return Container(
         height: 40.sp,
         padding: EdgeInsets.all(padding_choice),

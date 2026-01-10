@@ -678,13 +678,6 @@ class ChapterNavigationButtons extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: colorScheme.secondary,
                   shape: BoxShape.circle,
-                  /*boxShadow: [
-                    BoxShadow(
-                      color: AppColors.darkBackground, 
-                      blurRadius: style.monthFontSize.sp, 
-                      offset: Offset(0, 2),
-                    ),
-                  ],*/
                 ),
                 child: IconButton(
                   iconSize: style.monthFontSize.sp,
@@ -702,13 +695,6 @@ class ChapterNavigationButtons extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: colorScheme.secondary,
                   shape: BoxShape.circle,
-                  /*boxShadow: [
-                    BoxShadow(
-                      color: AppColors.darkBackground, 
-                      blurRadius: style.monthFontSize.sp, 
-                      offset: Offset(0, 1),
-                    ),
-                  ],*/
                 ),
                 child: IconButton(
                   iconSize: style.monthFontSize.sp,

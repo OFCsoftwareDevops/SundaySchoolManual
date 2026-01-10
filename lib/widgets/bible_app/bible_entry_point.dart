@@ -1,7 +1,6 @@
 // lib/widgets/bible_app/bible_entry_point.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'bible.dart';
 import 'bible_last_position_manager.dart';
 import 'bible_page.dart';

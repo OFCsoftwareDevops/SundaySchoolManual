@@ -15,7 +15,6 @@ import '../backend_data/service/firestore_service.dart';
 import '../backend_data/database/lesson_data.dart';
 import '../l10n/app_localizations.dart';
 import '../main.dart';
-import '../utils/device_check.dart';
 import 'SundaySchool_app/further_reading/further_reading_dialog.dart';
 import 'calendar.dart';
 import 'SundaySchool_app/lesson_preview.dart';
@@ -167,7 +166,7 @@ class HomeState extends State<Home> {
           },
         ),
         elevation: 1.sp,
-        actions: [
+        /*actions: [
           // Language Menu
           PopupMenuButton<Locale>(
             icon: const Icon(Icons.language/*, color: AppColors.onPrimary*/),
@@ -185,7 +184,7 @@ class HomeState extends State<Home> {
             ],
           ),
           SizedBox(width: 8.sp),
-        ],
+        ],*/
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -203,7 +202,6 @@ class HomeState extends State<Home> {
                 return AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   color: offline ? AppColors.warning : Colors.transparent,
-                  //padding: const EdgeInsets.symmetric(vertical: 0),
                   child: offline
                     ? const Center(
                       child: Text(

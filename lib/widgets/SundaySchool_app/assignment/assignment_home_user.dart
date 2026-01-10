@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import '../../../UI/app_colors.dart';
 import '../../../UI/segment_sliding.dart';
 import '../../../auth/login/auth_service.dart';
 import '../../../backend_data/database/constants.dart';
@@ -101,7 +100,6 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: style.monthFontSize.sp, // Matches the style from your Bible screen
-              //color: Theme.of(context).colorScheme.onBackground,
             ),
           ),
         ),
@@ -297,21 +295,5 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       children: monthWidgets,
     );
-  }
-
-  List<DateTime> _getSundaysInMonth(int year, int month, Set<DateTime> allDates) {
-    final List<DateTime> sundays = [];
-    DateTime firstDay = DateTime(year, month, 1);
-    int offset = (DateTime.sunday - firstDay.weekday + 7) % 7;
-    DateTime sunday = firstDay.add(Duration(days: offset));
-
-    while (sunday.month == month) {
-      final normalized = DateTime(sunday.year, sunday.month, sunday.day);
-      if (allDates.contains(normalized)) {
-        sundays.add(sunday);
-      }
-      sunday = sunday.add(const Duration(days: 7));
-    }
-    return sundays;
   }
 }

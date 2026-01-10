@@ -360,7 +360,6 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
                             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                               fontSize: 20.sp,
-                              //color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
                           SizedBox(height: 10.sp),
@@ -411,7 +410,6 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
                                       children: [
                                         Icon(
                                           Icons.verified,
-                                          //color: Theme.of(context).colorScheme.primary, // Brand blue = trusted & positive
                                           size: 20.sp,
                                         ),
                                         SizedBox(width: 10.sp),
@@ -420,7 +418,6 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
                                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 18.sp,
-                                                //color: Theme.of(context).colorScheme.primary,
                                           ),
                                         ),
                                       ],
@@ -432,7 +429,6 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
                                       "Your Score: ${_loadedResponse?.totalScore ?? _scores.fold(0, (a, b) => a! + b)} / ${_savedResponses.length}",
                                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                         fontWeight: FontWeight.bold,
-                                        //color: Theme.of(context).colorScheme.primary,
                                         fontSize: 15.sp,
                                       ),
                                     ),

@@ -258,7 +258,6 @@ class _CurrentChurchCardState extends State<CurrentChurchCard> {
 
         // Cancel Deletion Button (only if scheduled)
         if (isScheduled) ...[
-          //SizedBox(height: 16.sp),
           Center(
             child: TextButton(
               onPressed: () async {

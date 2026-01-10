@@ -37,7 +37,6 @@ class UserProfileScreen extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      //extendBodyBehindAppBar: true,
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
         centerTitle: true,
@@ -122,7 +121,6 @@ class UserProfileScreen extends StatelessWidget {
             Expanded(
               child: SingleChildScrollView(
                 padding: EdgeInsets.only(bottom: 0),
-                //physics: const BouncingScrollPhysics(),
                   child: Column(
                     children: [  
                       const CurrentChurchCard(),   

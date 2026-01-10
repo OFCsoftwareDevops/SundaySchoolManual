@@ -1,9 +1,7 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../UI/app_colors.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'notification_service.dart';
 
@@ -100,7 +98,7 @@ class _ReminderTileState extends State<ReminderTile> {
     );
   }
 
-  Future<void> _quickTest() async {
+  /*Future<void> _quickTest() async {
     final now = tz.TZDateTime.now(tz.local).add(const Duration(seconds: 30));
     await NotificationService().scheduleDailyReminder(
       id: 9999,
@@ -117,7 +115,7 @@ class _ReminderTileState extends State<ReminderTile> {
         ),
       );
     }
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {

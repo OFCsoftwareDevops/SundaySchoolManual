@@ -7,7 +7,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
  
 
 /// All data is scoped per church and per user:
-/// churches/{churchId}/members/{userId}/[bookmarks|saved_lessons|further_readings]
 class SavedItemsService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
@@ -37,9 +36,6 @@ class SavedItemsService {
         .toList());
 
   /// Add a bookmark (scripture reference)
-  /// [refId]: Standardized scripture ID (e.g., "genesis-1-1")
-  /// [text]: Optional snapshot of the verse text for offline access
-  /// [note]: Optional personal annotation
   Future<String> addBookmark(
     String userId, {
     required String refId,
@@ -152,7 +148,6 @@ class SavedItemsService {
         .toList());
 
   /// Add a further reading (external link, PDF reference, etc.)
-  /// [source]: Category or source name (e.g., "external link", "uploaded pdf")
   Future<String> addFurtherReading(
     String userId, {
     required String title,

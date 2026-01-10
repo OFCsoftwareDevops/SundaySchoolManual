@@ -1,4 +1,4 @@
-// lib/widgets/verse_popup.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -24,7 +24,6 @@ class VersePopup extends StatelessWidget {
     for (final v in verses) {
       final verseNum = v['verse']?.toString() ?? '';
       final text = (v['text'] ?? '').toString();
-      //final highlighted = (v['highlighted'] ?? false) as bool;
 
       spans.add(TextSpan(
         text: '$verseNum ',
@@ -88,7 +87,6 @@ class VersePopup extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 17.sp,
                           height: 1.5.sp,
-                          //color: const Color.fromARGB(221, 255, 255, 255),
                         ),
                         children: _buildVerseSpansFromList(verses),
                       ),

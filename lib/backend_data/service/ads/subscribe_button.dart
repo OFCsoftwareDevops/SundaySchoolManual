@@ -1,7 +1,6 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 import '../../../UI/app_buttons.dart';
 import '../../../UI/app_colors.dart';
 
@@ -60,23 +59,5 @@ Widget subscribeButton({
               }
             }
           },
-    /*child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (isPremium) 
-          const Icon(Icons.check_circle, color: Colors.white, size: 20)
-        else 
-          const Icon(Icons.credit_card, color: Colors.white, size: 20),
-        const SizedBox(width: 10),
-        Text(
-          isPremium ? "Premium Active" : "Subscribe Now – €19.99/month",
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
-        ),
-      ],
-    ),*/
   );
 }

@@ -171,7 +171,6 @@ class _VerseActionSheetState extends State<VerseActionSheet> {
             children: [
               _Action(icon: Icons.content_copy, label: "Copy", onTap: () {
                 Clipboard.setData(ClipboardData(text: "$reference\n\n$fullText"));
-                //Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Copied!")));
               }),
               _Action(icon: Icons.share, label: "Share", onTap: () => Share.share("$reference\n\n$fullText")),

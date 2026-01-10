@@ -97,7 +97,6 @@ class StreakPage extends StatelessWidget {
                     leading: Icon(
                       Icons.ac_unit,
                       size: 24.sp,
-                      //color: Theme.of(context).colorScheme.primary,
                     ),
                     title: Text(
                       'Freezes available',
@@ -117,7 +116,6 @@ class StreakPage extends StatelessWidget {
                       'Freezes let you skip a day without breaking your streak.',
                       style: TextStyle(
                         fontSize: 15.sp, 
-                        //fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
@@ -129,7 +127,6 @@ class StreakPage extends StatelessWidget {
                     leading: Icon(
                       Icons.calendar_today,
                       size: 24.sp,
-                      //color: Theme.of(context).colorScheme.primary,
                     ),
                     title: Text(
                       'Last Completed',
@@ -144,7 +141,6 @@ class StreakPage extends StatelessWidget {
                         fontSize: 15.sp
                       ),
                     ),
-                    //contentPadding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: 12.sp),
                   ),
                 ),
 
@@ -172,7 +168,6 @@ class StreakPage extends StatelessWidget {
                         Text(
                           '$daysToNext day(s) until next freeze (every 7-day streak awards 1 freeze)',
                           style: TextStyle(
-                            //fontWeight: FontWeight.bold,
                             fontSize: 15.sp,
                           ),
                         ),
@@ -187,13 +182,11 @@ class StreakPage extends StatelessWidget {
                     leading: Icon(
                       Icons.info_outline,
                       size: 24.sp,
-                      //color: Theme.of(context).colorScheme.primary,
                     ),
                     title: Text(
                       'How freezes work',
                       style: TextStyle(
                         fontSize: 15.sp,
-                        //height: 1.5.sp,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -201,13 +194,10 @@ class StreakPage extends StatelessWidget {
                       'If you miss a day, a freeze will be consumed to keep your streak.',
                       style: TextStyle(
                         fontSize: 15.sp,
-                        //height: 1.2.sp,
                       ),
                     ),
-                    //contentPadding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: 12.sp),
                   ),
                 ),
-
                 const Spacer(),
               ],
             ),

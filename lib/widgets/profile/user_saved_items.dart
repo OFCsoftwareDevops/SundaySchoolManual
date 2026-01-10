@@ -300,7 +300,6 @@ class _BookmarkCard extends StatelessWidget {
                         : text!,
                     style: TextStyle(
                       fontSize: 12.sp,
-                      //color: Colors.grey[600],
                       height: 1.3.sp,
                     ),
                     maxLines: 2,
@@ -327,7 +326,6 @@ class _BookmarkCard extends StatelessWidget {
                   text!,
                   style: TextStyle(
                     fontSize: 14.sp,
-                    //color: Colors.grey[800],
                     height: 1.4.sp,
                   ),
                 ),
@@ -678,7 +676,6 @@ class _ReadingCard extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(8.sp),
                   decoration: BoxDecoration(
-                    //color: Colors.green[50],
                     borderRadius: BorderRadius.circular(4.sp),
                   ),
                   child: Text(
