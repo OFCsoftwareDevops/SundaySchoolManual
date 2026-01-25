@@ -1,12 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../UI/app_buttons.dart';
 import '../../UI/app_colors.dart';
+import '../../l10n/app_localizations.dart';
 import '../../backend_data/service/analytics/analytics_service.dart';
 import '../../utils/media_query.dart';
+import '../helpers/snackbar.dart';
 
 class FeedbackScreen extends StatefulWidget {
   const FeedbackScreen({super.key});
@@ -16,14 +17,17 @@ class FeedbackScreen extends StatefulWidget {
 }
 
 class _FeedbackScreenState extends State<FeedbackScreen> {
-  double _rating = 0;
+
   final _commentController = TextEditingController();
   bool _isSubmitting = false;
 
   Future<void> _submitFeedback() async {
-    if (_rating == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please provide a rating')),
+    final comment = _commentController.text.trim();
+
+    if (comment.isEmpty) {
+      showTopToast(
+        context,
+        AppLocalizations.of(context)?.pleaseAddComment ?? 'Please add a comment',
       );
       return;
     }
@@ -36,23 +40,24 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         'uid': user.uid,
         'displayName': user.displayName ?? 'Anonymous',
         'email': user.email,
-        'rating': _rating,
-        'comment': _commentController.text.trim(),
+        'comment': comment.isEmpty ? null : comment,
         'timestamp': FieldValue.serverTimestamp(),
       });
 
       await AnalyticsService.logButtonClick('feedback_submitted');
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Thank you! Feedback submitted.')),
+        showTopToast(
+          context,
+          AppLocalizations.of(context)?.feedbackSubmitted ?? 'Thank you! Feedback submitted.',
         );
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
+        showTopToast(
+          context,
+          'Error: ${e.toString()}',
         );
       }
     } finally {
@@ -78,7 +83,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         title: FittedBox(
           fit: BoxFit.scaleDown,  // Or fitWidth to fill width
           child: Text(
-            "Send Feedback",
+            AppLocalizations.of(context)?.yourSuggestions ?? "Your Suggestions",
             style: TextStyle(fontSize: style.monthFontSize.sp)  // Your desired base size
           ),
         ),
@@ -95,27 +100,14 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'How would you rate the app?',
-              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10.sp),
             Center(
-              child: RatingBar.builder(
-                initialRating: 0,
-                minRating: 1,
-                direction: Axis.horizontal,
-                allowHalfRating: true,
-                itemCount: 5,
-                itemPadding: EdgeInsets.symmetric(horizontal: 4.sp),
-                itemBuilder: (context, _) => const Icon(Icons.star, color: Colors.amber),
-                onRatingUpdate: (rating) => _rating = rating,
+              child: Text(
+                AppLocalizations.of(context)?.suggestionsHelpApp ?? 'Your suggestions make the app better for all!',
+                style: TextStyle(
+                  fontSize: 15.sp,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
-            ),
-            SizedBox(height: 20.sp),
-            Text(
-              'Additional comments (optional)',
-              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 10.sp),
             TextField(
@@ -123,7 +115,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
               maxLines: 6,
               decoration: InputDecoration(
                 border: OutlineInputBorder(),
-                hintText: 'Tell us what you think...',
+                hintText: AppLocalizations.of(context)?.tellUsWhatYouThink ?? 'Tell us what you think...',
                 filled: true,
                 fillColor: colorScheme.surfaceVariant,
               ),
@@ -140,7 +132,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                       backDarken: 0.5,
                       onPressed: _submitFeedback,
                       child: Text(
-                        'Submit Feedback',
+                        AppLocalizations.of(context)?.submitFeedback ?? 'Submit Feedback',
                         style: TextStyle(
                           color: AppColors.onPrimary,
                           fontSize: 15.sp,
@@ -149,6 +141,14 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                       ),
                       text: '',
                     ),
+            ),
+            SizedBox(height: 10.sp),
+            Divider(height: 20.sp),
+            Center(
+              child: Text(
+                AppLocalizations.of(context)?.rateAppSettings ?? 'Hii... To rate the app, please go to Settings ...',
+                style: TextStyle(fontSize: 12.sp),
+              ),
             ),
           ],
         ),

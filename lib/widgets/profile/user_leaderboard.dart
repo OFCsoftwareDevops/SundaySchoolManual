@@ -4,8 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import '../../../../UI/segment_sliding.dart';
+import '../../UI/app_segment_sliding.dart';
 import '../../../../auth/login/auth_service.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/media_query.dart';
 
 class LeaderboardPage extends StatefulWidget {
@@ -19,14 +20,24 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
   int _selectedAgeGroup = 0; // 0 = Adult, 1 = Teen
   int _selectedScope = 0;    // 0 = Church, 1 = Global
 
-  final List<String> _ageGroups = ["Adult", "Teen"];
-  final List<String> _scopes = ["Church", "Global"];
+  late final List<String> _ageGroups;
+  late final List<String> _scopes;
 
   @override
   void initState() {
     super.initState();
+    // Initialize localized lists in initState after context is available
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      setState(() {}); // Trigger initial load
+      setState(() {
+        _ageGroups = [
+          AppLocalizations.of(context)?.adult ?? "Adult",
+          AppLocalizations.of(context)?.teen ?? "Teen",
+        ];
+        _scopes = [
+          AppLocalizations.of(context)?.church ?? "Church",
+          AppLocalizations.of(context)?.global ?? "Global",
+        ];
+      });
     });
   }
 
@@ -35,20 +46,21 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     final auth = context.read<AuthService>();
     final churchId = auth.churchId;
     final isAdmin = auth.isGlobalAdmin || (auth.hasChurch && auth.adminStatus.isChurchAdmin);
+    final colorScheme = Theme.of(context).colorScheme;
 
     final style = CalendarDayStyle.fromContainer(context, 50);
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: colorScheme.background,
       appBar: AppBar(
         centerTitle: true,
         title: FittedBox(
-          fit: BoxFit.scaleDown, // Scales down text if it would overflow
+          fit: BoxFit.scaleDown,
           child: Text(
-            "Leaderboard",
+            AppLocalizations.of(context)?.leaderboard ?? "Leaderboard",
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: style.monthFontSize.sp, // Matches your other screen's style
+              fontSize: style.monthFontSize.sp,
             ),
           ),
         ),
@@ -90,6 +102,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     final bool isAdult = ageGroup == 0;
     final String type = isAdult ? "adult" : "teen";
     final bool isChurch = scope == 0;
+    final colorScheme = Theme.of(context).colorScheme;
 
     final userId = FirebaseAuth.instance.currentUser?.uid;
 
@@ -100,12 +113,12 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return Center(child: Text("Error: ${snapshot.error}"));
+          return Center(child: Text("${AppLocalizations.of(context)?.errorWithMessage ?? 'Error:'} ${snapshot.error}"));
         }
         final ranks = snapshot.data ?? [];
 
         if (ranks.isEmpty) {
-          return const Center(child: Text("No rankings yet in this category."));
+          return Center(child: Text(AppLocalizations.of(context)?.noRankingsYet ?? "No rankings yet in this category."));
         }
 
         final myRankIndex = ranks.indexWhere((r) => r.userId == userId);
@@ -116,12 +129,23 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
             if (userId != null)
               Padding(
                 padding: EdgeInsets.all(5.sp),
-                child: Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.sp),
-                    child: Text(
-                      "Your Rank: $myRankText",
-                      style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 70.sp,
+                  child: Card(
+                    color: colorScheme.onSurface,
+                    elevation: 1,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5.sp.r),
+                    ),
+                    child: Center(
+                      child: Text(
+                        "${AppLocalizations.of(context)?.yourRank ?? 'Your Rank:'} $myRankText",
+                        style: TextStyle(
+                          color: colorScheme.surface,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -132,16 +156,26 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                 itemBuilder: (context, index) {
                   final rank = ranks[index];
                   final isMe = rank.userId == userId;
-                  final displayName = isAdmin || isMe ? rank.name : "Anonymous Student #${index + 1}";
+                  final displayName = isAdmin || isMe ? rank.name : (AppLocalizations.of(context)?.anonymousStudent ?? "Anonymous Student");
 
                   return ListTile(
                     leading: _buildRankBadge(index + 1),
-                    title: Text(displayName),
-                    trailing: Text(
-                      "${rank.totalScore} pts",
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    title: Text(
+                      displayName,
+                      style: TextStyle(
+                        color: isMe
+                          ? colorScheme.surface      // example: highlight current user
+                          : colorScheme.onSurface // normal users
+                      ),
                     ),
-                    tileColor: isMe ? const Color.fromARGB(255, 77, 26, 153) : null,
+                    trailing: Text(
+                      "${rank.totalScore} ${AppLocalizations.of(context)?.pointsLabel ?? 'pts'}",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: isMe ? colorScheme.surface: colorScheme.onSurface,
+                      ),
+                    ),
+                    tileColor: isMe ? colorScheme.onSurface: null,
                   );
                 },
               ),
@@ -157,8 +191,11 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     if (rank == 2) return Icon(Icons.emoji_events, color: Colors.grey, size: 36.sp);
     if (rank == 3) return Icon(Icons.emoji_events, color: Colors.brown, size: 36.sp);
     return Text(
-      "#$rank",
-      style: TextStyle(fontSize: 15.sp),
+      "$rank",
+      style: TextStyle(
+        fontSize: 15.sp,
+        color: Theme.of(context).colorScheme.onSurface,
+      ),
     );
   }
 

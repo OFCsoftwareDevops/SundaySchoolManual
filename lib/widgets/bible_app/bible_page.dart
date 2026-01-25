@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../UI/app_buttons.dart';
 import '../../utils/device_check.dart';
 import '../../utils/media_query.dart';
+import '../../l10n/app_localizations.dart';
 import 'bible_actions/highlight_manager.dart';
 import 'bible.dart';
 import 'bible_last_position_manager.dart';
@@ -46,18 +47,18 @@ class BiblePage extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.menu_book_rounded, 
-                    size: 100, color: 
-                    colorScheme.primaryContainer,
+                    size: 50, 
+                    color: colorScheme.onBackground,
                   ),
-                  SizedBox(height: 40),
+                  SizedBox(height: 20),
                   Text(
-                    "Loading the Holy Bible...", 
+                    AppLocalizations.of(context)?.loading ?? "Loading the Holy Bible...", 
                     style: textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: colorScheme.primaryContainer,
+                      color: colorScheme.onBackground,
                     ),
                   ),
-                  SizedBox(height: 30),
+                  SizedBox(height: 20),
                   CircularProgressIndicator(),
                 ],
               ),
@@ -68,7 +69,7 @@ class BiblePage extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             title: Text(
-              "Holy Bible",
+              AppLocalizations.of(context)?.navBible ?? "Holy Bible",
               style: theme.appBarTheme.titleTextStyle?.copyWith(
                 fontSize: style.monthFontSize.sp,
                 fontWeight: FontWeight.bold),
@@ -104,11 +105,11 @@ class BiblePage extends StatelessWidget {
             ],
           ),
           body: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            padding: EdgeInsets.fromLTRB(16.sp, 0, 16.sp, 16.sp),
             children: [
-              _buildTestament(context, "Old Testament", books, 0, 39),
+              _buildTestament(context, AppLocalizations.of(context)?.oldTestament ?? "Old Testament", books, 0, 39),
               const SizedBox(height: 32),
-              _buildTestament(context, "New Testament", books, 39, books.length),
+              _buildTestament(context, AppLocalizations.of(context)?.newTestament ?? "New Testament", books, 39, books.length),
             ],
           ),
         );
@@ -141,13 +142,13 @@ class BiblePage extends StatelessWidget {
           ),
         ),
         ...items.map((book) => Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+          padding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: 5.sp),
           child: SizedBox(
             height: buttonHeight,
             width: double.infinity, 
             child: BibleBooksButtons(
               context: context,
-              text: book['name'],
+              text: BibleVersionManager.getTranslatedBookName(book['name'] as String, AppLocalizations.of(context)),
               textColor: theme.colorScheme.surface,
               topColor: theme.colorScheme.onSurface,  // same color you used in ElevatedButton
               onPressed: () {
@@ -177,11 +178,13 @@ class BiblePage extends StatelessWidget {
 class BookReader extends StatelessWidget {
   final Map<String, dynamic> book;
   final int initialChapter;
+  final bool skipChapterGrid;
 
   const BookReader({
     super.key, 
     required this.book,
-    this.initialChapter = 1, 
+    this.initialChapter = 1,
+    this.skipChapterGrid = false,
   });
 
   // Helper: Detect tablet (add this extension elsewhere if not already present)
@@ -198,9 +201,9 @@ class BookReader extends StatelessWidget {
   int _calculateCrossAxisCount(BuildContext context) {
     final double buttonSize = _getScaledButtonSize(context);  // ← Use scaled size
     final screenWidth = MediaQuery.of(context).size.width;
-    final totalHorizontalPadding = 40.0;
+    final totalHorizontalPadding = 40.0.sp;
     final availableWidth = screenWidth - totalHorizontalPadding;
-    final gap = 8.0;
+    final gap = 8.0.sp;
 
     // More columns will naturally fit on tablets due to smaller buttons
     return ((availableWidth + gap) / (buttonSize + gap)).floor().clamp(7, 10); // ← Increased upper limit for tablets
@@ -217,13 +220,25 @@ class BookReader extends StatelessWidget {
     final style = CalendarDayStyle.fromContainer(context, 50);
     const double gap = 8.0; // ~8px
 
+    // If initialChapter is provided and valid, skip grid and go straight to ChapterReader
+    if (skipChapterGrid && 
+        initialChapter >= 1 && 
+        initialChapter <= chapters.length) {
+      return ChapterReader(
+        chapterData: chapters[initialChapter - 1],
+        bookName: book['name'] as String,
+        chapterNum: initialChapter,
+        totalChapters: chapters.length,
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
         title: FittedBox(
           fit: BoxFit.scaleDown,  // Or fitWidth to fill width
           child: Text(
-            book['name'],
+            BibleVersionManager.getTranslatedBookName(book['name'] as String, AppLocalizations.of(context)),
             style: TextStyle(fontSize: style.monthFontSize.sp)  // Your desired base size
           ),
         ),
@@ -278,7 +293,7 @@ class BookReader extends StatelessWidget {
       body: GridView.builder(
         padding: EdgeInsets.symmetric(
           horizontal: totalHorizontalPadding / 2, // 20 on each side
-          vertical: 20,
+          vertical: 20.sp,
         ),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: columns,             
@@ -354,6 +369,12 @@ class _ChapterReaderState extends State<ChapterReader> {
     _scrollController.addListener(_saveScrollPosition);
   }
 
+  void _clearSelectionAndCloseSheet() {
+    setState(() {
+      _selectedVerses.clear();
+    });
+  }
+
   void _saveScrollPosition() {
     final offset = _scrollController.offset;
     // Simple: find the first visible verse
@@ -377,13 +398,15 @@ class _ChapterReaderState extends State<ChapterReader> {
     final textTheme = theme.textTheme;
     final fontstyle = CalendarDayStyle.fromContainer(context, 50);
 
+    final lineHeight = context.lineHeight;
+
     return Consumer<BibleVersionManager>(
       builder: (context, manager, child) {
         final currentData = manager.getCurrentChapterData(widget.bookName, widget.chapterNum) ?? widget.chapterData;
 
         final List<dynamic> rawVerses = currentData is List
             ? currentData
-            : currentData is Map && (currentData as Map).containsKey('verses')
+            : currentData is Map && (currentData).containsKey('verses')
                 ? (currentData['verses'] as List)
                 : <dynamic>[];
 
@@ -412,7 +435,7 @@ class _ChapterReaderState extends State<ChapterReader> {
             title: FittedBox(
               fit: BoxFit.scaleDown,  // Or fitWidth to fill width
               child: Text(
-                "${widget.bookName} ${widget.chapterNum}",
+                "${BibleVersionManager.getTranslatedBookName(widget.bookName, AppLocalizations.of(context))} ${widget.chapterNum}",
                 style: TextStyle(
                   fontSize: fontstyle.monthFontSize.sp)  // Your desired base size
               ),
@@ -457,7 +480,6 @@ class _ChapterReaderState extends State<ChapterReader> {
                                 color: colorScheme.onPrimary,
                                 size: fontstyle.monthFontSize.sp,
                               ),
-                              //underline: const SizedBox(),
                               style: TextStyle(
                                 color: colorScheme.onPrimary, 
                                 fontWeight: FontWeight.bold,
@@ -485,7 +507,7 @@ class _ChapterReaderState extends State<ChapterReader> {
             children: [
               ListView.builder(
                 key: _listViewKey,
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.all(20.sp),
                 itemCount: verses.length,
                 itemBuilder: (context, i) {
                   final Map<String, dynamic> v = verses[i];
@@ -529,13 +551,13 @@ class _ChapterReaderState extends State<ChapterReader> {
                       ),
                       child: Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
+                        padding: EdgeInsets.symmetric(vertical: 0, horizontal: 12.sp),
                         child: RichText(
                           text: TextSpan(
                             style: textTheme.bodyLarge?.copyWith(
                               fontSize: fontstyle.monthFontSize.sp * 0.9,
-                              height: 1.5,
-                              color: isSelected ? colorScheme.primary : colorScheme.onBackground,
+                              height: lineHeight,
+                              color: isSelected ? colorScheme.onBackground.withOpacity(0.7): colorScheme.onBackground,
                             ),
                             children: [
                               TextSpan(
@@ -569,6 +591,7 @@ class _ChapterReaderState extends State<ChapterReader> {
                     versesText: {
                       for (var v in verses) v['verse'] as int: v['text'] as String,
                     },
+                    onActionComplete: _clearSelectionAndCloseSheet,
                   ),
                 ),
 
@@ -614,7 +637,7 @@ class ChapterNavigationButtons extends StatelessWidget {
     // Helper to navigate to a specific book/chapter
     void goToChapter(int targetBookIndex, int targetChapter) {
       if (targetBookIndex < 0 || targetBookIndex >= books.length) return;
-      final targetBook = books[targetBookIndex] as Map<String, dynamic>;
+      final targetBook = books[targetBookIndex];
       final chaptersList = targetBook['chapters'] as List<dynamic>;
       if (targetChapter < 1 || targetChapter > chaptersList.length) return;
 

@@ -2,8 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../UI/app_colors.dart';
-import '../../UI/timed_button.dart';
+import '../../UI/app_timed_button.dart';
 import '../../backend_data/service/shorebird/shorebird_push.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/media_query.dart';
 
 class IntroPage extends StatelessWidget {
@@ -56,7 +57,7 @@ class IntroPage extends StatelessWidget {
               ),
               SizedBox(height: 40.sp),
               Text(
-                "Sunday School Manual",
+                AppLocalizations.of(context)?.sundaySchoolManual ?? "Sunday School Manual",
                 style: Theme.of(context).textTheme.headlineMedium!.copyWith(
                       fontWeight: FontWeight.bold,
                       fontSize: (Theme.of(context).textTheme.headlineMedium!.fontSize ?? 24.sp) * scale,
@@ -65,7 +66,7 @@ class IntroPage extends StatelessWidget {
               ),
               SizedBox(height: 20.sp),
               Text(
-                "Access your weekly Teen and Adult Bible study lessons anytime, anywhere — even offline!",
+                AppLocalizations.of(context)?.accessWeeklyLessonsOffline ?? "Access your weekly Teen and Adult Bible study lessons anytime, anywhere — even offline!",
                 style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                   fontSize: (Theme.of(context).textTheme.bodyLarge!.fontSize ?? 16.sp) * (scale * 0.8),
                 ),
@@ -79,7 +80,7 @@ class IntroPage extends StatelessWidget {
                 color: AppColors.grey600.withOpacity(0.6),
               ),
               Text(
-                "Pioneered in RCCG JHFAN | Paris!",
+                AppLocalizations.of(context)?.builtForRccg ?? "Built for Redeemed Christian Church of God!",
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
                   fontSize: (Theme.of(context).textTheme.bodySmall!.fontSize ?? 16.sp) * (scale * 0.8),
                 ),
@@ -90,7 +91,7 @@ class IntroPage extends StatelessWidget {
                 width: double.infinity,
                 child: PreloadProgressButton(
                   context: context,
-                  text: "Get Started",
+                  text: AppLocalizations.of(context)?.getStarted ?? "Get Started",
                   preloadDone: preloadDone,
                   progress: preloadProgress,
                   totalSteps: totalPreloadSteps,

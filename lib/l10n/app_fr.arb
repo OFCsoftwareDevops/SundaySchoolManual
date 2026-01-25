@@ -2,13 +2,294 @@
   "@@locale": "fr",
 
   "appName": "Leçons d’école du dimanche",
-  "sundaySchoolLesson": "Leçon d’école du dimanche",
-  "noLessonToday": "Aucune leçon aujourd’hui",
+  "language": "Langue",
+
+  "sundaySchoolLesson": "Leçon d'école du dimanche",
+  "noLessonToday": "Aucune leçon aujourd'hui",
   "noTeenLesson": "Aucune leçon pour les adolescents",
   "noAdultLesson": "Aucune leçon pour les adultes",
 
+  "sundaySchoolManual": "Manuel d'École du Dimanche",
+  "accessWeeklyLessonsOffline": "Accédez à vos leçons bibliques hebdomadaires pour adolescents et adultes n'importe quand, n'importe où — même hors ligne !",
+  "builtForRccg": "Conçu pour l'Église Chrétienne Rachetée de Dieu !",
+  "getStarted": "Commencer",
+  "openFullChapter": "Ouvrir le chapitre complet →",
+  "close": "Fermer",
+
+  "preparing": "Préparation en cours...",
+  "preparingWithProgress": "Préparation... ({progress}/{totalSteps})",
+
+  "login": "Connexion",
+  "signInToCreateOrJoin": "Connectez-vous pour créer ou rejoindre votre église",
+  "google": "Google",
+  "apple": "Apple",
+  "guest": "Invité",
+  "signInFailed": "Échec de la connexion",
+  "applSignInFailed": "Échec de la connexion Apple",
+  "guestModeFailed": "Échec du mode invité",
+  "guestUser": "Utilisateur invité",
+  "guestMode": "Mode invité",
+  "anonymous": "Anonyme",
+  "continueWithGoogle": "Continuer avec Google",
+  "signInWithApple": "Se connecter avec Apple",
+  "continueAsGuest": "Continuer en tant qu'invité",
+  "guestDataWarning": "Toutes les données sont temporairement enregistrées et perdues après déconnexion.",
+  "fullAccessDescription": "Accès complet : créer ou rejoindre votre église",
+  "limitedAccessDescription": "Accès limité : utiliser uniquement le mode général",
+
+  "profile": "Profil",
+  "settings": "Paramètres",
+  "bookmarks": "Signets",
+  "streaks": "Séries",
+  "leaderboard": "Classement",
+  "assignments": "Devoirs",
+  "teachers": "Enseignants",
+  "appSuggestions": "Suggestions d'application",
+  "adminTools": "Outils d'administration",
+  "colorPalette": "Palette de couleurs",
+  "parish": "Paroisse",
+  "joinCode": "Code d'accès",
+  "pastor": "Pasteur",
+  "notAvailable": "Non disponible",
+
+  "deleteAccount": "Supprimer le compte",
+  "deletionScheduledOn": "Compte programmé pour suppression définitive le :\n{date}",
+  "logInToCancel": "Connectez-vous avant cette date pour annuler la suppression et restaurer votre compte.",
+  "permanentDeletionWarning": "Votre compte et toutes vos données seront définitivement supprimés après 30 jours.\nVous pouvez annuler à tout moment en vous reconnectant.",
+  "deleteAccountDialogTitle": "Supprimer le compte ?",
+  "deleteAccountDialogContent": "• Votre compte sera définitivement supprimé dans 30 jours.\n• Toutes vos données (signets, séries, devoirs, classement) seront perdues.\n• Vous pouvez annuler à tout moment en vous reconnectant simplement.\n\nÊtes-vous sûr ?",
+  "cancelDeletion": "Annuler la suppression",
+  "deleteIn30Days": "Supprimer dans 30 jours",
+  "deletionScheduledButton": "Suppression programmée",
+  "accountDeletionScheduledSnack": "Compte programmé pour suppression dans 30 jours. Connectez-vous pour annuler.",
+  "deletionCancelledSnack": "Suppression du compte annulée ! Bienvenue à nouveau 🎉" ,
+
+  "feedback": "Commentaires",
+  "rateAppOnGooglePlay": "Évaluer l'application sur Google Play",
+  "suggestAFeature": "Suggérer une fonctionnalité",
+  "preferences": "Préférences",
+
+  "signIn": "Se connecter",
+  "register": "S'inscrire",
+  "join": "Rejoindre",
+  "registerParish": "Enregistrer une paroisse",
+  "createChurch": "Créer une église",
+  "joinChurch": "Rejoindre une église",
+  "selectChurch": "Sélectionner une église",
+  "churchAccessCode": "Code d'accès de l'église",
+  "churchName": "Nom de l'église",
+  "pastorName": "Nom du pasteur",
+  "leaveChurch": "Quitter l'église",
+  "selectYourChurch": "Sélectionnez votre église",
+  "noChurchSelected": "Aucune église sélectionnée",
+
+  "shareAsLessonPdf": "Partager en PDF",
+  "shareLink": "Partager le lien",
+  "saveLessonPrompt": "Connectez-vous et rejoignez une église pour enregistrer les leçons",
+  "lessonRemovedFromSaved": "Leçon supprimée des enregistrements",
+  "lessonSaved": "Leçon enregistrée! 📚",
+  "operationFailed": "Opération échouée",
+  "removedFromSavedLessons": "Supprimer des leçons enregistrées",
+  "saveThisLesson": "Enregistrer cette leçon",
+
+  "verseTemporarilyUnavailable": "Verset temporairement indisponible",
+  "removedFromSavedReadings": "Supprimer des lectures enregistrées",
+  "saveThisReading": "Enregistrer cette lecture",
+
+  "pleaseSelectYourChurchFirst": "Veuillez d'abord sélectionner votre église!",
+  "pleaseEnterAtLeastOneAnswer": "Veuillez entrer au moins une réponse à la question.",
+  "yourAnswersHaveBeenSubmitted": "Vos réponses ont été soumises avec succès!",
+  "failedToSaveYourAnswers": "Impossible de sauvegarder vos réponses. Veuillez réessayer.",
+  "responses": "Réponses",
+  "globalAdminsOnlyNoChurch": "Admins mondiaux uniquement — aucune église sélectionnée.",
+
+  "addAnotherResponse": "Ajouter une autre réponse",
+  "noSubmissionsYet": "Pas encore de soumissions.",
+  "currentStatus": "État actuel",
+  "submitted": "Soumis",
+  "notSubmitted": "Non soumis",
+  "graded": "Noté",
+  "viewFeedback": "Afficher les commentaires",
+  "leaveFeedback": "Laisser des commentaires",
+
+  "lessonTitle": "Titre de la leçon",
+  "topic": "Sujet",
+  "biblePassage": "PASSAGE BIBLIQUE:",
+  "guestUserLabel": "Utilisateur invité",
+  "loading": "Chargement",
+  "answerWeeklyAssignment": "Répondre au devoir hebdomadaire",
+  "loginForAssignment": "Connectez-vous pour répondre au devoir",
+
+  "monday": "Lundi",
+  "tuesday": "Mardi",
+  "wednesday": "Mercredi",
+  "thursday": "Jeudi",
+  "friday": "Vendredi",
+  "saturday": "Samedi",
+  "sunday": "Dimanche",
+
+  "january": "Janvier",
+  "february": "Février",
+  "march": "Mars",
+  "april": "Avril",
+  "may": "Mai",
+  "june": "Juin",
+  "july": "Juillet",
+  "august": "Août",
+  "september": "Septembre",
+  "october": "Octobre",
+  "november": "Novembre",
+  "december": "Décembre",
+
+  "switchedToGeneral": "Basculé vers les leçons générales (mondiales)",
+  "shareLesson": "Partager la leçon",
+  "readingStreak": "Série de lecture",
+  "memoryVerse": "Verset mémorisé:",
+  "todaysReading": "Lecture du jour:",
+  "completeReading": "Lecture complète",
+  "readingTimer": "Avant la série… ({remainingSeconds} s)",
+  "noReading": "Aucune lecture",
+  "prayer": "Prière",
+  "noBookmarksYet": "Aucun signet pour le moment",
+  "signInToSaveFavorites": "Connectez-vous pour enregistrer vos favoris",
+  "bookmarksSyncMessage": "Les signets, les leçons et les lectures se synchronisent sur tous vos appareils.",
+  "english": "English",
+  "francais": "Français",
+  "copied": "Copié!",
+  "invalidSavedLessonId": "ID de leçon enregistrée invalide",
+  "lessonNotFound": "Leçon non trouvée",
+  "savedLessonContentNotAvailable": "Le contenu de la leçon enregistrée n'est pas disponible",
+  "pleaseAddAComment": "Veuillez ajouter un commentaire",
+  "thankYouFeedbackSubmitted": "Merci! Commentaires soumis.",
+  "errorSharingChurch": "Erreur lors du partage de l'église: {error}",
+  "youHaveLeftTheChurch": "Vous avez quitté l'église",
+  "pleaseLogInToViewAssignments": "Veuillez vous connecter pour voir vos devoirs",
+  "teenResponses": "Réponses adolescents",
+  "adultResponses": "Réponses adultes",
+  "editResponses": "Modifier les réponses",
+  "yourScore": "Votre score: {score} / {total}",
+  "myResponses": "Mes réponses:",
+  "yourSubmittedResponses": "Vos réponses soumises",
+  "assignmentGraded": "Devoir noté.",
+  "gradedNoEdit": "Noté — non modifiable",
+  "noQuestionAvailable": "Aucune question disponible.",
+  "noQuestionAvailableForThisDay": "Aucune question aujourd’hui.",
+  "myAssignment": "Mon devoir",
+  "thisWeeksAssignment": "Devoir de la semaine",
+  "dueDateFormatted": "À rendre : {dateFormatted}",
+  "gradedByTeacher": "Noté par l’enseignant",
+  "teachersFeedback": "Commentaires :",
+  "noTeacherFeedbackProvided": "Aucun commentaire.",
+  "submittedTapEditToChange": "Envoyé — Modifier",
+  "writeYourResponseHere": "Écrivez la réponse …",
+  "submit": "Envoyer",
+  "loadingQuestion": "Chargement…",
+  "teenOrAdultResponses": "Réponses",
+  "question": "Question",
+  "submissions": "Soumissions",
+  "answerWithIndex": "Réponse {i} : {answer}",
+  "reset": "Réinitialiser",
+  "grade": "Noter",
+  "teenSundaySchoolLesson": "Leçon d'école du dimanche pour adolescents",
+  "adultSundaySchoolLesson": "Leçon d'école du dimanche pour adultes",
+  "youWillBeSignedOut": "Vous serez déconnecté et revenir à l'écran de connexion.",
+  "leaveWithoutJoining": "Partir sans rejoindre?",
+  "setUpYourParish": "Configurez votre paroisse et devenez son administrateur",
+  "enterSixDigitCode": "Entrez le code à 6 chiffres fourni par l'administrateur de votre paroisse",
+  "copiedHex": "Copié: {hex}",
+  "rccgSundaySchoolGeneral": "École du dimanche RCCG (Générale)",
+  "savedItems": "Éléments enregistrés",
+  "errorLoadingData": "Erreur: {error}",
+  "noRankingsYet": "Pas encore de classement dans cette catégorie.",
+  "couldNotDetermineBook": "Impossible de déterminer le livre ou le chapitre",
+  "bookNotFoundInBibleVersion": "Le livre n'a pas été trouvé dans la version actuelle de la Bible",
+  "signInAndJoinToBookmarks": "Connectez-vous et rejoignez une église pour enregistrer les signets",
+  "bookmarkRemoved": "Signet supprimé",
+  "bookmarked": "Signet ajouté! ⭐",
+  "pleaseSelectChurchFirst": "Veuillez d'abord sélectionner votre église!",
+  "couldNotSendRequest": "Impossible d'envoyer la demande",
+  "thankYouPastor": "Merci, {name}!",
+  "createYourChurch": "Créez votre église",
+  "pleaseFillAllRequiredFields": "Veuillez remplir tous les champs requis",
+  "leaveChurchMessage": "Vous ne serez plus connecté à cette église.",
+  "cancel": "Annuler",
+  "accessRestricted": "Accès restreint",
+  "manageChurchSettings": "Gérer les paramètres de l'église",
+  "askYourPastor": "Demandez le code à votre pasteur",
+  "primaryColors": "Couleurs principales",
+  "secondaryColors": "Couleurs secondaires",
+  "neutralAndBackground": "Neutre et arrière-plan",
+  "statusColors": "Couleurs d'état",
+  "greyScale": "Échelle de gris",
+  "darkTheme": "Thème sombre",
+  "members": "Membres",
+  "lessonCompletion": "Complétion des leçons",
+  "dailyActive": "Actifs quotidiens",
+  "weeklyActive": "Actifs hebdomadaires",
+  "activity": "Activité (7 derniers jours)",
+  "lessonProgress": "Progrès des leçons",
+  "alertsAndHighlights": "Alertes et mises en évidence",
+  "testNotificationScheduled": "Notification de test programmée dans 30 secondes!",
+  "exactTimingDenied": "Le minutage exact a été refusé. Le rappel sera approximatif.",
+  "addItem": "Ajouter un élément",
+
+  "yoruba": "Yoruba",
+  "navHome": "Accueil",
+  "navBible": "Bible",
+  "navAccount": "Compte",
+  "pleaseLogInToViewStreak": "Veuillez vous connecter pour voir votre série.",
+  "offlineMode": "Mode hors ligne • Utilisation des leçons en cache",
+  "newLesson": "Nouvelle leçon!",
+  "openButton": "OUVRIR",
+  "leaveButton": "Quitter",
+  "leaveChurchDialog": "Quitter l'église?",
+  "oldTestament": "Ancien Testament",
+  "newTestament": "Nouveau Testament",
+
+  "updateAvailable": "Mise à jour disponible !",
+  "updateMessage": "Une nouvelle version est prête avec des améliorations et des corrections.\nLa télécharger maintenant ?",
+  "later": "Plus tard",
+  "updateNow": "Mettre à jour",
+
+  "invalidSixDigitCode": "Veuillez entrer un code valide à 6 chiffres",
+  "invalidServerResponse": "Réponse du serveur invalide",
+  "failedToJoinChurch": "Impossible de rejoindre l’église",
+  "joinedSuccessfully": "Inscription réussie !",
+
+  "signOutWarning": "Vous serez déconnecté et renvoyé à l’écran de connexion.",
+  "stay": "Rester",
+
+  "welcome": "Bienvenue !",
+  "connectToChurch": "Connectons-vous à votre église",
+
+  "registerParishDescription": "Configurez votre paroisse et devenez son administrateur",
+
+  "joinParish": "Rejoindre une paroisse",
+  "enterChurchCode": "Entrer le code de l’église",
+  "askPastorForCode": "Demandez le code à votre pasteur",
+
+  "mustBeSignedIn": "Vous devez être connecté",
+
+  "requestSent": "Demande envoyée !",
+  "requestSummary": "Votre demande de création :\n\n🏛️ $churchName\n📍 $parishName\n🌍 $country\n\na été envoyée.",
+  "approvalNotice": "Vous recevrez une notification dans les 24 heures après approbation.",
+  "gotIt": "D’accord !",
+
+  "churchAlreadyExists": "Une église portant ce nom existe déjà. Veuillez contacter le support.",
+  "genericError": "Erreur : {toString}",
+
+  "churchInformation": "Informations sur l’église",
+  "parishName": "Nom de la paroisse / branche *",
+  "adminEmail": "Email de l’administrateur *",
+  "addressOptional": "Adresse (facultatif)",
+  "country": "Pays *",
+  "submitRequest": "Envoyer la demande",
+
   "@appName": {
     "description": "Nom de l'application"
+  },
+  "@language": {
+    "description": "Étiquette de préférence de langue"
   },
   "@sundaySchoolLesson": {
     "description": "Titre quand une leçon existe"
@@ -21,5 +302,691 @@
   },
   "@noAdultLesson": {
     "description": "Message quand la leçon adulte est absente"
-  }
+  },
+  "@sundaySchoolManual": {
+    "description": "Titre pour l'application ou la section manuel"
+  },
+  "@accessWeeklyLessonsOffline": {
+    "description": "Sous-titre promotionnel mettant en avant l'accès hors ligne"
+  },
+  "@builtForRccg": {
+    "description": "Message de marque pour les utilisateurs RCCG"
+  },
+  "@getStarted": {
+    "description": "Bouton d'appel à l'action pour commencer"
+  },
+  "@openFullChapter": {
+    "description": "Button text to open the full chapter view"
+  },
+  "@close": {
+    "description": "Button text to close a dialog or screen"
+  },
+  "@preparing": {
+    "description": "Texte d'indicateur de chargement pendant la préparation/configuration"
+  },
+  "@preparingWithProgress": {
+    "description": "Indicateur de chargement avec compteur de progression",
+    "placeholders": {
+      "progress": {},
+      "totalSteps": {}
+    }
+  },
+  "@login": {
+    "description": "Étiquette du bouton de connexion"
+  },
+  "@signInToCreateOrJoin": {
+    "description": "Texte de sous-titre sur l'écran de connexion"
+  },
+  "@google": {
+    "description": "Étiquette d'option de connexion Google"
+  },
+  "@apple": {
+    "description": "Étiquette d'option de connexion Apple"
+  },
+  "@guest": {
+    "description": "Option de connexion invité/anonyme"
+  },
+  "@signInFailed": {
+    "description": "Message d'erreur lors de l'échec de la connexion"
+  },
+  "@applSignInFailed": {
+    "description": "Message d'erreur lors de l'échec de la connexion Apple"
+  },
+  "@guestModeFailed": {
+    "description": "Message d'erreur lors de l'échec de la connexion invité"
+  },
+  "@guestUser": {
+    "description": "Nom par défaut pour les utilisateurs invités"
+  },
+  "@guestMode": {
+    "description": "Étiquette indiquant que l'utilisateur est en mode invité/anonyme"
+  },
+  "@anonymous": {
+    "description": "Étiquette utilisateur anonyme"
+  },
+  "@continueWithGoogle": { 
+    "description": "Libellé du bouton pour connexion Google" 
+  },
+  "@signInWithApple": { 
+    "description": "Libellé du bouton pour connexion Apple (iOS uniquement)" 
+  },
+  "@continueAsGuest": { 
+    "description": "Libellé du bouton pour mode invité" 
+  },
+  "@guestDataWarning": {
+    "description": "Avertissement affiché sous le bouton invité concernant la perte de données" 
+  },
+  "@fullAccessDescription": { 
+    "description": "Description des avantages de la connexion normale" 
+  },
+  "@limitedAccessDescription": { 
+    "description": "Description des limitations du mode invité" 
+  },
+  "@profile": {
+    "description": "Titre de l'écran de profil utilisateur"
+  },
+  "@settings": {
+    "description": "Titre de l'écran des paramètres"
+  },
+  "@bookmarks": {
+    "description": "Section des signets/éléments enregistrés"
+  },
+  "@streaks": {
+    "description": "Section des séries quotidiennes"
+  },
+  "@leaderboard": {
+    "description": "Section classement/classements"
+  },
+  "@assignments": {
+    "description": "Section des devoirs pour les utilisateurs"
+  },
+  "@teachers": {
+    "description": "Section des enseignants/notation pour les admins"
+  },
+  "@appSuggestions": {
+    "description": "Section des suggestions/commentaires sur l'application"
+  },
+  "@adminTools": {
+    "description": "Section des outils d'administration"
+  },
+  "@colorPalette": {
+    "description": "Personnalisation de la palette de couleurs"
+  },
+  "@parish": {
+    "description": "Libellé pour le nom de la paroisse/église de l'utilisateur"
+  },
+  "@joinCode": {
+    "description": "Libellé pour le code à 6 chiffres permettant de rejoindre une paroisse/église"
+  },
+  "@pastor": {
+    "description": "Libellé pour le nom du pasteur de la paroisse/église"
+  },
+  "@notAvailable": {
+    "description": "Texte de secours affiché quand une valeur (ex. nom du pasteur, code d'accès) est manquante ou non définie"
+  },
+  "@feedback": {
+    "description": "En-tête de la section de commentaires"
+  },
+  "@rateAppOnGooglePlay": {
+    "description": "Élément de menu pour évaluer l'application"
+  },
+  "@suggestAFeature": {
+    "description": "Élément de menu pour suggérer des fonctionnalités"
+  },
+  "@preferences": {
+    "description": "Section des préférences utilisateur"
+  },
+  "@signIn": {
+    "description": "Bouton de connexion"
+  },
+  "@register": {
+    "description": "Bouton d'inscription"
+  },
+  "@join": {
+    "description": "Bouton Rejoindre"
+  },
+  "@registerParish": {
+    "description": "Enregistrer une nouvelle paroisse/église"
+  },
+  "@createChurch": {
+    "description": "Créer une nouvelle église"
+  },
+  "@joinChurch": {
+    "description": "Rejoindre une église existante"
+  },
+  "@selectChurch": {
+    "description": "Titre du dialogue de sélection d'église"
+  },
+  "@churchAccessCode": {
+    "description": "Code d'accès pour rejoindre une église"
+  },
+  "@churchName": {
+    "description": "Nom de l'église"
+  },
+  "@pastorName": {
+    "description": "Nom du pasteur"
+  },
+  "@leaveChurch": {
+    "description": "Quitter l'église actuelle"
+  },
+  "@selectYourChurch": {
+    "description": "Message d'invitation de sélection d'église"
+  },
+  "@noChurchSelected": {
+    "description": "Message quand aucune église n'est sélectionnée"
+  },
+  "@shareAsLessonPdf": {
+    "description": "Option Partager la leçon au format PDF"
+  },
+  "@shareLink": {
+    "description": "Option Partager le lien de leçon"
+  },
+  "@saveLessonPrompt": {
+    "description": "Message d'invitation à se connecter pour enregistrer les leçons"
+  },
+  "@lessonRemovedFromSaved": {
+    "description": "Message de succès quand la leçon est supprimée de l'enregistrement"
+  },
+  "@lessonSaved": {
+    "description": "Message de succès quand la leçon est enregistrée"
+  },
+  "@operationFailed": {
+    "description": "Message générique d'opération échouée"
+  },
+  "@removedFromSavedLessons": {
+    "description": "Info-bulle pour le bouton Supprimer des leçons enregistrées"
+  },
+  "@saveThisLesson": {
+    "description": "Info-bulle pour le bouton Enregistrer la leçon"
+  },
+  "@verseTemporarilyUnavailable": {
+    "description": "Message quand un verset biblique est temporairement indisponible"
+  },
+  "@removedFromSavedReadings": {
+    "description": "Info-bulle pour le bouton Supprimer des lectures enregistrées"
+  },
+  "@saveThisReading": {
+    "description": "Info-bulle pour le bouton Enregistrer la lecture"
+  },
+  "@pleaseSelectYourChurchFirst": {
+    "description": "Message d'erreur quand l'utilisateur n'a pas sélectionné d'église"
+  },
+  "@pleaseEnterAtLeastOneAnswer": {
+    "description": "Message de validation pour les réponses aux devoirs"
+  },
+  "@yourAnswersHaveBeenSubmitted": {
+    "description": "Message de succès après la soumission des devoirs"
+  },
+  "@failedToSaveYourAnswers": {
+    "description": "Message d'erreur quand la sauvegarde des devoirs échoue"
+  },
+  "@responses": {
+    "description": "Section des réponses/soumissions"
+  },
+  "@globalAdminsOnlyNoChurch": {
+    "description": "Message d'erreur d'accès non autorisé"
+  },
+  "@addAnotherResponse": {
+    "description": "Bouton pour ajouter un autre champ de réponse"
+  },
+  "@noSubmissionsYet": {
+    "description": "Message d'état vide"
+  },
+  "@currentStatus": {
+    "description": "Étiquette d'état de soumission actuelle"
+  },
+  "@submitted": {
+    "description": "Statut: devoir soumis"
+  },
+  "@notSubmitted": {
+    "description": "Statut: devoir non soumis"
+  },
+  "@graded": {
+    "description": "Statut: devoir noté"
+  },
+  "@viewFeedback": {
+    "description": "Bouton pour afficher les commentaires"
+  },
+  "@leaveFeedback": {
+    "description": "Bouton pour laisser des commentaires"
+  },
+  "@lessonTitle": {
+    "description": "Titre de la leçon"
+  },
+  "@topic": {
+    "description": "Sujet de la leçon"
+  },
+  "@biblePassage": {
+    "description": "Référence de passage biblique"
+  },
+  "@guestUserLabel": {
+    "description": "Étiquette pour l'utilisateur invité"
+  },
+  "@loading": {
+    "description": "Texte de l'indicateur de chargement"
+  },
+  "@answerWeeklyAssignment": {
+    "description": "Bouton ou libellé pour commencer à répondre au devoir hebdomadaire"
+  },
+  "@loginForAssignment": {
+    "description": "Message affiché quand l'utilisateur doit se connecter pour accéder au devoir"
+  },
+  "@monday": {
+    "description": "Jour de la semaine: lundi"
+  },
+  "@tuesday": {
+    "description": "Jour de la semaine: mardi"
+  },
+  "@wednesday": {
+    "description": "Jour de la semaine: mercredi"
+  },
+  "@thursday": {
+    "description": "Jour de la semaine: jeudi"
+  },
+  "@friday": {
+    "description": "Jour de la semaine: vendredi"
+  },
+  "@saturday": {
+    "description": "Jour de la semaine: samedi"
+  },
+  "@sunday": {
+    "description": "Jour de la semaine: dimanche"
+  },
+  "@january": {
+    "description": "Mois: Janvier"
+  },
+  "@february": {
+    "description": "Mois: Février"
+  },
+  "@march": {
+    "description": "Mois: Mars"
+  },
+  "@april": {
+    "description": "Mois: Avril"
+  },
+  "@may": {
+    "description": "Mois: Mai"
+  },
+  "@june": {
+    "description": "Mois: Juin"
+  },
+  "@july": {
+    "description": "Mois: Juillet"
+  },
+  "@august": {
+    "description": "Mois: Août"
+  },
+  "@september": {
+    "description": "Mois: Septembre"
+  },
+  "@october": {
+    "description": "Mois: Octobre"
+  },
+  "@november": {
+    "description": "Mois: Novembre"
+  },
+  "@december": {
+    "description": "Mois: Décembre"
+  },
+  "@switchedToGeneral": {
+    "description": "Message basculé vers leçons générales"
+  },
+  "@shareLesson": {
+    "description": "Titre pour dialog partager la leçon"
+  },
+  "@readingStreak": {
+    "description": "Titre page série de lecture"
+  },
+  "@memoryVerse": {
+    "description": "Étiquette section verset mémorisé"
+  },
+  "@todaysReading": {
+    "description": "Étiquette section lecture du jour"
+  },
+  "@completeReading": {
+    "description": "Bouton pour marquer la lecture comme complète"
+  },
+  "@readingTimer": {
+    "description": "Affichage du minuteur de la série de lecture"
+  },
+  "@noReading": {
+    "description": "État vide section lecture du jour"
+  },
+  "@prayer": {
+    "description": "Étiquette section prière"
+  },
+  "@noBookmarksYet": {
+    "description": "Message état vide signets"
+  },
+  "@signInToSaveFavorites": {
+    "description": "Invite à se connecter pour enregistrer"
+  },
+  "@bookmarksSyncMessage": {
+    "description": "Message sur sync signets appareils"
+  },
+  "@english": {
+    "description": "Option langue anglais"
+  },
+  "@francais": {
+    "description": "Option langue français"
+  },
+  "@copied": {
+    "description": "Message contenu copié presse-papiers"
+  },
+  "@invalidSavedLessonId": {
+    "description": "Message erreur ID leçon invalide"
+  },
+  "@lessonNotFound": {
+    "description": "Message erreur leçon non trouvée"
+  },
+  "@savedLessonContentNotAvailable": {
+    "description": "Message erreur contenu leçon indisponible"
+  },
+  "@pleaseAddAComment": {
+    "description": "Message validation ajouter commentaire"
+  },
+  "@thankYouFeedbackSubmitted": {
+    "description": "Message succès après soumission commentaires"
+  },
+  "@errorSharingChurch": {
+    "description": "Message erreur partage église échoue"
+  },
+  "@youHaveLeftTheChurch": {
+    "description": "Message confirmation après quitter église"
+  },
+  "@pleaseLogInToViewAssignments": {
+    "description": "Message utilisateur non connecté voir devoirs"
+  },
+  "@myAssignments": {
+    "description": "Titre page mes devoirs"
+  },
+  "@teenResponses": {
+    "description": "Titre réponses devoirs ados"
+  },
+  "@adultResponses": {
+    "description": "Titre réponses devoirs adultes"
+  },
+  "@editResponses": {
+    "description": "Bouton modifier réponses"
+  },
+  "@yourScore": {
+    "description": "Affichage score utilisateur"
+  },
+  "@myResponses": {
+    "description": "Étiquette section mes réponses"
+  },
+  "@yourSubmittedResponses": {
+    "description": "Étiquette réponses soumises"
+  },
+  "@assignmentGraded": {
+    "description": "Message notification devoir noté"
+  },
+  "@gradedNoEdit": {
+    "description": "Indication devoir noté non modifiable"
+  },
+  "@teenSundaySchoolLesson": {
+    "description": "Titre leçon adolescents"
+  },
+  "@adultSundaySchoolLesson": {
+    "description": "Titre leçon adultes"
+  },
+  "@youWillBeSignedOut": {
+    "description": "Message avertissement déconnexion"
+  },
+  "@leaveWithoutJoining": {
+    "description": "Titre dialog confirmation"
+  },
+  "@setUpYourParish": {
+    "description": "Sous-titre enregistrer paroisse"
+  },
+  "@enterSixDigitCode": {
+    "description": "Sous-titre rejoindre paroisse"
+  },
+  "@copiedHex": {
+    "description": "Message couleur hex copié"
+  },
+  "@rccgSundaySchoolGeneral": {
+    "description": "Titre RCCG leçons générales"
+  },
+  "@savedItems": {
+    "description": "Titre page éléments enregistrés"
+  },
+  "@errorLoadingData": {
+    "description": "Message générique erreur chargement"
+  },
+  "@noRankingsYet": {
+    "description": "État vide classement"
+  },
+  "@couldNotDetermineBook": {
+    "description": "Message erreur analyse livre bible"
+  },
+  "@bookNotFoundInBibleVersion": {
+    "description": "Erreur livre non trouvé version bible"
+  },
+  "@signInAndJoinToBookmarks": {
+    "description": "Invite se connecter enregistrer signets"
+  },
+  "@bookmarkRemoved": {
+    "description": "Message signet supprimé"
+  },
+  "@bookmarked": {
+    "description": "Message élément signet"
+  },
+  "@pleaseSelectChurchFirst": {
+    "description": "Erreur église non sélectionnée"
+  },
+  "@couldNotSendRequest": {
+    "description": "Erreur demande échoue envoi"
+  },
+  "@thankYouPastor": {
+    "description": "Thank-you message shown after sending a request",
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "@createYourChurch": {
+    "description": "Titre écran créer église"
+  },
+  "@pleaseFillAllRequiredFields": {
+    "description": "Message validation formulaire"
+  },
+  "@leaveChurchMessage": {
+    "description": "Message avertissement avant quitter église"
+  },
+  "@cancel": {
+    "description": "Étiquette bouton annuler"
+  },
+  "@accessRestricted": {
+    "description": "Message erreur accès refusé"
+  },
+  "@manageChurchSettings": {
+    "description": "Étiquette bouton paramètres église"
+  },
+  "@askYourPastor": {
+    "description": "Texte aide obtenir code église"
+  },
+  "@primaryColors": {
+    "description": "Titre section couleurs principales"
+  },
+  "@secondaryColors": {
+    "description": "Titre section couleurs secondaires"
+  },
+  "@neutralAndBackground": {
+    "description": "Titre section couleurs neutres"
+  },
+  "@statusColors": {
+    "description": "Titre section couleurs état"
+  },
+  "@greyScale": {
+    "description": "Titre section échelle gris"
+  },
+  "@darkTheme": {
+    "description": "Titre section thème sombre"
+  },
+  "@members": {
+    "description": "Titre stat membres"
+  },
+  "@lessonCompletion": {
+    "description": "Titre stat complétion leçons"
+  },
+  "@dailyActive": {
+    "description": "Titre stat utilisateurs actifs quotidiennement"
+  },
+  "@weeklyActive": {
+    "description": "Titre stat utilisateurs actifs hebdomadaires"
+  },
+  "@activity": {
+    "description": "Titre graphique activité"
+  },
+  "@lessonProgress": {
+    "description": "Titre graphique progrès leçons"
+  },
+  "@alertsAndHighlights": {
+    "description": "Titre section alertes"
+  },
+  "@testNotificationScheduled": {
+    "description": "Message après planification notification test"
+  },
+  "@exactTimingDenied": {
+    "description": "Message permission minutage notification"
+  },
+  "@addItem": {
+    "description": "Bouton ajouter élément"
+  },
+
+  "bibleGenesis": "Genèse",
+  "bibleExodus": "Exode",
+  "bibleLeviticus": "Lévitique",
+  "bibleNumbers": "Nombres",
+  "bibleDeuteronomy": "Deutéronome",
+  "bibleJoshua": "Josué",
+  "bibleJudges": "Juges",
+  "bibleRuth": "Ruth",
+  "bible1Samuel": "1 Samuel",
+  "bible2Samuel": "2 Samuel",
+  "bible1Kings": "1 Rois",
+  "bible2Kings": "2 Rois",
+  "bible1Chronicles": "1 Chroniques",
+  "bible2Chronicles": "2 Chroniques",
+  "bibleEzra": "Esdras",
+  "bibleNehemiah": "Néhémie",
+  "bibleEsther": "Esther",
+  "bibleJob": "Job",
+  "biblePsalms": "Psaumes",
+  "bibleProverbs": "Proverbes",
+  "bibleEcclesiastes": "Ecclésiaste",
+  "bibleSongOfSolomon": "Cantique des Cantiques",
+  "bibleIsaiah": "Ésaïe",
+  "bibleJeremiah": "Jérémie",
+  "bibleLamentations": "Lamentations",
+  "bibleEzekiel": "Ézéchiel",
+  "bibleDaniel": "Daniel",
+  "bibleHosea": "Osée",
+  "bibleJoel": "Joël",
+  "bibleAmos": "Amos",
+  "bibleObadiah": "Abdias",
+  "bibleJonah": "Jonas",
+  "bibleMicah": "Michée",
+  "bibleNahum": "Nahum",
+  "bibleHabakkuk": "Habakuk",
+  "bibleZephaniah": "Sophonie",
+  "bibleHaggai": "Aggée",
+  "bibleZechariah": "Zacharie",
+  "bibleMalachi": "Malachie",
+  "bibleMatthew": "Matthieu",
+  "bibleMark": "Marc",
+  "bibleLuke": "Luc",
+  "bibleJohn": "Jean",
+  "bibleActs": "Actes",
+  "bibleRomans": "Romains",
+  "bible1Corinthians": "1 Corinthiens",
+  "bible2Corinthians": "2 Corinthiens",
+  "bibleGalatians": "Galates",
+  "bibleEphesians": "Éphésiens",
+  "biblePhilippians": "Philippiens",
+  "bibleColossians": "Colossiens",
+  "bible1Thessalonians": "1 Thessaloniciens",
+  "bible2Thessalonians": "2 Thessaloniciens",
+  "bible1Timothy": "1 Timothée",
+  "bible2Timothy": "2 Timothée",
+  "bibleTitus": "Tite",
+  "biblePhilemon": "Philémon",
+  "bibleHebrews": "Hébreux",
+  "bibleJames": "Jacques",
+  "bible1Peter": "1 Pierre",
+  "bible2Peter": "2 Pierre",
+  "bible1John": "1 Jean",
+  "bible2John": "2 Jean",
+  "bible3John": "3 Jean",
+  "bibleJude": "Jude",
+  "bibleRevelation": "Apocalypse",
+
+  "signInAndJoinToBookmarks": "Connectez-vous et rejoignez une église pour enregistrer les signets",
+  "bookmarkRemoved": "Signet supprimé",
+  "copy": "Copier",
+  "share": "Partager",
+  "bookmarked": "Marqué",
+  "bookmark": "Signet",
+  "removeHighlight": "Supprimer la surbrillance",
+  "copied": "Copié!",
+  "verseSelected": "verset sélectionné",
+  "versesSelected": "versets sélectionnés",
+  "cancel": "Annuler",
+  "advertsDisclosure": "Les annonces financent l'application et la maintenance du serveur, pour votre plaisir.",
+  "teachers": "Professeurs",
+  "appSuggestions": "Suggestions d'application",
+  "adminTools": "Outils d'administration",
+  "colorPalette": "Palette de couleurs",
+  "inviteYourFriends": "Inviter vos amis",
+  "signOut": "Se déconnecter",
+  "guestUser": "Utilisateur invité",
+  "guestMode": "mode invité",
+  "pleaseAddComment": "Veuillez ajouter un commentaire",
+  "feedbackSubmitted": "Merci ! Vos commentaires ont été soumis.",
+  "yourSuggestions": "Vos suggestions",
+  "suggestionsHelpApp": "Vos suggestions améliorent l'application pour tous !",
+  "tellUsWhatYouThink": "Dites-nous ce que vous pensez...",
+  "submitFeedback": "Soumettre les commentaires",
+  "rateAppSettings": "Salut... Pour évaluer l'application, veuillez aller dans Paramètres ...",
+  "pleaseSignInStreak": "Veuillez vous connecter pour voir votre série.",
+  "dayStreak": "jour de série",
+  "freezesAvailable": "Gels disponibles",
+  "freezesDescription": "Les gels vous permettent de sauter un jour sans casser votre série.",
+  "lastCompleted": "Dernier réalisé",
+  "never": "Jamais",
+  "progressNextFreeze": "Progression vers le gel suivant",
+  "daysUntilNextFreeze": "jour(s) jusqu'au gel suivant (chaque série de 7 jours donne 1 gel)",
+  "howFreezesWork": "Comment fonctionnent les gels",
+  "freezeExplanation": "Si vous manquez un jour, un gel sera consommé pour maintenir votre série.",
+  "savedItemsTitle": "Éléments enregistrés",
+  "noBookmarksYetMessage": "Aucun signet pour le moment",
+  "saveFavoriteScriptures": "Enregistrez vos versets préférés pour les lire à tout moment.",
+  "noChurchSelected": "Aucune église sélectionnée",
+  "deleteBookmark": "Supprimer le signet",
+  "yourNote": "Votre note",
+  "noSavedLessons": "Aucune leçon enregistrée",
+  "saveLessonsToReview": "Enregistrez les leçons pour les consulter plus tard.",
+  "invalidSavedLessonId": "ID de leçon enregistrée invalide",
+  "lessonNotFound": "Leçon non trouvée",
+  "savedLessonContentNotAvailable": "Le contenu de la leçon enregistrée n'est pas disponible",
+  "openLesson": "Ouvrir la leçon",
+  "deleteLesson": "Supprimer la leçon",
+  "noteLabel": "Note",
+  "noFurtherReadings": "Aucune lecture complémentaire",
+  "saveReadingMaterials": "Enregistrez les documents de lecture pour les explorer plus tard.",
+  "deleteReading": "Supprimer la lecture",
+  "lessons": "Leçons",
+  "readings": "Lectures",
+  "adult": "Adulte",
+  "teen": "Adolescent",
+  "church": "Église",
+  "global": "Mondial",
+  "errorWithMessage": "Erreur :",
+  "yourRank": "Votre rang :",
+  "anonymousStudent": "Étudiant anonyme",
+  "pointsLabel": "pts",
+  "refreshAssignments": "Actualiser les devoirs",
+  "empty": "Vide!",
+  "noAssignmentsInQuarter": "Aucun devoir dans ce trimestre.",
+  "myAssignments": "Mes Devoirs"
 }

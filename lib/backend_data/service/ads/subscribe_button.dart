@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../UI/app_buttons.dart';
 import '../../../UI/app_colors.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../widgets/helpers/snackbar.dart';
 
 Widget subscribeButton({
   required BuildContext context,
@@ -12,7 +14,7 @@ Widget subscribeButton({
 
   return LoginButtons(
     context: context,
-    text: isPremium ? "Premium Active" : "Subscribe Now – €19.99/month",
+    text: isPremium ? "Premium Active" : "Subscribe Now – €14.99/month",
     topColor: isPremium ? AppColors.success : AppColors.primaryContainer, // Green when active, normal when subscribable
     borderColor: Colors.transparent,
     backOffset: 3.0,
@@ -50,11 +52,11 @@ Widget subscribeButton({
               }
             } catch (e) {
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Error starting checkout: $e'),
-                    backgroundColor: Colors.red.shade700,
-                  ),
+                showTopToast(
+                  context,
+                  'Error starting checkout: $e',
+                  backgroundColor: AppColors.error,
+                  textColor: AppColors.onError,
                 );
               }
             }

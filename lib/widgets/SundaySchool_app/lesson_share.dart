@@ -1,39 +1,36 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
-import '../backend_data/database/lesson_data.dart';
+import '../../backend_data/database/lesson_data.dart';
 import 'package:pdf/pdf.dart';
+
+import '../../utils/store_links.dart';
 
 class LessonShare {
   final SectionNotes data;
   final String title;
   final DateTime lessonDate;
 
-  /// Optional: Add a logo image file path
-  final String? logoPath;
-
   LessonShare({
     required this.data,
     required this.title,
     required this.lessonDate,
-    this.logoPath, // e.g., 'assets/images/church_logo.png'
   });
 
   String lessonId() => '${lessonDate.year}-${lessonDate.month}-${lessonDate.day}';
 
-  String generateLessonLink() {
-    return "https://myapp.example.com/lesson/${lessonId()}";
-  }
+  //String get universalLink => "https://myapp.example.com/lesson/${lessonId()}";
+  //String appStoreLink = "https://apps.apple.com/app/idYOUR_APP_ID";
+  //String playStoreLink = "https://play.google.com/store/apps/details?id=com.yourcompany.yourapp";
 
   /// Generates a PDF of the full lesson and returns the file
   Future<File> generatePdf() async {
     final pdf = pw.Document();
 
-    final imageData = await rootBundle.load('assets/images/rccg_jhfan_share_image.png');
+    final imageData = await rootBundle.load('assets/images/rccg_logo.png');
     final logo = pw.MemoryImage(imageData.buffer.asUint8List());
 
     pdf.addPage(
@@ -43,15 +40,21 @@ class LessonShare {
           final content = <pw.Widget>[];
 
           // Add logo if available
-          if (logo != null) {
-            content.add(pw.Center(child: pw.Image(logo, height: 60)));
-            content.add(pw.SizedBox(height: 12));
-          }
-
+          content.add(pw.Center(child: pw.Image(logo, height: 60)));
+          content.add(pw.SizedBox(height: 12));
+        
           // App branding / header
-          content.add(pw.Center(
-            child: pw.Text("My Church App", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
-          ));
+          content.add(
+            pw.Center(
+              child: pw.Text(
+                "RCCG - Sunday School Manual", 
+                style: pw.TextStyle(
+                  fontSize: 18, 
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+            ),
+          );
           content.add(pw.SizedBox(height: 16));
 
           // Lesson title & topic
@@ -74,12 +77,22 @@ class LessonShare {
           content.add(pw.SizedBox(height: 20));
           content.add(pw.Divider());
           content.add(pw.SizedBox(height: 8));
+          // In generatePdf() – footer section
           content.add(pw.Text(
-            "Lesson ID: ${lessonId()}",
-            style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey),
+            "Open lesson in app (If installed):",
+            style: pw.TextStyle(fontSize: 13, color: PdfColors.blue),
+          ));
+          content.add(pw.SizedBox(height: 8));
+          content.add(pw.Text(
+            "Download app:",
+            style: pw.TextStyle(fontSize: 11, color: PdfColors.grey700),
           ));
           content.add(pw.Text(
-            "View in App: ${generateLessonLink()}",
+            "Android: ${StoreLinks.android}",
+            style: const pw.TextStyle(fontSize: 12, color: PdfColors.blue),
+          ));
+          content.add(pw.Text(
+            "iOS: ${StoreLinks.ios}",
             style: const pw.TextStyle(fontSize: 12, color: PdfColors.blue),
           ));
 
@@ -146,7 +159,11 @@ class LessonShare {
       final pdfFile = await generatePdf();
       await Share.shareXFiles(
         [XFile(pdfFile.path)],
-        text: "Check out this lesson! ID: ${lessonId()} Topic: ${data.topic}",
+        text: "Check out this lesson!\n"
+        "Topic: ${data.topic}\n\n"
+        "Download the app:\n"
+        "Android: ${StoreLinks.android}\n"
+        "iOS: ${StoreLinks.ios}",
         subject: "$title: ${data.topic}",
       );
     } catch (e) {
@@ -156,10 +173,18 @@ class LessonShare {
     }
   }
 
+  // In shareAsLink()
   Future<void> shareAsLink() async {
+    final String shareText = 
+        "Check out this lesson: ${data.topic}\n\n"
+        "Lesson ID: ${lessonId()}\n\n"
+        "Download the app:\n"
+        "Android: ${StoreLinks.android}\n"
+        "iOS: ${StoreLinks.ios}\n";
+
     await Share.share(
-      "Check out this lesson in our app!\n\n${generateLessonLink()}\n\nLesson ID: ${lessonId()}",
-      subject: "$title: ${data.topic}",
+      shareText,
+      subject: "$title – ${data.topic}",
     );
   }
 }

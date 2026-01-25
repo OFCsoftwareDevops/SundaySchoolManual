@@ -5,11 +5,13 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../UI/app_colors.dart';
 import '../../auth/login/auth_service.dart';
-import '../../backend_data/service/saved_items_service.dart';
-import '../../backend_data/service/firestore_service.dart';
+import '../../backend_data/service/firestore/saved_items_service.dart';
+import '../../backend_data/service/firestore/firestore_service.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/media_query.dart';
 import '../SundaySchool_app/lesson_preview.dart';
 import '../SundaySchool_app/further_reading/further_reading_dialog.dart';
+import '../helpers/snackbar.dart';
 
 class SavedItemsPage extends StatefulWidget {
   const SavedItemsPage({super.key});
@@ -49,18 +51,18 @@ class _SavedItemsPageState extends State<SavedItemsPage>
         appBar: AppBar(
           centerTitle: true,
           title: FittedBox(
-            fit: BoxFit.scaleDown, // Scales down text if it would overflow
+            fit: BoxFit.scaleDown,
             child: Text(
-              "Saved Items",
+              AppLocalizations.of(context)?.savedItemsTitle ?? "Saved Items",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                fontSize: style.monthFontSize.sp, // Matches your other screen's style
+                fontSize: style.monthFontSize.sp,
               ),
             ),
           ),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            iconSize: style.monthFontSize.sp, // Consistent sizing
+            iconSize: style.monthFontSize.sp,
             onPressed: () => Navigator.pop(context),
           ),
         ),
@@ -73,13 +75,13 @@ class _SavedItemsPageState extends State<SavedItemsPage>
                 Icon(Icons.bookmark, size: 64.sp, color: Colors.grey),
                 SizedBox(height: 16.sp),
                 Text(
-                  'Sign in to save your favorites',
+                  AppLocalizations.of(context)?.signInToSaveFavorites ?? 'Sign in to save your favorites',
                   style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600),
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 8.sp),
                 Text(
-                  'Bookmarks, lessons, and readings will sync across your devices.',
+                  AppLocalizations.of(context)?.bookmarksSyncMessage ?? 'Bookmarks, lessons, and readings will sync across your devices.',
                   style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
                   textAlign: TextAlign.center,
                 ),
@@ -99,23 +101,23 @@ class _SavedItemsPageState extends State<SavedItemsPage>
         appBar: AppBar(
           centerTitle: true,
           title: FittedBox(
-            fit: BoxFit.scaleDown, // Scales down text if it would overflow
+            fit: BoxFit.scaleDown,
             child: Text(
-              "Saved Items",
+              AppLocalizations.of(context)?.savedItemsTitle ?? "Saved Items",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                fontSize: style.monthFontSize.sp, // Matches your other screen's style
+                fontSize: style.monthFontSize.sp,
               ),
             ),
           ),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            iconSize: style.monthFontSize.sp, // Consistent sizing
+            iconSize: style.monthFontSize.sp,
             onPressed: () => Navigator.pop(context),
           ),
         ),
-        body: const Center(
-          child: Text('No church selected'),
+        body: Center(
+          child: Text(AppLocalizations.of(context)?.noChurchSelected ?? 'No church selected'),
         ),
       );
     }
@@ -127,7 +129,7 @@ class _SavedItemsPageState extends State<SavedItemsPage>
         title: FittedBox(
           fit: BoxFit.scaleDown, // Scales down text if it would overflow
           child: Text(
-            "Saved Items",
+            AppLocalizations.of(context)?.savedItemsTitle ?? "Saved Items",
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: style.monthFontSize.sp, // Matches your other screen's style
@@ -156,15 +158,15 @@ class _SavedItemsPageState extends State<SavedItemsPage>
           tabs: [
             Tab(
               icon: Icon(Icons.bookmark, size: 18.sp),
-              text: 'Bookmarks',
+              text: AppLocalizations.of(context)?.bookmarks ?? 'Bookmarks',
             ),
             Tab(
               icon: Icon(Icons.school, size: 18.sp),
-              text: 'Lessons',
+              text: AppLocalizations.of(context)?.lessons ?? 'Lessons',
             ),
             Tab(
               icon: Icon(Icons.library_books, size: 18.sp),
-              text: 'Readings',
+              text: AppLocalizations.of(context)?.readings ?? 'Readings',
             ),
           ],
         ),
@@ -217,8 +219,8 @@ class _BookmarksTab extends StatelessWidget {
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return _EmptyState(
             icon: Icons.bookmark_border,
-            title: 'No Bookmarks Yet',
-            message: 'Save your favorite scriptures to read them anytime.',
+            title: AppLocalizations.of(context)?.noBookmarksYetMessage ?? 'No Bookmarks Yet',
+            message: AppLocalizations.of(context)?.saveFavoriteScriptures ?? 'Save your favorite scriptures to read them anytime.',
           );
         }
 
@@ -311,7 +313,7 @@ class _BookmarkCard extends StatelessWidget {
             trailing: IconButton(
               icon: Icon(Icons.delete, color: AppColors.grey700, size: 20.sp),
               onPressed: onDelete,
-              tooltip: 'Delete bookmark',
+              tooltip: AppLocalizations.of(context)?.deleteBookmark ?? 'Delete bookmark',
             ),
             tilePadding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: 8.sp),
             childrenPadding: EdgeInsets.fromLTRB(16.sp, 0, 16.sp, 12.sp),
@@ -342,7 +344,7 @@ class _BookmarkCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Your Note",
+                        AppLocalizations.of(context)?.yourNote ?? "Your Note",
                         style: TextStyle(
                           fontSize: 14.sp,
                           fontWeight: FontWeight.bold,
@@ -393,8 +395,8 @@ class _SavedLessonsTab extends StatelessWidget {
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return _EmptyState(
             icon: Icons.school,
-            title: 'No Saved Lessons',
-            message: 'Save lessons to review them later.',
+            title: AppLocalizations.of(context)?.noSavedLessons ?? 'No Saved Lessons',
+            message: AppLocalizations.of(context)?.saveLessonsToReview ?? 'Save lessons to review them later.',
           );
         }
 
@@ -432,22 +434,31 @@ class _SavedLessonsTab extends StatelessWidget {
                 }
 
                 if (date == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid saved lesson id')));
+                  showTopToast(
+                    context,
+                    AppLocalizations.of(context)?.invalidSavedLessonId ?? 'Invalid saved lesson id',
+                  );
                   return;
                 }
 
                 final auth = context.read<AuthService>();
                 final fs = FirestoreService(churchId: auth.churchId);
-                final lessonDay = await fs.loadLesson(date!);
+                final lessonDay = await fs.loadLesson(context, date!);
                 if (lessonDay == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lesson not found')));
+                  showTopToast(
+                    context,
+                    AppLocalizations.of(context)?.lessonNotFound ?? 'Lesson not found',
+                  );
                   return;
                 }
 
                 final isTeen = (lessonType == 'teen');
                 final section = isTeen ? lessonDay.teenNotes : lessonDay.adultNotes;
                 if (section == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Saved lesson content not available')));
+                  showTopToast(
+                    context,
+                    AppLocalizations.of(context)?.savedLessonContentNotAvailable ?? 'Saved lesson content not available',
+                  );
                   return;
                 }
 
@@ -531,7 +542,7 @@ class _LessonCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(6.sp)),
-                        child: Text('Note: $note', style: TextStyle(fontSize: 13.sp)),
+                        child: Text('${AppLocalizations.of(context)?.noteLabel ?? 'Note'}: $note', style: TextStyle(fontSize: 13.sp)),
                       ),
                     ],
                   ],
@@ -543,12 +554,12 @@ class _LessonCard extends StatelessWidget {
                   IconButton(
                     icon: const Icon(Icons.open_in_new, color: Colors.grey),
                     onPressed: onTap,
-                    tooltip: 'Open lesson',
+                    tooltip: AppLocalizations.of(context)?.openLesson ?? 'Open lesson',
                   ),
                   IconButton(
                     icon: Icon(Icons.delete, color: AppColors.grey700, size: 20.sp),
                     onPressed: onDelete,
-                    tooltip: 'Delete lesson',
+                    tooltip: AppLocalizations.of(context)?.deleteLesson ?? 'Delete lesson',
                   ),
                 ],
               ),
@@ -584,8 +595,8 @@ class _FurtherReadingsTab extends StatelessWidget {
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return _EmptyState(
             icon: Icons.library_books,
-            title: 'No Further Readings',
-            message: 'Save reading materials to explore them later.',
+            title: AppLocalizations.of(context)?.noFurtherReadings ?? 'No Further Readings',
+            message: AppLocalizations.of(context)?.saveReadingMaterials ?? 'Save reading materials to explore them later.',
           );
         }
 
@@ -608,9 +619,12 @@ class _FurtherReadingsTab extends StatelessWidget {
               onDelete: () => service.removeFurtherReading(userId, id),
               onEditNote: (newNote) =>
                   service.updateFurtherReadingNote(userId, id, newNote),
-              onTap: () {
+              onTap: () async {
                 // prefer link if it looks like a scripture reference, otherwise title
-                final todayReading = (readingText != null && readingText.isNotEmpty) ? readingText : title;
+                final todayReading = (readingText != null && readingText.isNotEmpty) 
+                  ? readingText 
+                  : title;
+                  
                 showFurtherReadingDialog(context: context, todayReading: todayReading);
               },
             );
@@ -665,9 +679,9 @@ class _ReadingCard extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.delete, /*color:  AppColors.grey700,*/ size: 20.sp),
+                    icon: Icon(Icons.delete, size: 20.sp),
                     onPressed: onDelete,
-                    tooltip: 'Delete reading',
+                    tooltip: AppLocalizations.of(context)?.deleteReading ?? 'Delete reading',
                   ),
                 ],
               ),
@@ -679,7 +693,7 @@ class _ReadingCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(4.sp),
                   ),
                   child: Text(
-                    'Note: $note',
+                    '${AppLocalizations.of(context)?.noteLabel ?? 'Note'}: $note',
                     style: TextStyle(fontSize: 13.sp),
                   ),
                 ),

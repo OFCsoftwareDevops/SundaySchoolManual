@@ -2,7 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import '../database/lesson_data.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import '../../database/lesson_data.dart';
 
 class FirestoreService {
   final String? churchId;
@@ -10,54 +11,36 @@ class FirestoreService {
   /// Pass the current church ID when creating the service
   FirestoreService({this.churchId});
 
-  /// FOR PRELOAD ALL in main.dart
-  Future<void> preload() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return; // No user → skip
+  String _getCurrentLang(BuildContext? context) {
+    if (context == null) {
+      // During preload: use saved language from Hive (or English)
+      final box = Hive.box('settings');
+      final saved = box.get('preferred_language') as String?;
+      return ['en', 'fr', 'yo'].contains(saved) ? saved! : 'en';
+    }
 
-    final userId = user.uid;
-
-    await Future.wait([
-      getAllLessonDates(),
-      getAllAssignmentDates(),
-      getFurtherReadingsWithText(),
-      getloadUserResponses(userId, "adult"),
-      getloadUserResponses(userId, "teen"), 
-    ]);
+    // Normal usage → use real context language
+    final code = Localizations.localeOf(context).languageCode;
+    // Fallback to English if language is not supported
+    return ['en', 'fr', 'yo'].contains(code) ? code : 'en';
   }
 
-  // ── LESSONS COLLECTION ──
-  CollectionReference get churchLessonsCollection =>
-      _churchSubcollection('lessons');
-
-  CollectionReference get globalLessonsCollection { // Global fallbacks
-    return FirebaseFirestore.instance.collection('lessons');
+  CollectionReference _globalSubcollection(BuildContext context, String name) {
+    final lang = _getCurrentLang(context);
+    return FirebaseFirestore.instance
+        .collection('global_content')
+        .doc(lang)
+        .collection(name);
   }
 
-  // ── ASSIGNMENTS COLLECTION ──
-  CollectionReference get churchAssignmentsCollection =>
-      _churchSubcollection('assignments');
-
-  CollectionReference get globalAssignmentsCollection { // Global fallbacks
-    return FirebaseFirestore.instance.collection('assignments');
+  /// 🔒 English-only global collection
+  CollectionReference _globalSubcollectionEn(String name) {
+    return FirebaseFirestore.instance
+        .collection('global_content')
+        .doc('en')
+        .collection(name);
   }
 
-  // ── RESPONSES COLLECTION ──
-  CollectionReference get responsesCollection =>
-      _churchSubcollection('assignment_responses');
-
-  CollectionReference get submissionSummariesCollection =>
-    _churchSubcollection('assignment_response_summaries');
-
-  // ── FURTHER RESPONSES COLLECTION ──
-  CollectionReference get furtherReadingsCollection =>
-      _churchSubcollection('further_readings');
-
-  CollectionReference get globalFurtherReadingsCollection { // Global fallbacks
-    return FirebaseFirestore.instance.collection('further_readings');
-  }
-
-  
   CollectionReference _churchSubcollection(String name) {
     if (churchId != null && churchId!.isNotEmpty) {
       return FirebaseFirestore.instance
@@ -69,12 +52,61 @@ class FirestoreService {
     }
   }
 
-  // ←←←←← PUBLIC STREAM (this is what home.dart will use)
-  Stream<QuerySnapshot> get lessonsStream => globalLessonsCollection.snapshots();
-  Stream<QuerySnapshot> get assignmentsStream => globalAssignmentsCollection.snapshots();
-  Stream<QuerySnapshot> get furtherReadingsStream => furtherReadingsCollection.orderBy('date').snapshots();   // assuming you have a 'date' field (the Sunday)
+  // ── LESSONS COLLECTION ──
+  CollectionReference get churchLessonsCollection =>
+      _churchSubcollection('lessons');
 
+  CollectionReference globalLessonsCollection(BuildContext context) =>
+      _globalSubcollection(context, 'lessons');
+
+  // ── ASSIGNMENTS COLLECTION ──
+  CollectionReference get churchAssignmentsCollection =>
+      _churchSubcollection('assignments');
+
+  CollectionReference globalAssignmentsCollection(BuildContext context) =>
+      _globalSubcollection(context, 'assignments');
+
+  // ── FURTHER RESPONSES COLLECTION ──
+  CollectionReference get furtherReadingsCollection =>
+      _churchSubcollection('further_readings');
+  
+  CollectionReference globalFurtherReadingsCollection(BuildContext context) =>
+      _globalSubcollectionEn('further_readings');
+
+  // ── RESPONSES COLLECTION ──
+  CollectionReference get responsesCollection =>
+      _churchSubcollection('assignment_responses');
+
+  CollectionReference get submissionSummariesCollection =>
+    _churchSubcollection('assignment_response_summaries');
+
+  /// FOR PRELOAD ALL (called in main.dart) ──────────────────────────────────────────
+  Future<void> preload() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return; // No user → skip
+
+    final userId = user.uid;
+
+    await Future.wait([
+      getAllLessonDates(),
+      getAllAssignmentDates(),
+      getFurtherReadingsWithTextDefault(),
+      getloadUserResponses(null, userId, "adult"),
+      getloadUserResponses(null, userId, "teen"), 
+    ]);
+  }
+
+  // ←←←←← PUBLIC STREAM (this is what home.dart will use)
+  // Replace with methods that require context
+  Stream<QuerySnapshot> lessonsStream(BuildContext context) => globalLessonsCollection(context).snapshots();
+  Stream<QuerySnapshot> assignmentsStream(BuildContext context) => globalAssignmentsCollection(context).snapshots();
+  Stream<QuerySnapshot> furtherReadingsStream(BuildContext context) => globalFurtherReadingsCollection(context)
+          .orderBy('date', descending: true)  // optional ordering
+          .snapshots();
   // ── SHARED HELPERS ──
+  String formatDateId(DateTime date) =>
+    "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+
   DateTime? _parseDateFromId(String id) {
     final parts = id.split('-');
     if (parts.length != 3) return null;
@@ -89,14 +121,12 @@ class FirestoreService {
     }
   }
 
-  String formatDateId(DateTime date) =>
-      "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
-
   // ── LESSONS & ASSIGNMENTS (shared logic) ──
   Future<LessonDay?> _loadDay({
+    required BuildContext context,
     required DateTime date,
     required CollectionReference churchColl,
-    required CollectionReference globalColl,
+    required CollectionReference Function(BuildContext) globalColl,
   }) async {
     final String id = formatDateId(date);
 
@@ -115,7 +145,7 @@ class FirestoreService {
       }
 
       // 2. Fallback to global
-      doc = await globalColl.doc(id).get();
+      doc = await globalColl(context).doc(id).get();
       if (!doc.exists) return null;
 
       final data = doc.data();
@@ -154,11 +184,21 @@ class FirestoreService {
     );
   }
 
-  Future<LessonDay?> loadLesson(DateTime date) =>
-      _loadDay(date: date, churchColl: churchLessonsCollection, globalColl: globalLessonsCollection);
+  Future<LessonDay?> loadLesson(BuildContext context, DateTime date) =>
+      _loadDay(
+        context: context,
+        date: date, 
+        churchColl: churchLessonsCollection, 
+        globalColl: globalLessonsCollection,
+      );
 
-  Future<LessonDay?> loadAssignment(DateTime date) =>
-      _loadDay(date: date, churchColl: churchAssignmentsCollection, globalColl: globalAssignmentsCollection);
+  Future<LessonDay?> loadAssignment(BuildContext context, DateTime date) =>
+      _loadDay(
+        context: context,
+        date: date, 
+        churchColl: churchAssignmentsCollection, 
+        globalColl: globalAssignmentsCollection,
+      );
 
   // ── SAVE LESSON (admin only) ──
   Future<void> saveLesson({
@@ -195,7 +235,7 @@ class FirestoreService {
   // ── ALL DATES (for calendar dots) ──
   Future<Set<DateTime>> getAllLessonDates() async => _getAllDates(churchLessonsCollection);
 
-  Future<Set<DateTime>> getAllAssignmentDates() async {
+  Future<Set<DateTime>> getAllAssignmentDates([BuildContext? context]) async {
     final Set<DateTime> dates = {};
 
     // Church-specific
@@ -203,8 +243,15 @@ class FirestoreService {
       dates.addAll(await _getAllDates(churchAssignmentsCollection));
     }
 
-    // Always include global
-    dates.addAll(await _getAllDates(globalAssignmentsCollection));
+    // Global part — safe fallback when context == null
+    final lang = _getCurrentLang(context); // ← uses Hive during preload
+
+    final globalColl = FirebaseFirestore.instance
+        .collection('global_content')
+        .doc(lang)
+        .collection('assignments');
+
+    dates.addAll(await _getAllDates(globalColl));
 
     return dates;
   }
@@ -224,6 +271,13 @@ class FirestoreService {
       }
       return {};
     }
+  }
+
+  Future<SectionNotes?> getLessonByDate(BuildContext context, DateTime date, {required bool isTeen}) async {
+    final lessonDay = await loadLesson(context, date); // null context = use Hive language
+    if (lessonDay == null) return null;
+
+    return isTeen ? lessonDay.teenNotes : lessonDay.adultNotes;
   }
 
   // ── USER RESPONSES ──
@@ -343,8 +397,8 @@ class FirestoreService {
 
 
   // Preload user responses for offline/cache
-  Future<void> getloadUserResponses(String userId, String type) async {
-    final dates = await getAllAssignmentDates();
+  Future<void> getloadUserResponses(BuildContext? context, String userId, String type) async {
+    final dates = await getAllAssignmentDates(context);
     for (final date in dates) {
       await loadUserResponse(date: date, type: type, userId: userId);
     }
@@ -418,11 +472,30 @@ class FirestoreService {
   }
 
   // ── FURTHER READINGS ──
-  Future<Map<DateTime, String>> getFurtherReadingsWithText() async {
+  Future<Map<DateTime, String>> getFurtherReadingsWithTextDefault() async {
+    final result = <DateTime, String>{};
+
+    try {
+      // Fixed English
+      await FirebaseFirestore.instance
+          .collection('global_content')
+          .doc('en')
+          .collection('further_readings')
+          .get();
+
+      // ... rest of your parsing logic (exactly the same)
+    } catch (e) {
+      if (kDebugMode) debugPrint("Preload further readings failed: $e");
+    }
+
+    return result;
+  }
+
+  Future<Map<DateTime, String>> getFurtherReadingsWithText(BuildContext context) async {
     final Map<DateTime, String> result = {};
 
     try {
-      final snapshot = await globalFurtherReadingsCollection.get();
+      final snapshot = await globalFurtherReadingsCollection(context).get();
 
       for (final doc in snapshot.docs) {
         DateTime? sunday;

@@ -4,19 +4,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../UI/app_colors.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../utils/media_query.dart';
+import '../../../widgets/helpers/snackbar.dart';
 import 'premium_provider.dart'; 
 
-class SubscriptionScreen extends StatelessWidget {
+class SubscriptionScreen extends ConsumerWidget {
   final String churchId;
 
   const SubscriptionScreen({super.key, required this.churchId});
 
   Future<void> _togglePremium(
     BuildContext context,
-    WidgetRef ref, {
-    required bool newValue,
-  }) async {
+    WidgetRef ref,
+    bool newValue,
+    ) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -57,30 +60,34 @@ class SubscriptionScreen extends StatelessWidget {
       ref.invalidate(isPremiumProvider);
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              newValue
-                  ? "Premium enabled for this church"
-                  : "Premium disabled for this church",
-            ),
-          ),
+        showTopToast(
+          context,
+          newValue
+            ? "Premium enabled for this church"
+            : "Premium disabled for this church",
+          backgroundColor: AppColors.success,
+          textColor: AppColors.onError,
+          duration: const Duration(seconds: 5),
         );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error: $e")),
+        showTopToast(
+          context,
+          "Error",
+          backgroundColor: AppColors.error,
+          textColor: AppColors.onError,
+          duration: const Duration(seconds: 5),
         );
       }
     }
   }
 
-  Widget subscribeButton({
-    required BuildContext context,
-    required bool isPremium,
-    required String churchId,
-  }) {
+  Widget subscribeButton(
+    BuildContext context,
+    bool isPremium,
+    //required String churchId,
+  ) {
   return ElevatedButton(
       onPressed: isPremium
           ? null // Disabled if already premium
@@ -116,25 +123,32 @@ class SubscriptionScreen extends StatelessWidget {
                 }
               } catch (e) {
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error starting checkout: $e'),
-                      backgroundColor: Colors.red.shade700,
-                    ),
+                  showTopToast(
+                    context,
+                    'Error starting checkout',
+                    backgroundColor: AppColors.error,
+                    textColor: AppColors.onError,
+                    duration: const Duration(seconds: 5),
                   );
                 }
               }
             },
       child: Text(
-        isPremium ? "Premium Active" : "Subscribe Now – €19.99/month",
+        isPremium ? "Premium Active" : "Subscribe Now – €14.99/month",
       ),
     );
   }
 
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final style = CalendarDayStyle.fromContainer(context, 50);
+    // Watch admin directly from AuthService singleton
+    final adminStatus = ref.watch(adminStatusProvider);
+
+    // Watch premium from Firestore StreamProvider
+    final asyncPremium = ref.watch(isPremiumProvider);
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
@@ -155,64 +169,52 @@ class SubscriptionScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Consumer(
-        builder: (context, ref, child) {
-          final asyncAdminStatus = ref.watch(adminStatusProvider);
-          final asyncPremium = ref.watch(isPremiumProvider);
+      body: ListView(
+        padding: EdgeInsets.all(16.sp),
+        children: [
+          Card(
+            child: ListTile(
+              title: const Text("Premium Status"),
+              subtitle: const Text("Remove ads for all church members"),
+              trailing: asyncPremium.when(
+                data: (isPremium) => Switch(
+                  value: isPremium,
+                  onChanged: (value) => _togglePremium(context, ref, value),
+                ),
+                loading: () => const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                error: (_, __) => const Switch(value: false, onChanged: null),
+              ),
+            ),
+          ),
+          SizedBox(height: 20.sp),
 
-          return asyncAdminStatus.when(
-            data: (adminStatus) {
-              return ListView(
-                padding: EdgeInsets.all(16.sp),
-                children: [
-                  //if (isGlobalAdmin)
-                    Card(
-                      child: ListTile(
-                        title: Text("Premium Status"),
-                        subtitle: Text("Remove ads for all church members"),
-                        trailing: asyncPremium.when(
-                          data: (isPremium) => Switch(
-                            value: isPremium,
-                            onChanged: (value) {
-                              _togglePremium(
-                                context,
-                                ref,
-                                newValue: value,
-                              );
-                            },
-                          ),
-                          loading: () => const CircularProgressIndicator(),
-                          error: (_, __) => const Switch(value: false, onChanged: null),
-                        ),
-                      ),
-                    ),
-                  SizedBox(height: 20.sp),
+          asyncPremium.when(
+            data: (isPremium) =>
+                subscribeButton(context, isPremium),
+            loading: () => const SizedBox(
+              height: 48,
+              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            ),
+            error: (err, stack) => SizedBox(
+              height: 48,
+              child: Center(child: Text('Error: $err')),
+            ),
+          ),
 
-                  asyncPremium.when(
-                    data: (isPremium) => subscribeButton(
-                      context: context,
-                      isPremium: isPremium,
-                      churchId: churchId,
-                    ),
-                    loading: () => const SizedBox(
-                      height: 48, // Prevent jump
-                      child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                    ),
-                    error: (err, stack) => SizedBox(
-                      height: 48,
-                      child: Center(
-                        child: Text('Error: $err'), // At minimum, show something
-                      ),
-                    ),
-                  ),
-                  // Add more settings here later...
-                ],
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => const Center(child: Text("Error loading admin status")),
-          );
-        },
+          // You can use adminStatus here if needed
+          if (adminStatus.isGlobalAdmin)
+            Padding(
+              padding: EdgeInsets.only(top: 16.sp),
+              child: Text(
+                "You are a global admin",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+        ],
       ),
     );
   }

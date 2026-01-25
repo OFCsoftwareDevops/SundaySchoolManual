@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:rccg_sunday_school/utils/device_check.dart';
+import '../l10n/app_localizations.dart';
 import 'app_colors.dart';
 
 /// ---------------------------------------------------------------------------
@@ -104,7 +105,7 @@ Widget AssignmentWidgetButton({
   final screenSize = MediaQuery.of(context).size;
 
   final double buttonWidth = screenSize.width.sp * 0.8;
-  final double buttonHeight = screenSize.height.sp * 0.05 * scale;
+  final double buttonHeight = screenSize.height * 0.05 * scale;
   const double pressDepth = 4.0;
 
   return SizedBox(
@@ -135,7 +136,7 @@ Widget AssignmentWidgetButton({
 
 Widget LessonCardButtons({
   required BuildContext context,
-  required VoidCallback onPressed,
+  required VoidCallback? onPressed,
   required String label,
   required bool available,
   IconData? leadingIcon,     // optional leading icon
@@ -280,7 +281,7 @@ Widget furtherReadingButtons({
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          available? "Today's Reading" : "No Reading",
+                          available? AppLocalizations.of(context)?.todaysReading ?? "Today's Reading" : AppLocalizations.of(context)?.noReading ?? "No Reading",
                           style: TextStyle(     // ~32% of button height
                             fontWeight: FontWeight.w700,
                             fontSize: totalHeight * 0.25,
@@ -319,9 +320,9 @@ Widget PressInButtons({
   required VoidCallback onPressed,
   required String text,
   required IconData icon,
+  bool? isWide = false,
   required Color topColor,
   required Color textColor,
-  //required Widget child, // ← NEW
   Color borderColor = Colors.transparent,
   double borderWidth = 0.0,
   double backOffset = 3.0,
@@ -330,7 +331,9 @@ Widget PressInButtons({
   final scale = context.tabletScaleFactor;
   final screenSize = MediaQuery.of(context).size;
 
-  final double buttonWidth = screenSize.width * 0.35;
+  final double widthFactor = (isWide == true) ? 2.0 : 1.0;
+
+  final double buttonWidth = screenSize.width * 0.35 * widthFactor;
   final double buttonHeight = screenSize.height * 0.08 * scale;
   const double pressDepth = 3.0;
 
@@ -348,6 +351,8 @@ Widget PressInButtons({
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 10.sp), // comfortable text padding
         child: Row(
+          mainAxisSize: MainAxisSize.min,     // ← important for natural content sizing
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, 
               color: textColor, 
@@ -380,16 +385,16 @@ Widget GradeButtons({
   required IconData icon,
   required Color topColor,
   required Color textColor,
-  //required Widget child, // ← NEW
   Color borderColor = Colors.transparent,
   double borderWidth = 0.0,
   double backOffset = 3.0,
   double backDarken = 0.45,
 }) {
   final screenSize = MediaQuery.of(context).size;
+  final scale = context.tabletScaleFactor;
 
   final double buttonWidth = screenSize.width * 0.35;
-  final double buttonHeight = 40.sp;
+  final double buttonHeight = screenSize.height * 0.05 * scale;
   const double pressDepth = 3.0;
 
   return SizedBox(
@@ -412,7 +417,6 @@ Widget GradeButtons({
               color: textColor, 
               size: 18.sp,
             ),
-            //SizedBox(width: 10.sp),
             Text(
               text,
               style: TextStyle(
@@ -439,7 +443,6 @@ Widget ChurchChoiceButtons({
   required IconData icon,
   required Color topColor,
   required Color textColor,
-  //required Widget child, // ← NEW
   Color borderColor = Colors.transparent,
   double borderWidth = 0.0,
   double backOffset = 3.0,
@@ -447,7 +450,7 @@ Widget ChurchChoiceButtons({
 }) {
   final screenSize = MediaQuery.of(context).size;
 
-  final double buttonWidth = screenSize.width * 0.25;
+  final double buttonWidth = screenSize.width * 0.35;
   final double buttonHeight = 40.sp;
   const double pressDepth = 3.0;
 
@@ -465,12 +468,13 @@ Widget ChurchChoiceButtons({
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 10.sp), // comfortable text padding
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, 
               color: textColor, 
-              size: 18.sp,
+              size: 16.sp,
             ),
+            SizedBox(width:10.sp),
             Text(
               text,
               style: TextStyle(

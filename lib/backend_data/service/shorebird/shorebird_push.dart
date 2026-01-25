@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../widgets/helpers/snackbar.dart';
 
 final updater = ShorebirdUpdater();  // Global instance – safe and recommended
 
@@ -13,16 +15,16 @@ Future<void> checkAndApplyShorebirdUpdate(BuildContext context) async {
       final bool? shouldUpdate = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Update Available!'),
-          content: const Text('A new version is ready with improvements and fixes.\nDownload it now?'),
+          title: Text(AppLocalizations.of(context)?.updateAvailable ?? 'Update Available!'),
+          content: Text(AppLocalizations.of(context)?.updateMessage ?? 'A new version is ready with improvements and fixes.\nDownload it now?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Later'),
+              child: Text(AppLocalizations.of(context)?.later ?? 'Later'),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Update Now'),
+              child: Text(AppLocalizations.of(context)?.updateNow ?? 'Update Now'),
             ),
           ],
         ),
@@ -33,11 +35,10 @@ Future<void> checkAndApplyShorebirdUpdate(BuildContext context) async {
         await updater.update();
 
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Update downloaded! Please restart the app to apply the changes.'),
-              duration: Duration(seconds: 8),
-            ),
+          showTopToast(
+            context,
+            AppLocalizations.of(context)?.failedToSaveYourAnswers ?? "Update downloaded! Please restart the app to apply the changes.",
+            duration: const Duration(seconds: 8),
           );
         }
       }

@@ -9,16 +9,16 @@ class AssignmentDatesProvider with ChangeNotifier {
   Set<DateTime> get dates => _allDates;
   bool get isLoading => _isLoading;
 
-  Future<void> load(FirestoreService service) async {
+  Future<void> load(BuildContext? context, FirestoreService service) async {
     _isLoading = true;
     notifyListeners();
 
-    _allDates = await service.getAllAssignmentDates(); // Uses preload cache
+    _allDates = await service.getAllAssignmentDates(context); // Uses preload cache
     _isLoading = false;
     notifyListeners();
   }
 
-  Future<void> refresh(FirestoreService service) async {
-    await load(service);
+  Future<void> refresh(BuildContext? context, FirestoreService service) async {
+    await load(context, service);
   }
 }

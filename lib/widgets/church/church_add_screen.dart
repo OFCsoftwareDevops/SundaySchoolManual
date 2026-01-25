@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../UI/app_buttons.dart';
+import '../../l10n/app_localizations.dart';
+import '../helpers/snackbar.dart';
 
 class AddChurchScreen extends StatefulWidget {
   const AddChurchScreen({super.key});
@@ -29,8 +31,9 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
     final country = _countryController.text.trim();
 
     if (churchName.isEmpty || parishName.isEmpty || pastorName.isEmpty || churchAdminEmail.isEmpty || country.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill all required fields")),
+      showTopToast(
+        context,
+        AppLocalizations.of(context)?.pleaseFillAllRequiredFields ?? "Please fill all required fields",
       );
       return;
     }
@@ -40,7 +43,7 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        throw "You must be signed in";
+        throw AppLocalizations.of(context)?.mustBeSignedIn ?? "You must be signed in";
       }
 
       final churchId = "${churchName.toLowerCase().replaceAll(' ', '_')}_${parishName.toLowerCase().replaceAll(' ', '_')}";
@@ -70,14 +73,14 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
         builder: (ctx) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.sp)),
           icon: Icon(Icons.check_circle, color: Colors.green, size: 60.sp),
-          title: Text("Request Sent!", textAlign: TextAlign.center),
+          title: Text(AppLocalizations.of(context)?.requestSent ?? "Request Sent!", textAlign: TextAlign.center),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text("Thank you, ${user.displayName ?? 'Pastor'}!"),
+              Text(AppLocalizations.of(context)?.thankYouPastor(user.displayName as Object) ?? "Thank you, ${user.displayName ?? 'Pastor'}!"),
               SizedBox(height: 12.sp),
               Text(
-                "Your request to create:\n\n"
+                AppLocalizations.of(context)?.requestSummary(churchName, parishName, country) ?? "Your request to create:\n\n"
                 "🏛️ $churchName\n"
                 "📍 $parishName\n"
                 "🌍 $country\n\n"
@@ -86,7 +89,7 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
               ),
               SizedBox(height: 12.sp),
               Text(
-                "You will receive a notification within 24 hours when approved.",
+                AppLocalizations.of(context)?.approvalNotice ?? "You will receive a notification within 24 hours when approved.",
                 style: TextStyle(fontSize: 14.sp, color: Colors.grey),
                 textAlign: TextAlign.center,
               ),
@@ -104,7 +107,12 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
                   Navigator.of(ctx).pop();     // close dialog
                   Navigator.of(context).pop();  // go back to main screen
                 },
-                child: Text("Got it!", style: TextStyle(fontSize: 18.sp)),
+                child: Text(
+                  AppLocalizations.of(context)?.gotIt ?? "Got it!", 
+                  style: TextStyle(
+                    fontSize: 18.sp,
+                  ),
+                ),
               ),
             ),
           ],
@@ -123,16 +131,16 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
             children: [
               Icon(Icons.error, color: Colors.red),
               SizedBox(width: 8.sp),
-              Text("Could not send request"),
+              Text(AppLocalizations.of(context)?.couldNotSendRequest ?? "Could not send request"),
             ],
           ),
           content: Text(e.toString().contains("already-exists")
-              ? "A church with this name already exists. Please contact support."
-              : "Error: ${e.toString()}"),
+              ? AppLocalizations.of(context)?.churchAlreadyExists ?? "A church with this name already exists. Please contact support."
+              : AppLocalizations.of(context)?.genericError(e.toString()) ?? "Error: ${e.toString()}"),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text("OK"),
+              child: Text("OK"),
             ),
           ],
         ),
@@ -157,7 +165,7 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Create Your Church"),
+        title: Text(AppLocalizations.of(context)?.createYourChurch ?? "Create Your Church"),
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         foregroundColor: Theme.of(context).appBarTheme.foregroundColor,
       ),
@@ -167,7 +175,7 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Church Information", 
+              AppLocalizations.of(context)?.churchInformation ?? "Church Information", 
               style: TextStyle(
                 fontSize: 20.sp, 
                 fontWeight: FontWeight.bold,
@@ -177,8 +185,8 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
 
             TextField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: "Church Name *",
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)?.churchName ?? "Church Name *",
                 hintText: "e.g. RCCG, Winners Chapel, Deeper Life",
                 border: OutlineInputBorder(),
               ),
@@ -187,8 +195,8 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
 
             TextField(
               controller: _parishController,
-              decoration: const InputDecoration(
-                labelText: "Parish / Branch Name *",
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)?.parishName ?? "Parish / Branch Name *",
                 hintText: "e.g. Grace Lagos, Jesus House Abuja",
                 border: OutlineInputBorder(),
               ),
@@ -197,8 +205,8 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
 
             TextField(
               controller: _pastorController,
-              decoration: const InputDecoration(
-                labelText: "Pastor's Name *",
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)?.pastorName ?? "Pastor's Name *",
                 hintText: "e.g. Pastor John Doe",
                 border: OutlineInputBorder(),
               ),
@@ -207,8 +215,8 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
 
             TextField(
               controller: _adminController,
-              decoration: const InputDecoration(
-                labelText: "Admin Email *",
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)?.adminEmail ?? "Admin Email *",
                 hintText: "e.g. admin@grace-lagos.org",
                 border: OutlineInputBorder(),
               ),
@@ -217,8 +225,8 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
 
             TextField(
               controller: _locationController,
-              decoration: const InputDecoration(
-                labelText: "Address (optional)",
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)?.addressOptional ?? "Address (optional)",
                 hintText: "123 Faith Street, Lagos",
                 border: OutlineInputBorder(),
               ),
@@ -227,8 +235,8 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
 
             TextField(
               controller: _countryController,
-              decoration: const InputDecoration(
-                labelText: "Country *",
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)?.country ?? "Country *",
                 hintText: "e.g. Nigeria, USA, UK",
                 border: OutlineInputBorder(),
               ),
@@ -242,7 +250,7 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
                 height: 60.sp,
                 child: LoginButtons(
                   context: context,
-                  text: "Submit Request",
+                  text: AppLocalizations.of(context)?.submitRequest ?? "Submit Request",
                   topColor: Theme.of(context).colorScheme.primaryContainer,
                   borderColor: Colors.transparent,
                   onPressed: _isLoading ? null : _createChurch,

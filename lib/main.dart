@@ -9,6 +9,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart' as provider;
 import 'package:rccg_sunday_school/l10n/fallback_localizations.dart';
@@ -22,19 +23,18 @@ import 'UI/app_theme.dart';
 import 'backend_data/database/constants.dart';
 import 'auth/login/auth_service.dart';
 import 'auth/login/login_page.dart';
-import 'backend_data/service/assignment_dates_provider.dart';
-import 'backend_data/service/firestore_service.dart';
+import 'backend_data/service/firestore/assignment_dates_provider.dart';
+import 'backend_data/service/firestore/firestore_service.dart';
 import 'backend_data/service/notification/background_task.dart';
 import 'backend_data/service/notification/notification_service.dart';
-import 'backend_data/service/submitted_dates_provider.dart';
+import 'backend_data/service/firestore/submitted_dates_provider.dart';
 import 'widgets/bible_app/bible_actions/highlight_manager.dart';
 import 'backend_data/service/analytics/firebase_options.dart';
 import 'l10n/app_localizations.dart';
 import 'widgets/bible_app/bible.dart';
-import 'widgets/helpers/church_selection.dart';
+import 'widgets/church/church_selection.dart';
 import 'widgets/helpers/intro_page.dart';
 import 'widgets/helpers/main_screen.dart';
-
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);  // Required in v15.1.3+
@@ -45,16 +45,61 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  debugPrint('STEP 1');
+
+  await Hive.initFlutter();
+  await Hive.openBox('settings');
+  debugPrint('STEP 2');
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  debugPrint('STEP 3');
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    if (kDebugMode) {
+      debugPrint('Foreground message: ${message.notification?.title}');
+    }
+    // Optional: show local notification yourself if you want custom UI
+    // Manually show as local notification
+    NotificationService().showNotification(
+      id: 0,  // Unique ID
+      title: message.notification?.title ?? 'Notification',
+      body: message.notification?.body ?? 'Tap to view',
+      payload: message.data['date'],  // For deep linking
+    );
+  });
+  debugPrint('STEP 4');
+
+  // When app is opened from notification (terminated / background)
+  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    if (kDebugMode) {
+      debugPrint('Opened from notification! Payload: ${message.data}');
+    }
+    
+    final date = message.data['date']; // "2025-12-7"
+    if (date != null) {
+      // Navigate to lesson screen
+      // Example with Navigator or Riverpod/GoRouter:
+      // context.go('/lesson/$date');
+      // or use a global navigator key
+    }
+  });
+  debugPrint('STEP 5');
+
+  final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+  if (initialMessage != null) {
+    // Handle it (same logic as onMessageOpenedApp)
+  }
+  debugPrint('STEP 6');
+
+
 
   // Notification caller
   tz.initializeTimeZones();
   tz.setLocalLocation(tz.getLocation('America/New_York'));
   await NotificationService().initialize();
   Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+  debugPrint('STEP 7');
 
   // Request notification permission (Android 13+)
   if (Platform.isAndroid) {
@@ -63,6 +108,7 @@ Future<void> main() async {
       debugPrint('Notification permission: $status');
     }
   }
+  debugPrint('STEP 8');
 
   // Initialize Firebase Messaging topics and get token
   final fcm = FirebaseMessaging.instance;
@@ -71,6 +117,7 @@ Future<void> main() async {
   if (kDebugMode) {
     debugPrint('FCM Token: $token');
   }
+  debugPrint('STEP 9');
 
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   
@@ -81,6 +128,7 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+  debugPrint('STEP 10');
 
   // ✅ Fit the entire screen
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
@@ -92,24 +140,31 @@ Future<void> main() async {
 
   // // ==================== FCM SETUP ====================
   if (!kIsWeb /*&& (Platform.isAndroid || Platform.isIOS)*/) {
-    await FirebaseMessaging.instance.requestPermission();
+    await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
     await FirebaseMessaging.instance.subscribeToTopic("all_users");
     final token = await FirebaseMessaging.instance.getToken();
     if (kDebugMode) {
       debugPrint("FCM Token: $token");
     }
   }
+  debugPrint('STEP 11');
 
   // 3. Now safely read SharedPreferences (already loaded above)
   final prefs = await SharedPreferences.getInstance();
   final String savedLang = prefs.getString('language_code') ?? 'en';
   // Load highlights early
   await HighlightManager().loadFromPrefs();
+  debugPrint('STEP 12');
 
   final currentUser = FirebaseAuth.instance.currentUser;
   if (currentUser != null && ownerEmails.contains(currentUser.email)) {
     await FirebaseMessaging.instance.subscribeToTopic("owner_notifications");
   }
+  debugPrint('STEP 13');
 
   // ←←←← NEW: Initialize the AuthService sync ←←←←
   await AuthService.instance.init();
@@ -136,6 +191,7 @@ Future<void> main() async {
     ),
   );
 }
+
 
 // =============== NEW: Language-aware MyApp ===============
 class MyApp extends StatefulWidget {
@@ -199,10 +255,10 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver{
     setState(() => preloadProgress = 2);
 
     final service = context.read<FirestoreService>();
-    await provider.Provider.of<AssignmentDatesProvider>(context, listen: false).load(service);
+    await provider.Provider.of<AssignmentDatesProvider>(context, listen: false).load(null, service);
     setState(() => preloadProgress = 3);
 
-    // Step 5
+    // Step 3: Load Bible
     await context.read<BibleVersionManager>().loadInitialBible();
     setState(() => preloadProgress = 4);
 
@@ -214,8 +270,9 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver{
   }
 
   void changeLanguage(Locale locale) async {
-    if (_locale == locale) return;
+    if (_locale.languageCode == locale.languageCode) return;
     setState(() => _locale = locale);
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('language_code', locale.languageCode);
   }

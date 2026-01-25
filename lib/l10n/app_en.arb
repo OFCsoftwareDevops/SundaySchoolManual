@@ -2,13 +2,295 @@
   "@@locale": "en",
 
   "appName": "Sunday School Lessons",
+  "language": "Language",
+
   "sundaySchoolLesson": "Sunday School Lesson",
   "noLessonToday": "No Lesson Available Today",
   "noTeenLesson": "No Teen Lesson available",
   "noAdultLesson": "No Adult Lesson available",
 
+  "sundaySchoolManual": "Sunday School Manual",
+  "accessWeeklyLessonsOffline": "Access your weekly Teen and Adult Bible study lessons anytime, anywhere — even offline!",
+  "builtForRccg": "Built for the Redeemed Christian Church of God!",
+  "getStarted": "Get Started",
+  "openFullChapter": "Open full chapter →",
+  "close": "Close",
+
+  "preparing": "Preparing...",
+  "preparingWithProgress": "Preparing... ({progress}/{totalSteps})",
+
+  "login": "Login",
+  "signInToCreateOrJoin": "Sign in to create or join your church",
+  "google": "Google",
+  "apple": "Apple",
+  "guest": "Guest",
+  "signInFailed": "Sign-in failed",
+  "applSignInFailed": "Apple sign-in failed",
+  "guestModeFailed": "Guest mode failed",
+  "guestUser": "Guest User",
+  "guestMode": "Guest Mode",
+  "anonymous": "Anonymous",
+  "continueWithGoogle": "Continue with Google",
+  "signInWithApple": "Sign in with Apple",
+  "continueAsGuest": "Continue as Guest",
+  "guestDataWarning": "All data are temporarily saved and lost after logout.",
+  "fullAccessDescription": "Full access: create or join your church",
+  "limitedAccessDescription": "Limited access: use general mode only",
+
+  "profile": "Profile",
+  "settings": "Settings",
+  "bookmarks": "Bookmarks",
+  "streaks": "Streaks",
+  "leaderboard": "Leaderboard",
+  "assignments": "Assignments",
+  "teachers": "Teachers",
+  "appSuggestions": "App Suggestions",
+  "adminTools": "Admin Tools",
+  "colorPalette": "Color Palette",
+  "parish": "Parish",
+  "joinCode": "Join Code",
+  "pastor": "Pastor",
+  "notAvailable": "Not available",
+
+  "deleteAccount": "Delete Account",
+  "deletionScheduledOn": "Account scheduled for permanent deletion on:\n{date}",
+  "logInToCancel": "Log in before this date to cancel deletion and restore your account.",
+  "permanentDeletionWarning": "Your account and all data will be permanently deleted after 30 days.\nYou can cancel anytime by logging back in.",
+  "deleteAccountDialogTitle": "Delete Account?",
+  "deleteAccountDialogContent": "• Your account will be permanently deleted in 30 days.\n• All your data (bookmarks, streaks, assignments, leaderboard) will be gone.\n• You can cancel this anytime by simply logging back in.\n\nAre you sure?",
+  "cancelDeletion": "Cancel Deletion",
+  "deleteIn30Days": "Delete in 30 Days",
+  "deletionScheduledButton": "Deletion Scheduled",
+  "accountDeletionScheduledSnack": "Account scheduled for deletion in 30 days. Log in to cancel.",
+  "deletionCancelledSnack": "Account deletion cancelled! Welcome back 🎉",
+
+  "feedback": "Feedback",
+  "rateAppOnGooglePlay": "Rate App on Google Play",
+  "suggestAFeature": "Suggest a Feature",
+  "preferences": "Preferences",
+
+  "signIn": "Sign In",
+  "register": "Register",
+  "join": "Join",
+  "registerParish": "Register a Parish",
+  "createChurch": "Create Church",
+  "joinChurch": "Join Church",
+  "selectChurch": "Select a Church",
+  "churchAccessCode": "Church Access Code",
+  "churchName": "Church Name",
+  "pastorName": "Pastor Name",
+  "leaveChurch": "Leave Church",
+  "selectYourChurch": "Select your church",
+  "noChurchSelected": "No Church Selected",
+  "joinedSuccessfully": "Joined successfully!",
+
+  "shareAsLessonPdf": "Share as PDF",
+  "shareLink": "Share Link",
+  "saveLessonPrompt": "Sign in and join a church to save lessons",
+  "lessonRemovedFromSaved": "Lesson removed from saved",
+  "lessonSaved": "Lesson saved! 📚",
+  "operationFailed": "Operation failed",
+  "removedFromSavedLessons": "Remove from saved lessons",
+  "saveThisLesson": "Save this lesson",
+
+  "verseTemporarilyUnavailable": "Verse temporarily unavailable",
+  "removedFromSavedReadings": "Remove from saved readings",
+  "saveThisReading": "Save this reading",
+
+  "pleaseSelectYourChurchFirst": "Please select your church first!",
+  "pleaseEnterAtLeastOneAnswer": "Please enter at least one answer to the question.",
+  "yourAnswersHaveBeenSubmitted": "Your answers have been submitted successfully!",
+  "failedToSaveYourAnswers": "Failed to save your answers. Please try again.",
+  "globalAdminsOnlyNoChurch": "Global admins only — no church selected.",
+
+  "addAnotherResponse": "Add another response",
+  "noSubmissionsYet": "No submissions yet.",
+  "currentStatus": "Current Status",
+  "submitted": "Submitted",
+  "notSubmitted": "Not Submitted",
+  "graded": "Graded",
+  "viewFeedback": "View Feedback",
+  "leaveFeedback": "Leave Feedback",
+
+  "lessonTitle": "Lesson Title",
+  "topic": "Topic",
+  "biblePassage": "BIBLE PASSAGE:",
+  "guestUserLabel": "Guest User",
+  "loading": "Loading",
+  "answerWeeklyAssignment": "Answer Weekly Assignment",
+  "loginForAssignment": "Login For Assignment",
+
+
+  "monday": "Monday",
+  "tuesday": "Tuesday",
+  "wednesday": "Wednesday",
+  "thursday": "Thursday",
+  "friday": "Friday",
+  "saturday": "Saturday",
+  "sunday": "Sunday",
+
+  "january": "January",
+  "february": "February",
+  "march": "March",
+  "april": "April",
+  "may": "May",
+  "june": "June",
+  "july": "July",
+  "august": "August",
+  "september": "September",
+  "october": "October",
+  "november": "November",
+  "december": "December",
+
+  "switchedToGeneral": "Switched to General (Global) lessons",
+  "shareLesson": "Share Lesson",
+  "readingStreak": "Reading Streak",
+  "todaysReading": "Today's Reading:",
+  "noReading": "No Reading",
+  "completeReading": "Complete Reading",
+  "readingTimer": "Time till streak… ({remainingSeconds} s)",
+  "memoryVerse": "Memory verse:",
+  "prayer": "Prayer",
+  "noBookmarksYet": "No Bookmarks Yet",
+  "signInToSaveFavorites": "Sign in to save your favorites",
+  "bookmarksSyncMessage": "Bookmarks, lessons, and readings will sync across your devices.",
+  "english": "English",
+  "francais": "Français",
+  "copied": "Copied!",
+  "invalidSavedLessonId": "Invalid saved lesson id",
+  "lessonNotFound": "Lesson not found",
+  "savedLessonContentNotAvailable": "Saved lesson content not available",
+  "pleaseAddAComment": "Please add a comment",
+  "thankYouFeedbackSubmitted": "Thank you! Feedback submitted.",
+  "errorSharingChurch": "Error sharing church: {error}",
+  "youHaveLeftTheChurch": "You have left the church",
+
+  "pleaseLogInToViewAssignments": "Please log in to view your assignments",
+  "teenResponses": "Teen Responses",
+  "adultResponses": "Adult Responses",
+  "editResponses": "Edit Responses",
+  "yourScore": "Your Score: {score} / {total}",
+  "myResponses": "My Responses:",
+  "yourSubmittedResponses": "Your submitted responses",
+  "assignmentGraded": "This assignment has been graded",
+  "gradedNoEdit": "Graded — cannot edit",
+  "noQuestionAvailable": "No question available.",
+  "noQuestionAvailableForThisDay": "No question available for this day.",
+  "myAssignment": "My Assignment",
+  "thisWeeksAssignment": "This Week's Assignment",
+  "dueDateFormatted": "Due: {dateFormatted}",
+  "gradedByTeacher": "Graded by Teacher",
+  "teachersFeedback": "Teacher's Feedback:",
+  "noTeacherFeedbackProvided": "No teacher feedback provided.",
+  "submittedTapEditToChange": "Submitted — tap Edit to change",
+  "writeYourResponseHere": "Write your response here...",
+  "submit": "Submit",
+  "loadingQuestion": "Loading question...",
+  "teenOrAdultResponses": "Responses",
+  "question": "Question",
+  "submissions": "Submissions",
+  "answerWithIndex": "Answer {i}: {answer}",
+  "reset": "Reset",
+  "grade": "Grade",
+
+  "teenSundaySchoolLesson": "Teenager Sunday School Lesson",
+  "adultSundaySchoolLesson": "Adult Sunday School Lesson",
+  "youWillBeSignedOut": "You'll be signed out and returned to the login screen.",
+  "leaveWithoutJoining": "Leave without joining?",
+  "setUpYourParish": "Set up your parish and become its admin",
+  "enterSixDigitCode": "Enter the 6-digit code provided by your parish admin",
+  "copiedHex": "Copied: {hex}",
+  "rccgSundaySchoolGeneral": "RCCG Sunday School (General)",
+  "savedItems": "Saved Items",
+  "errorLoadingData": "Error: {error}",
+  "noRankingsYet": "No rankings yet in this category.",
+  "operationFailed": "Operation failed",
+  "couldNotDetermineBook": "Could not determine book or chapter",
+  "bookNotFoundInBibleVersion": "Book not found in current Bible version",
+  "signInAndJoinToBookmarks": "Sign in and join a church to save bookmarks",
+  "bookmarkRemoved": "Bookmark removed",
+  "bookmarked": "Bookmarked! ⭐",
+  "pleaseSelectChurchFirst": "Please select your church first!",
+  "couldNotSendRequest": "Could not send request",
+  "thankYouPastor": "Thank you, {name}!",
+  "createYourChurch": "Create Your Church",
+  "pleaseFillAllRequiredFields": "Please fill all required fields",
+  "leaveChurchMessage": "You will no longer be connected to this church.",
+  "cancel": "Cancel",
+  "accessRestricted": "Access Restricted",
+  "manageChurchSettings": "Manage Church Settings",
+  "askYourPastor": "Ask your pastor for the code",
+  "primaryColors": "Primary Colors",
+  "secondaryColors": "Secondary Colors",
+  "neutralAndBackground": "Neutral & Background",
+  "statusColors": "Status Colors",
+  "greyScale": "Grey Scale",
+  "darkTheme": "Dark Theme",
+  "members": "Members",
+  "lessonCompletion": "Lesson Completion",
+  "dailyActive": "Daily Active",
+  "weeklyActive": "Weekly Active",
+  "activity": "Activity (Last 7 Days)",
+  "lessonProgress": "Lesson Progress",
+  "alertsAndHighlights": "Alerts & Highlights",
+  "testNotificationScheduled": "Test notification scheduled in 30 seconds!",
+  "exactTimingDenied": "Exact timing denied. Reminder will be approximate.",
+  "addItem": "Add item",
+
+  "yoruba": "Yoruba",
+  "navHome": "Home",
+  "navBible": "Bible",
+  "navAccount": "Account",
+  "pleaseLogInToViewStreak": "Please sign in to view your streak.",
+  "offlineMode": "Offline Mode • Using cached lessons",
+  "newLesson": "New Lesson!",
+  "openButton": "OPEN",
+  "leaveButton": "Leave",
+  "leaveChurchDialog": "Leave Church?",
+  "oldTestament": "Old Testament",
+  "newTestament": "New Testament",
+
+  "updateAvailable": "Update Available!",
+  "updateMessage": "A new version is ready with improvements and fixes.\nDownload it now?",
+  "later": "Later",
+  "updateNow": "Update Now",
+
+  "invalidSixDigitCode": "Please enter a valid 6-digit code",
+  "invalidServerResponse": "Invalid server response",
+  "failedToJoinChurch": "Failed to join church",
+
+  "signOutWarning": "You'll be signed out and returned to the login screen.",
+  "stay": "Stay",
+
+  "welcome": "Welcome!",
+  "connectToChurch": "Let's get you connected to your church",
+
+  "joinParish": "Join Parish",
+  "enterChurchCode": "Enter Church Code",
+  "askPastorForCode": "Ask your pastor for the code",
+
+  "mustBeSignedIn": "You must be signed in",
+
+  "requestSent": "Request Sent!",
+  "requestSummary": "Your request to create:\n\n🏛️ {churchName}\n📍 {parishName}\n🌍 {country}\n\nhas been sent.",
+  "approvalNotice": "You will receive a notification within 24 hours when approved.",
+  "gotIt": "Got it!",
+
+  "churchAlreadyExists": "A church with this name already exists. Please contact support.",
+  "genericError": "Error: {toString}",
+  "churchInformation": "Church Information",
+  "parishName": "Parish / Branch Name *",
+  "adminEmail": "Admin Email *",
+  "addressOptional": "Address (optional)",
+  "country": "Country *",
+  "submitRequest": "Submit Request",
+
+
   "@appName": {
     "description": "The name of the app"
+  },
+  "@language": {
+    "description": "Language preference label"
   },
   "@sundaySchoolLesson": {
     "description": "Title when a lesson exists for the selected date"
@@ -21,5 +303,795 @@
   },
   "@noAdultLesson": {
     "description": "Shown when there is no adult lesson"
-  }
+  },
+  "@sundaySchoolManual": {
+    "description": "Title for the app or manual section"
+  },
+  "@accessWeeklyLessonsOffline": {
+    "description": "Promotional subtitle highlighting offline access to lessons"
+  },
+  "@builtForRccg": {
+    "description": "Branding statement for RCCG users"
+  },
+  "@getStarted": {
+    "description": "Call-to-action button to begin using the app"
+  },
+  "@openFullChapter": {
+    "description": "Button text to open the full chapter view"
+  },
+  "@close": {
+    "description": "Button text to close a dialog or screen"
+  },
+  "@preparing": {
+    "description": "Loading indicator text shown during preparation/setup"
+  },
+  "@preparingWithProgress": {
+    "description": "Loading indicator with progress counter (e.g. during multi-step process)",
+    "placeholders": {
+      "progress": {},
+      "totalSteps": {}
+    }
+  },
+  "@login": {
+    "description": "Login button label"
+  },
+  "@signInToCreateOrJoin": {
+    "description": "Subtitle text on login screen"
+  },
+  "@google": {
+    "description": "Google sign-in option label"
+  },
+  "@apple": {
+    "description": "Apple sign-in option label"
+  },
+  "@guest": {
+    "description": "Guest/anonymous login option"
+  },
+  "@signInFailed": {
+    "description": "Error message when sign-in fails"
+  },
+  "@applSignInFailed": {
+    "description": "Error message when Apple sign-in fails"
+  },
+  "@guestModeFailed": {
+    "description": "Error message when guest login fails"
+  },
+  "@guestUser": {
+    "description": "Default name for guest users"
+  },
+  "@guestMode": {
+    "description": "Label indicating user is in guest/anonymous mode"
+  },
+  "@anonymous": {
+    "description": "Anonymous user label"
+  },
+  "@continueWithGoogle": { 
+    "description": "Button label for Google sign-in" 
+  },
+  "@signInWithApple": { 
+    "description": "Button label for Apple sign-in (iOS only)" 
+  },
+  "@continueAsGuest": { 
+    "description": "Button label for guest/anonymous mode" 
+  },
+  "@guestDataWarning": { 
+    "description": "Warning shown below guest login button about data loss" 
+  },
+  "@fullAccessDescription": { 
+    "description": "Explanation of benefits when choosing regular login" 
+  },
+  "@limitedAccessDescription": { 
+    "description": "Explanation of limitations in guest mode" 
+  },
+  "@profile": {
+    "description": "User profile screen title"
+  },
+  "@settings": {
+    "description": "Settings screen title"
+  },
+  "@bookmarks": {
+    "description": "Bookmarks/saved items section"
+  },
+  "@streaks": {
+    "description": "Daily streaks section"
+  },
+  "@leaderboard": {
+    "description": "Leaderboard/rankings section"
+  },
+  "@assignments": {
+    "description": "Assignments section for users"
+  },
+  "@teachers": {
+    "description": "Teachers/grading section for admins"
+  },
+  "@appSuggestions": {
+    "description": "App suggestions/feedback section"
+  },
+  "@adminTools": {
+    "description": "Admin tools section"
+  },
+  "@colorPalette": {
+    "description": "Color palette customization"
+  },
+  "@parish": {
+    "description": "Label for the name of the user's parish/church"
+  },
+  "@joinCode": {
+    "description": "Label for the 6-digit code used to join a parish/church"
+  },
+  "@pastor": {
+    "description": "Label for the name of the pastor of the parish/church"
+  },
+  "@notAvailable": {
+    "description": "Fallback text shown when a value (e.g. pastor name, access code) is missing or not set"
+  },
+  "@deleteAccount": { 
+    "description": "Main button / section title for account deletion" 
+  },
+  "@deletionScheduledOn": { 
+    "description": "Shown when deletion is already scheduled, with date", 
+    "placeholders": { 
+      "date": {} 
+      } 
+  },
+  "@logInToCancel": { 
+    "description": "Instruction when deletion is scheduled" 
+  },
+  "@permanentDeletionWarning": { 
+    "description": "Warning text before initiating deletion" 
+  },
+  "@deleteAccountDialogTitle": { 
+    "description": "Title of confirmation dialog" 
+  },
+  "@deleteAccountDialogContent": { 
+    "description": "Detailed warning in confirmation dialog" 
+  },
+  "@cancelDeletion": {
+    "description": "Button label to cancel a scheduled account deletion"
+  },
+  "@deleteIn30Days": { 
+    "description": "Confirm deletion button in dialog" 
+  },
+  "@deletionScheduledButton": { 
+    "description": "Button text when deletion is already scheduled" 
+  },
+  "@accountDeletionScheduledSnack": { 
+    "description": "SnackBar message after scheduling deletion" 
+  },
+  "@deletionCancelledSnack": { 
+    "description": "SnackBar message after cancelling deletion" 
+  },
+  "@feedback": {
+    "description": "Feedback section header"
+  },
+  "@rateAppOnGooglePlay": {
+    "description": "Menu item to rate app"
+  },
+  "@suggestAFeature": {
+    "description": "Menu item to suggest features"
+  },
+  "@preferences": {
+    "description": "User preferences section"
+  },
+  "@signIn": {
+    "description": "Sign in button"
+  },
+  "@register": {
+    "description": "Register button"
+  },
+  "@join": {
+    "description": "Join button"
+  },
+  "@registerParish": {
+    "description": "Register a new parish/church"
+  },
+  "@createChurch": {
+    "description": "Create a new church"
+  },
+  "@joinChurch": {
+    "description": "Join an existing church"
+  },
+  "@selectChurch": {
+    "description": "Select church dialog title"
+  },
+  "@churchAccessCode": {
+    "description": "Access code for joining a church"
+  },
+  "@churchName": {
+    "description": "Name of the church"
+  },
+  "@pastorName": {
+    "description": "Name of the pastor"
+  },
+  "@leaveChurch": {
+    "description": "Leave the current church"
+  },
+  "@selectYourChurch": {
+    "description": "Church selection prompt"
+  },
+  "@noChurchSelected": {
+    "description": "Message when no church is selected"
+  },
+  "@shareAsLessonPdf": {
+    "description": "Share lesson as PDF option"
+  },
+  "@shareLink": {
+    "description": "Share lesson link option"
+  },
+  "@saveLessonPrompt": {
+    "description": "Prompt to sign in to save lessons"
+  },
+  "@lessonRemovedFromSaved": {
+    "description": "Success message when lesson is removed from saved"
+  },
+  "@lessonSaved": {
+    "description": "Success message when lesson is saved"
+  },
+  "@operationFailed": {
+    "description": "Generic operation failed message"
+  },
+  "@removedFromSavedLessons": {
+    "description": "Tooltip for remove from saved lessons button"
+  },
+  "@saveThisLesson": {
+    "description": "Tooltip for save lesson button"
+  },
+  "@verseTemporarilyUnavailable": {
+    "description": "Message when a Bible verse is temporarily unavailable"
+  },
+  "@removedFromSavedReadings": {
+    "description": "Tooltip for remove from saved readings button"
+  },
+  "@saveThisReading": {
+    "description": "Tooltip for save reading button"
+  },
+  "@pleaseSelectYourChurchFirst": {
+    "description": "Error message when user hasn't selected a church"
+  },
+  "@pleaseEnterAtLeastOneAnswer": {
+    "description": "Validation message for assignment responses"
+  },
+  "@yourAnswersHaveBeenSubmitted": {
+    "description": "Success message after submitting assignment"
+  },
+  "@failedToSaveYourAnswers": {
+    "description": "Error message when assignment save fails"
+  },
+  "@globalAdminsOnlyNoChurch": {
+    "description": "Error message for unauthorized access"
+  },
+  "@addAnotherResponse": {
+    "description": "Button to add another response field"
+  },
+  "@noSubmissionsYet": {
+    "description": "Empty state message"
+  },
+  "@currentStatus": {
+    "description": "Current submission status label"
+  },
+  "@submitted": {
+    "description": "Status: assignment submitted"
+  },
+  "@notSubmitted": {
+    "description": "Status: assignment not submitted"
+  },
+  "@graded": {
+    "description": "Status: assignment graded"
+  },
+  "@viewFeedback": {
+    "description": "Button to view feedback"
+  },
+  "@leaveFeedback": {
+    "description": "Button to leave feedback"
+  },
+  "@lessonTitle": {
+    "description": "Title of lesson"
+  },
+  "@topic": {
+    "description": "Topic of lesson"
+  },
+  "@biblePassage": {
+    "description": "Bible passage reference"
+  },
+  "@guestUserLabel": {
+    "description": "Label for guest user"
+  },
+  "@loading": {
+    "description": "Loading indicator text"
+  },
+  "@answerWeeklyAssignment": {
+    "description": "Button or label to start answering the weekly assignment"
+  },
+  "@loginForAssignment": {
+    "description": "Prompt shown when user needs to log in to access/submit assignment"
+  },
+  "@monday": {
+    "description": "Day of week: Monday"
+  },
+  "@tuesday": {
+    "description": "Day of week: Tuesday"
+  },
+  "@wednesday": {
+    "description": "Day of week: Wednesday"
+  },
+  "@thursday": {
+    "description": "Day of week: Thursday"
+  },
+  "@friday": {
+    "description": "Day of week: Friday"
+  },
+  "@saturday": {
+    "description": "Day of week: Saturday"
+  },
+  "@sunday": {
+    "description": "Day of week: Sunday"
+  },
+  "@january": {
+    "description": "Month: January"
+  },
+  "@february": {
+    "description": "Month: February"
+  },
+  "@march": {
+    "description": "Month: March"
+  },
+  "@april": {
+    "description": "Month: April"
+  },
+  "@may": {
+    "description": "Month: May"
+  },
+  "@june": {
+    "description": "Month: June"
+  },
+  "@july": {
+    "description": "Month: July"
+  },
+  "@august": {
+    "description": "Month: August"
+  },
+  "@september": {
+    "description": "Month: September"
+  },
+  "@october": {
+    "description": "Month: October"
+  },
+  "@november": {
+    "description": "Month: November"
+  },
+  "@december": {
+    "description": "Month: December"
+  },
+  "@switchedToGeneral": {
+    "description": "Message when switched to general lessons"
+  },
+  "@shareLesson": {
+    "description": "Title for share lesson dialog"
+  },
+  "@readingStreak": {
+    "description": "Reading streak page title"
+  },
+  "@todaysReading": {
+    "description": "Label for today's reading section"
+  },
+  "@noReading": {
+    "description": "Empty state message for today's reading"
+  },
+  "@completeReading": {
+    "description": "Button to mark reading as complete"
+  },
+  "@readingTimer": {
+    "description": "Display of reading timer"
+  },
+  "@memoryVerse": {
+    "description": "Label for memory verse section"
+  },
+  "@prayer": {
+    "description": "Label for prayer section"
+  },
+  "@noBookmarksYet": {
+    "description": "Empty state message for bookmarks"
+  },
+  "@signInToSaveFavorites": {
+    "description": "Prompt to sign in to save favorites"
+  },
+  "@bookmarksSyncMessage": {
+    "description": "Message about bookmarks syncing across devices"
+  },
+  "@english": {
+    "description": "English language option"
+  },
+  "@francais": {
+    "description": "French language option"
+  },
+  "@copied": {
+    "description": "Message when content is copied to clipboard"
+  },
+  "@invalidSavedLessonId": {
+    "description": "Error message for invalid lesson ID"
+  },
+  "@lessonNotFound": {
+    "description": "Error message when lesson is not found"
+  },
+  "@savedLessonContentNotAvailable": {
+    "description": "Error message when saved lesson content is unavailable"
+  },
+  "@pleaseAddAComment": {
+    "description": "Validation message to add a comment"
+  },
+  "@thankYouFeedbackSubmitted": {
+    "description": "Success message after feedback submission"
+  },
+  "@joinedSuccessfully": {
+    "description": "Confirmation message shown after the user successfully joins a parish or church"
+  },
+  "@thankYouPastor": {
+    "description": "Thank-you message shown after sending a request",
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "@requestSummary": {
+    "description": "Summary shown after a church creation request is sent",
+    "placeholders": {
+      "churchName": {},
+      "parishName": {},
+      "country": {}
+    }
+  },
+  "@errorSharingChurch": {
+    "description": "Error message when sharing church fails"
+  },
+  "@youHaveLeftTheChurch": {
+    "description": "Confirmation message after leaving church"
+  },
+  "@pleaseLogInToViewAssignments": {
+    "description": "Message when user not logged in to view assignments"
+  },
+  "@myAssignments": {
+    "description": "Title for my assignments page"
+  },
+  "@teenResponses": {
+    "description": "Title for teen assignment responses"
+  },
+  "@adultResponses": {
+    "description": "Title for adult assignment responses"
+  },
+  "@editResponses": {
+    "description": "Button to edit responses"
+  },
+  "@yourScore": {
+    "description": "Display of user's assignment score"
+  },
+  "@myResponses": {
+    "description": "Label for my responses section"
+  },
+  "@yourSubmittedResponses": {
+    "description": "Label for submitted responses"
+  },
+  "@assignmentGraded": {
+    "description": "Message indicating assignment has been graded"
+  },
+  "@gradedNoEdit": {
+    "description": "Indicates graded assignment cannot be edited"
+  },
+  "@noQuestionAvailable": {
+    "description": "Message when no assignment question exists"
+  },
+  "@noQuestionAvailableForThisDay": {
+    "description": "Message when no question is available for the selected day"
+  },
+  "@myAssignment": {
+    "description": "Title of the user's assignment page/section"
+  },
+  "@thisWeeksAssignment": {
+    "description": "Title for the current week's assignment"
+  },
+  "@dueDateFormatted": {
+    "description": "Due date label with formatted date placeholder",
+    "placeholders": {
+      "dateFormatted": {}
+    }
+  },
+  "@gradedByTeacher": {
+    "description": "Label indicating the assignment was graded by a teacher"
+  },
+  "@teachersFeedback": {
+    "description": "Section header for teacher's feedback"
+  },
+  "@noTeacherFeedbackProvided": {
+    "description": "Shown when teacher left no feedback"
+  },
+  "@submittedTapEditToChange": {
+    "description": "Status message for submitted assignment with edit instruction"
+  },
+  "@writeYourResponseHere": {
+    "description": "Placeholder text for response input field"
+  },
+  "@submit": {
+    "description": "Button label to submit responses"
+  },
+  "@loadingQuestion": {
+    "description": "Shown while loading the assignment question"
+  },
+  "@teenOrAdultResponses": {
+    "description": "Header for teen or adult responses (dynamic based on type)"
+  },
+  "@question": {
+    "description": "Label for the assignment question"
+  },
+  "@submissions": {
+    "description": "Header for list of submissions"
+  },
+  "@answerWithIndex": {
+    "description": "Formatted display of an individual answer",
+    "placeholders": {
+      "i": {},
+      "answer": {}
+    }
+  },
+  "@reset": {
+    "description": "Button to reset/clear form or selections"
+  },
+  "@grade": {
+    "description": "Button or action to grade an assignment"
+  },
+  "@teenSundaySchoolLesson": {
+    "description": "Title for teenage lesson"
+  },
+  "@adultSundaySchoolLesson": {
+    "description": "Title for adult lesson"
+  },
+  "@youWillBeSignedOut": {
+    "description": "Warning message about being signed out"
+  },
+  "@leaveWithoutJoining": {
+    "description": "Confirmation dialog title"
+  },
+  "@setUpYourParish": {
+    "description": "Subtitle for registering parish"
+  },
+  "@enterSixDigitCode": {
+    "description": "Subtitle for joining parish"
+  },
+  "@copiedHex": {
+    "description": "Message when color hex is copied"
+  },
+  "@rccgSundaySchoolGeneral": {
+    "description": "Title for RCCG general lessons"
+  },
+  "@savedItems": {
+    "description": "Title of saved items page"
+  },
+  "@errorLoadingData": {
+    "description": "Generic error loading data message"
+  },
+  "@noRankingsYet": {
+    "description": "Empty state for leaderboard"
+  },
+  "@couldNotDetermineBook": {
+    "description": "Error message for bible book parsing"
+  },
+  "@bookNotFoundInBibleVersion": {
+    "description": "Error when bible book not found in version"
+  },
+  "@signInAndJoinToBookmarks": {
+    "description": "Prompt to sign in to save bookmarks"
+  },
+  "@bookmarkRemoved": {
+    "description": "Message when bookmark is removed"
+  },
+  "@bookmarked": {
+    "description": "Message when item is bookmarked"
+  },
+  "@pleaseSelectChurchFirst": {
+    "description": "Error when church not selected"
+  },
+  "@couldNotSendRequest": {
+    "description": "Error when request fails to send"
+  },
+  "@createYourChurch": {
+    "description": "Title for create church screen"
+  },
+  "@pleaseFillAllRequiredFields": {
+    "description": "Validation message for form"
+  },
+  "@leaveChurchMessage": {
+    "description": "Warning message before leaving church"
+  },
+  "@cancel": {
+    "description": "Cancel button label"
+  },
+  "@accessRestricted": {
+    "description": "Error message for access denied"
+  },
+  "@manageChurchSettings": {
+    "description": "Button label for church settings"
+  },
+  "@askYourPastor": {
+    "description": "Help text for getting church code"
+  },
+  "@primaryColors": {
+    "description": "Section title for primary colors"
+  },
+  "@secondaryColors": {
+    "description": "Section title for secondary colors"
+  },
+  "@neutralAndBackground": {
+    "description": "Section title for neutral colors"
+  },
+  "@statusColors": {
+    "description": "Section title for status colors"
+  },
+  "@greyScale": {
+    "description": "Section title for grey scale colors"
+  },
+  "@darkTheme": {
+    "description": "Section title for dark theme colors"
+  },
+  "@members": {
+    "description": "Members stat card title"
+  },
+  "@lessonCompletion": {
+    "description": "Lesson completion stat card title"
+  },
+  "@dailyActive": {
+    "description": "Daily active users stat card title"
+  },
+  "@weeklyActive": {
+    "description": "Weekly active users stat card title"
+  },
+  "@activity": {
+    "description": "Activity chart title"
+  },
+  "@lessonProgress": {
+    "description": "Lesson progress chart title"
+  },
+  "@alertsAndHighlights": {
+    "description": "Alerts section title"
+  },
+  "@testNotificationScheduled": {
+    "description": "Message after scheduling test notification"
+  },
+  "@exactTimingDenied": {
+    "description": "Message about notification timing permission"
+  },
+  "@addItem": {
+    "description": "Button to add item"
+  },
+
+  "bibleGenesis": "Genesis",
+  "bibleExodus": "Exodus",
+  "bibleLeviticus": "Leviticus",
+  "bibleNumbers": "Numbers",
+  "bibleDeuteronomy": "Deuteronomy",
+  "bibleJoshua": "Joshua",
+  "bibleJudges": "Judges",
+  "bibleRuth": "Ruth",
+  "bible1Samuel": "1 Samuel",
+  "bible2Samuel": "2 Samuel",
+  "bible1Kings": "1 Kings",
+  "bible2Kings": "2 Kings",
+  "bible1Chronicles": "1 Chronicles",
+  "bible2Chronicles": "2 Chronicles",
+  "bibleEzra": "Ezra",
+  "bibleNehemiah": "Nehemiah",
+  "bibleEsther": "Esther",
+  "bibleJob": "Job",
+  "biblePsalms": "Psalms",
+  "bibleProverbs": "Proverbs",
+  "bibleEcclesiastes": "Ecclesiastes",
+  "bibleSongOfSolomon": "Song of Solomon",
+  "bibleIsaiah": "Isaiah",
+  "bibleJeremiah": "Jeremiah",
+  "bibleLamentations": "Lamentations",
+  "bibleEzekiel": "Ezekiel",
+  "bibleDaniel": "Daniel",
+  "bibleHosea": "Hosea",
+  "bibleJoel": "Joel",
+  "bibleAmos": "Amos",
+  "bibleObadiah": "Obadiah",
+  "bibleJonah": "Jonah",
+  "bibleMicah": "Micah",
+  "bibleNahum": "Nahum",
+  "bibleHabakkuk": "Habakkuk",
+  "bibleZephaniah": "Zephaniah",
+  "bibleHaggai": "Haggai",
+  "bibleZechariah": "Zechariah",
+  "bibleMalachi": "Malachi",
+  "bibleMatthew": "Matthew",
+  "bibleMark": "Mark",
+  "bibleLuke": "Luke",
+  "bibleJohn": "John",
+  "bibleActs": "Acts",
+  "bibleRomans": "Romans",
+  "bible1Corinthians": "1 Corinthians",
+  "bible2Corinthians": "2 Corinthians",
+  "bibleGalatians": "Galatians",
+  "bibleEphesians": "Ephesians",
+  "biblePhilippians": "Philippians",
+  "bibleColossians": "Colossians",
+  "bible1Thessalonians": "1 Thessalonians",
+  "bible2Thessalonians": "2 Thessalonians",
+  "bible1Timothy": "1 Timothy",
+  "bible2Timothy": "2 Timothy",
+  "bibleTitus": "Titus",
+  "biblePhilemon": "Philemon",
+  "bibleHebrews": "Hebrews",
+  "bibleJames": "James",
+  "bible1Peter": "1 Peter",
+  "bible2Peter": "2 Peter",
+  "bible1John": "1 John",
+  "bible2John": "2 John",
+  "bible3John": "3 John",
+  "bibleJude": "Jude",
+  "bibleRevelation": "Revelation",
+
+  "signInAndJoinToBookmarks": "Sign in and join a church to save bookmarks",
+  "bookmarkRemoved": "Bookmark removed",
+  "copy": "Copy",
+  "share": "Share",
+  "bookmarked": "Bookmarked",
+  "bookmark": "Bookmark",
+  "removeHighlight": "Remove highlight",
+  "copied": "Copied!",
+  "verseSelected": "verse selected",
+  "versesSelected": "verses selected",
+  "cancel": "Cancel",
+  "advertsDisclosure": "Adverts fund the app and server maintenance, for your pleasure.",
+  "teachers": "Teachers",
+  "appSuggestions": "App Suggestions",
+  "adminTools": "Admin Tools",
+  "colorPalette": "Color Palette",
+  "inviteYourFriends": "Invite Your Friends",
+  "signOut": "Sign Out",
+  "guestUser": "Guest User",
+  "guestMode": "guest mode",
+  "pleaseAddComment": "Please add a comment",
+  "feedbackSubmitted": "Thank you! Feedback submitted.",
+  "yourSuggestions": "Your Suggestions",
+  "suggestionsHelpApp": "Your suggestions make the app better for all!",
+  "tellUsWhatYouThink": "Tell us what you think...",
+  "submitFeedback": "Submit Feedback",
+  "rateAppSettings": "Hii... To rate the app, please go to Settings ...",
+  "pleaseSignInStreak": "Please sign in to view your streak.",
+  "dayStreak": "day streak",
+  "freezesAvailable": "Freezes available",
+  "freezesDescription": "Freezes let you skip a day without breaking your streak.",
+  "lastCompleted": "Last Completed",
+  "never": "Never",
+  "progressNextFreeze": "Progress to next freeze",
+  "daysUntilNextFreeze": "day(s) until next freeze (every 7-day streak awards 1 freeze)",
+  "howFreezesWork": "How freezes work",
+  "freezeExplanation": "If you miss a day, a freeze will be consumed to keep your streak.",
+  "savedItemsTitle": "Saved Items",
+  "noBookmarksYetMessage": "No Bookmarks Yet",
+  "saveFavoriteScriptures": "Save your favorite scriptures to read them anytime.",
+  "deleteBookmark": "Delete bookmark",
+  "yourNote": "Your Note",
+  "noSavedLessons": "No Saved Lessons",
+  "saveLessonsToReview": "Save lessons to review them later.",
+  "invalidSavedLessonId": "Invalid saved lesson id",
+  "lessonNotFound": "Lesson not found",
+  "savedLessonContentNotAvailable": "Saved lesson content not available",
+  "openLesson": "Open lesson",
+  "deleteLesson": "Delete lesson",
+  "noteLabel": "Note",
+  "noFurtherReadings": "No Further Readings",
+  "saveReadingMaterials": "Save reading materials to explore them later.",
+  "deleteReading": "Delete reading",
+  "lessons": "Lessons",
+  "readings": "Readings",
+  "adult": "Adult",
+  "teen": "Teen",
+  "church": "Church",
+  "global": "Global",
+  "errorWithMessage": "Error:",
+  "yourRank": "Your Rank:",
+  "anonymousStudent": "Anonymous Student",
+  "pointsLabel": "pts",
+  "refreshAssignments": "Refresh assignments",
+  "empty": "Empty!",
+  "noAssignmentsInQuarter": "No assignments in this quarter.",
+  "myAssignments": "My Assignments"
 }

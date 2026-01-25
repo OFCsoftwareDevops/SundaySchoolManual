@@ -2,6 +2,8 @@
 
 import 'package:flutter/material.dart';
 import '../../UI/app_colors.dart';
+import '../../l10n/app_localizations.dart';
+import 'snackbar.dart';
 
 class ColorPalettePage extends StatelessWidget {
   const ColorPalettePage({super.key});
@@ -157,11 +159,10 @@ class _ColorBox extends StatelessWidget {
         onTap: () {
           // Show snackbar with hex code
           final hex = '#${color.value.toRadixString(16).padLeft(8, '0').toUpperCase()}';
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Copied: $hex'),
-              duration: const Duration(seconds: 2),
-            ),
+          showTopToast(
+            context,
+            'Copied: $hex',
+            duration: const Duration(seconds: 3),
           );
         },
         child: Container(

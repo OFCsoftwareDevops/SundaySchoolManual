@@ -11,13 +11,13 @@ import '../UI/app_buttons.dart';
 import '../UI/app_colors.dart';
 import '../auth/login/auth_service.dart';
 import '../backend_data/service/analytics/analytics_service.dart';
-import '../backend_data/service/firestore_service.dart';
+import '../backend_data/service/firestore/firestore_service.dart';
 import '../backend_data/database/lesson_data.dart';
 import '../l10n/app_localizations.dart';
-import '../main.dart';
 import 'SundaySchool_app/further_reading/further_reading_dialog.dart';
 import 'calendar.dart';
 import 'SundaySchool_app/lesson_preview.dart';
+import 'helpers/snackbar.dart';
 
 
 class Home extends StatefulWidget {
@@ -34,6 +34,15 @@ class HomeState extends State<Home> {
 
   // Simple admin check
   final String adminEmail = "olaoluwa.ogunseye@gmail.com";
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    
+    // Called automatically when locale changes or dependencies update
+    _loadLesson();
+    _loadFurtherReadings();  // if you also want further readings to refresh
+  }
 
   @override
   void initState() {
@@ -58,7 +67,7 @@ class HomeState extends State<Home> {
                 SizedBox(width: 12.sp),
                 Expanded(
                   child: Text(
-                    message.notification!.title ?? "New Lesson!",
+                    message.notification!.title ?? (AppLocalizations.of(context)?.newLesson ?? "New Lesson!"),
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -69,7 +78,7 @@ class HomeState extends State<Home> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.sp)),
             duration: const Duration(seconds: 8),
             action: SnackBarAction(
-              label: "OPEN",
+              label: AppLocalizations.of(context)?.openButton ?? "OPEN",
               textColor: AppColors.grey900,
               onPressed: () {
                 final nextSunday = _getNextSunday();
@@ -92,7 +101,7 @@ class HomeState extends State<Home> {
 
   Future<void> _loadLesson() async {
     try {
-      final l = await _service.loadLesson(selectedDate);
+      final l = await _service.loadLesson(context, selectedDate);
       if (mounted) {
         setState(() => lesson = l);
       }
@@ -106,7 +115,7 @@ class HomeState extends State<Home> {
   }
 
   Future<void> _loadFurtherReadings() async {
-    final map = await _service.getFurtherReadingsWithText();
+    final map = await _service.getFurtherReadingsWithText(context);
     if (mounted) {
       setState(() => furtherReadingMap = map);
     }
@@ -139,12 +148,12 @@ class HomeState extends State<Home> {
               onLongPress: () async {
                 await auth.clearChurch();
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Switched to General (Global) lessons"),
-                      backgroundColor: AppColors.background,
-                      duration: Duration(seconds: 2),
-                    ),
+                  showTopToast(
+                    context,
+                    AppLocalizations.of(context)?.switchedToGeneral ?? "Switched to General (Global) lessons",
+                    backgroundColor: Theme.of(context).colorScheme.onBackground,
+                    textColor: Theme.of(context).colorScheme.background,
+                    duration: const Duration(seconds: 2),
                   );
                   // Rebuild with general lessons
                   setState(() {
@@ -155,7 +164,7 @@ class HomeState extends State<Home> {
                 }
               },
               child: Text(
-                isGeneral ? "RCCG Sunday School (General)" : name,
+                isGeneral ? (AppLocalizations.of(context)?.rccgSundaySchoolGeneral ?? "RCCG Sunday School (General)") : name,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: AppColors.onPrimary,
@@ -203,10 +212,10 @@ class HomeState extends State<Home> {
                   duration: const Duration(milliseconds: 300),
                   color: offline ? AppColors.warning : Colors.transparent,
                   child: offline
-                    ? const Center(
+                    ? Center(
                       child: Text(
-                        "Offline Mode • Using cached lessons",
-                        style: TextStyle(color: AppColors.grey800, fontWeight: FontWeight.w500),
+                        AppLocalizations.of(context)?.offlineMode ?? "Offline Mode • Using cached lessons",
+                        style: const TextStyle(color: AppColors.grey800, fontWeight: FontWeight.w500),
                       ),
                     )
                   : const SizedBox.shrink(),
@@ -223,7 +232,7 @@ class HomeState extends State<Home> {
               child: Column(
                 children: [
                   StreamBuilder<QuerySnapshot>(
-                    stream: _service.lessonsStream,
+                    stream: _service.lessonsStream(context),
                     builder: (context, lessonSnapshot) {
                       // 1. Green dots — your original code, untouched
                       Set<DateTime> datesWithLessons = {};
@@ -245,7 +254,7 @@ class HomeState extends State<Home> {
                   
                       // 2. Purple dots + today’s reading — from your existing method
                       return FutureBuilder<Map<DateTime, String>>(
-                        future: _service.getFurtherReadingsWithText(),
+                        future: _service.getFurtherReadingsWithText(context),
                         builder: (context, readingSnapshot) {                
                           return Column(
                             mainAxisSize: MainAxisSize.max,
@@ -350,6 +359,14 @@ class HomeState extends State<Home> {
                                       label: lesson?.teenNotes?.topic ?? AppLocalizations.of(context)!.noTeenLesson,
                                       available: lesson?.teenNotes != null,
                                       onTap: () async {
+                                        // The conditional check goes HERE
+                                        if (! (lesson?.teenNotes != null)) {
+                                          showTopToast(
+                                            context,
+                                            'No lesson available for today',
+                                          );
+                                          return; // stop here, no navigation
+                                        }
                                         // Log the button / tap event
                                         await AnalyticsService.logButtonClick('teen_lesson_open');
                                     
@@ -359,7 +376,7 @@ class HomeState extends State<Home> {
                                           MaterialPageRoute(
                                             builder: (_) => BeautifulLessonPage(
                                               data: lesson!.teenNotes!,
-                                              title: "Teenager Sunday School Lesson",
+                                              title: AppLocalizations.of(context)?.teenSundaySchoolLesson ?? "Teenager Sunday School Lesson",
                                               lessonDate: selectedDate,
                                               isTeen: true,
                                             ),
@@ -385,6 +402,14 @@ class HomeState extends State<Home> {
                                         ?? AppLocalizations.of(context)!.noAdultLesson,
                                       available: lesson?.adultNotes != null,
                                       onTap: () async {
+                                        // The conditional check goes HERE
+                                        if (!(lesson?.adultNotes != null)) {
+                                          showTopToast(
+                                            context,
+                                            'No lesson available for today',
+                                          );
+                                          return; // stop here, no navigation
+                                        }
                                         // Log the button / tap event
                                         await AnalyticsService.logButtonClick('adult_lesson_open');
                                     
@@ -394,7 +419,7 @@ class HomeState extends State<Home> {
                                           MaterialPageRoute(
                                             builder: (_) => BeautifulLessonPage(
                                               data: lesson!.adultNotes!,
-                                              title: "Adult Sunday School Lesson",
+                                              title: AppLocalizations.of(context)?.adultSundaySchoolLesson ?? "Adult Sunday School Lesson",
                                               lessonDate: selectedDate,
                                               isTeen: false,
                                             ),
@@ -429,13 +454,15 @@ class HomeState extends State<Home> {
     required VoidCallback onTap,
   }) {
 
+    final bool canTap = available && lesson != null;
+
     return LessonCardButtons(
       context: context,
       label: label,
       available: available,
       onPressed: onTap,
       leadingIcon: Icons.menu_book_rounded,
-      trailingIcon: available ? Icons.arrow_forward_ios_rounded : Icons.lock_outline,
+      trailingIcon: canTap ? Icons.arrow_forward_ios_rounded : Icons.lock_outline,
     );
   }
 
@@ -458,7 +485,7 @@ class HomeState extends State<Home> {
                   context: context,
                   todayReading: todayReading,
                 )
-            : () {}, // disabled when no reading
+            : () {}, // disabled when no reading*/
         label: displayText, // single label with both title and text
         available: hasReading,
         leadingIcon: Icons.menu_book_rounded,

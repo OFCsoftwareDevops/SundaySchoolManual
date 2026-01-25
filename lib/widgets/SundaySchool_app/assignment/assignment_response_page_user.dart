@@ -13,10 +13,12 @@ import '../../../UI/app_linear_progress_bar.dart';
 import '../../../auth/login/auth_service.dart';
 import '../../../backend_data/database/assignment_data.dart';
 import '../../../backend_data/service/analytics/analytics_service.dart';
-import '../../../backend_data/service/firestore_service.dart';
-import '../../../backend_data/service/submitted_dates_provider.dart';
+import '../../../backend_data/service/firestore/firestore_service.dart';
+import '../../../backend_data/service/firestore/submitted_dates_provider.dart';
 import '../../../backend_data/database/lesson_data.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../utils/media_query.dart';
+import '../../helpers/snackbar.dart';
 
 class AssignmentResponsePage extends StatefulWidget {
   final DateTime date;
@@ -40,7 +42,8 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
   bool _isSubmitted = false;
   bool _isEditing = false;
   bool _isGradedByAdmin = false;
-  String _currentQuestion = "Loading assignment...";
+  String _currentQuestion = "";
+
   // Stored response data loaded from Firestore so the UI can access them
   List<String> _savedResponses = [];
   List<int> _scores = [];
@@ -58,10 +61,10 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
   }
 
   String extractSingleQuestionFromSection(Map<String, dynamic>? sectionMap) {
-    if (sectionMap == null) return "No question available.";
+    if (sectionMap == null) return AppLocalizations.of(context)?.noQuestionAvailable ?? "No question available.";
 
     final List<dynamic>? blocks = sectionMap['blocks'] as List<dynamic>?;
-    if (blocks == null || blocks.isEmpty) return "No question available.";
+    if (blocks == null || blocks.isEmpty) return AppLocalizations.of(context)?.noQuestionAvailable ?? "No question available.";
 
     for (final block in blocks) {
       final map = block as Map<String, dynamic>;
@@ -102,7 +105,7 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
       }
     }
 
-    return "No question available.";
+    return AppLocalizations.of(context)?.noQuestionAvailable ?? "No question available.";
   }
 
   Future<void> _loadAssignmentAndResponses() async {
@@ -119,7 +122,7 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
     // ── Load the assignment (contains the question) ──
     AssignmentDay? assignmentDay;
     try {
-      assignmentDay = await _service.loadAssignment(widget.date).timeout(
+      assignmentDay = await _service.loadAssignment(context, widget.date).timeout(
         const Duration(seconds: 6),
         onTimeout: () {
           if (kDebugMode) {
@@ -140,7 +143,7 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
     }
 
     // ── Extract the single question from teen or adult section ──
-    String currentQuestion = "No question available for this day.";
+    String currentQuestion = AppLocalizations.of(context)?.noQuestionAvailableForThisDay ?? "No question available for this day.";
 
     if (assignmentDay != null) {
       final SectionNotes? sectionNotes = widget.isTeen
@@ -232,11 +235,11 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
 
     final churchId = context.read<AuthService>().churchId;
     if (churchId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please select your church first!"),
-          backgroundColor: Colors.orange,
-        ),
+      showTopToast(
+        context,
+        AppLocalizations.of(context)?.pleaseSelectYourChurchFirst ?? "Please select your church first!",
+        backgroundColor: AppColors.warning,
+        textColor: AppColors.darkSurface,
       );
       return;
     }
@@ -248,11 +251,12 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
         .toList();
 
     if (responses.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please enter at least one answer to the question."),
-          backgroundColor: Colors.red,
-        ),
+      showTopToast(
+        context,
+        AppLocalizations.of(context)?.pleaseEnterAtLeastOneAnswer ?? "Please enter at least one answer to the question.",
+        backgroundColor: AppColors.error,
+        textColor: AppColors.onError,
+        duration: const Duration(seconds: 5),
       );
       return;
     }
@@ -273,11 +277,11 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
         _isEditing = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Your answers have been submitted successfully!"),
-          backgroundColor: Color.fromARGB(255, 84, 155, 86),
-        ),
+      showTopToast(
+        context,
+        AppLocalizations.of(context)?.yourAnswersHaveBeenSubmitted ?? "Your answers have been submitted successfully!",
+        backgroundColor: AppColors.success,
+        textColor: AppColors.surface,
       );
 
       // Refresh the submitted-dates provider so the calendar shows the update immediately
@@ -295,11 +299,12 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
       if (kDebugMode) {
         debugPrint("Error saving responses: $e\n$st");
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Failed to save your answers. Please try again."),
-          backgroundColor: Color.fromARGB(255, 176, 91, 84),
-        ),
+      showTopToast(
+        context,
+        AppLocalizations.of(context)?.failedToSaveYourAnswers ?? "Failed to save your answers. Please try again.",
+        backgroundColor: AppColors.error,
+        textColor: AppColors.onError,
+        duration: const Duration(seconds: 5),
       );
     }
   }
@@ -318,6 +323,9 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
   Widget build(BuildContext context) {
     final dateFormatted = DateFormat('MMMM d, yyyy').format(widget.date);
     final style = CalendarDayStyle.fromContainer(context, 50);
+
+    final total = _loadedResponse?.totalScore ?? _scores.fold(0, (a, b) => a! + b);
+    final possible = _savedResponses.length;
 
     return Scaffold(
       appBar: AppBar(
@@ -356,7 +364,7 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "This Week's Assignment",
+                            AppLocalizations.of(context)?.thisWeeksAssignment ?? "This Week's Assignment",
                             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                               fontSize: 20.sp,
@@ -372,7 +380,7 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
                           ),
                           SizedBox(height: 12.sp),
                           Text(
-                            "Due: $dateFormatted",
+                            AppLocalizations.of(context)?.dueDateFormatted(dateFormatted) ?? "Due: $dateFormatted",
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               fontStyle: FontStyle.italic,
                               fontSize: 13.sp,
@@ -414,7 +422,7 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
                                         ),
                                         SizedBox(width: 10.sp),
                                         Text(
-                                          "Graded by Teacher",
+                                          AppLocalizations.of(context)?.gradedByTeacher ?? "Graded by Teacher",
                                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 18.sp,
@@ -426,7 +434,10 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
 
                                     // Total Score
                                     Text(
-                                      "Your Score: ${_loadedResponse?.totalScore ?? _scores.fold(0, (a, b) => a! + b)} / ${_savedResponses.length}",
+                                      AppLocalizations.of(context)?.yourScore(
+                                        total.toString(),
+                                        possible.toString(),
+                                      ) ?? "Your Score: $total / $possible",
                                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 15.sp,
@@ -441,7 +452,7 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            "Teacher's Feedback:",
+                                            AppLocalizations.of(context)?.teachersFeedback ?? "Teacher's Feedback:",
                                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                               fontWeight: FontWeight.bold,
                                               color: Theme.of(context).colorScheme.onSurface,
@@ -479,7 +490,7 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
                                       )
                                     else
                                       Text(
-                                        "No teacher feedback provided.",
+                                        AppLocalizations.of(context)?.noTeacherFeedbackProvided ?? "No teacher feedback provided.",
                                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                                               fontStyle: FontStyle.italic,
@@ -493,8 +504,8 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
 
                           Text(
                             _isGradedByAdmin 
-                                ? "This assignment has been graded" 
-                                : (_isSubmitted && !_isEditing ? "Your submitted responses" : "My Responses:"),
+                                ? AppLocalizations.of(context)?.assignmentGraded ?? "This assignment has been graded" 
+                                : (_isSubmitted && !_isEditing ? AppLocalizations.of(context)?.yourSubmittedResponses ?? "Your submitted responses" : AppLocalizations.of(context)?.myResponses ?? "My Responses:"),
                             style: TextStyle(
                               fontSize: 12.sp,
                               fontWeight: FontWeight.bold,
@@ -521,8 +532,8 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
                                       readOnly: isFieldLocked,
                                       decoration: InputDecoration(
                                         hintText: isFieldLocked
-                                          ? (_isGradedByAdmin ? "Graded — cannot edit" : "Submitted — tap Edit to change")
-                                          : "Write your response #${index + 1} here...",
+                                          ? (_isGradedByAdmin ? AppLocalizations.of(context)?.gradedNoEdit ?? "Graded — cannot edit" : AppLocalizations.of(context)?.submittedTapEditToChange ?? "Submitted — tap Edit to change")
+                                          : AppLocalizations.of(context)?.writeYourResponseHere ?? "Write your response here...",
                                         border: OutlineInputBorder(
                                           borderRadius: BorderRadius.circular(12.sp),
                                         ),
@@ -556,7 +567,7 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
                                 onPressed: _addResponseBox,
                                 icon: Icon(Icons.add_circle_outline, size: 24.sp),
                                 color: Colors.grey[600],
-                                tooltip: "Add another response",
+                                tooltip: AppLocalizations.of(context)?.addAnotherResponse ?? "Add another response",
                               ),
                             ),
 
@@ -566,8 +577,8 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
                             child: AssignmentWidgetButton(
                               context: context,
                               text: _isGradedByAdmin 
-                                ? "Graded by Teacher" 
-                                : (_isSubmitted && !_isEditing ? "Edit Responses" : "Submit"),
+                                ? AppLocalizations.of(context)?.assignmentGraded ?? "Graded — cannot edit" 
+                                : (_isSubmitted && !_isEditing ? AppLocalizations.of(context)?.editResponses ?? "Edit Responses" : AppLocalizations.of(context)?.submit ?? "Submit"),
                               icon: Icon(_isGradedByAdmin 
                                 ? Icons.verified 
                                 : (_isSubmitted && !_isEditing ? Icons.edit : Icons.save_rounded),

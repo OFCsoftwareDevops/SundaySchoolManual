@@ -8,8 +8,10 @@ import '../../UI/app_buttons.dart';
 import '../../UI/app_colors.dart';
 import '../../UI/app_linear_progress_bar.dart';
 import '../../auth/login/auth_service.dart';
-import 'add_church_screen.dart';
-import 'main_screen.dart';
+import '../../l10n/app_localizations.dart';
+import '../helpers/snackbar.dart';
+import 'church_add_screen.dart';
+import '../helpers/main_screen.dart';
 
 class ChurchOnboardingScreen extends StatefulWidget {
   const ChurchOnboardingScreen({super.key});
@@ -42,8 +44,9 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
   Future<void> _joinWithCode(String code) async {
     final trimmedCode = code.trim().toUpperCase();
     if (trimmedCode.length != 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter a valid 6-digit code")),
+      showTopToast(
+        context,
+        AppLocalizations.of(context)?.invalidSixDigitCode ?? "Please enter a valid 6-digit code",
       );
       return;
     }
@@ -60,11 +63,11 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
 
       final resultData = result.data;
       if (resultData is! Map<String, dynamic>) {
-        throw Exception("Invalid server response");
+        throw Exception(AppLocalizations.of(context)?.invalidServerResponse ?? "Invalid server response");
       }
       final data = resultData;
 
-      final message = data['message'] as String? ?? "Joined successfully!";
+      final message = data['message'] as String? ?? AppLocalizations.of(context)?.joinedSuccessfully ?? "Joined successfully!";
 
       final churchId = data['churchId'] as String?;
       final churchName = data['churchName'] as String?;
@@ -74,24 +77,17 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar( 
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 2),
-          content: SizedBox(
-            child: Text(
-              message,
-              softWrap: true,
-              style: TextStyle(
-                fontSize: 15.sp,
-              )
-            ),
-          ),
-        ),
+      showTopToast(
+        context,
+        message,
+        //AppLocalizations.of(context)?.failedToSaveYourAnswers ?? "Failed to save your answers. Please try again.",
+        backgroundColor: AppColors.success,
+        textColor: AppColors.surface,
+        duration: const Duration(seconds: 2),
       );
 
       // Delay the navigation so the SnackBar overlay finishes
-      Future.delayed(const Duration(milliseconds: 50), () {
+      Future.delayed(const Duration(milliseconds: 10), () {
         if (mounted) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => MainScreen()),
@@ -101,15 +97,18 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
     } catch (e) {
       if (!mounted) return;
 
-      String errorMsg = "Failed to join church";
+      String errorMsg = AppLocalizations.of(context)?.failedToJoinChurch ?? "Failed to join church";
       if (e is FirebaseFunctionsException) {
         errorMsg = e.message ?? errorMsg;
       } else {
         errorMsg = e.toString();
       }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMsg), backgroundColor: Colors.red),
+      showTopToast(
+        context,
+        errorMsg,
+        //AppLocalizations.of(context)?.failedToSaveYourAnswers ?? "Failed to save your answers. Please try again.",
+        backgroundColor: AppColors.error,
+        textColor: AppColors.onError,
       );
     } finally {
       if (mounted) {
@@ -170,8 +169,8 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
         final confirm = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text("Leave without joining?"),
-            content: const Text("You'll be signed out and returned to the login screen."),
+            title: Text(AppLocalizations.of(context)?.leaveWithoutJoining ?? "Leave without joining?"),
+            content: Text(AppLocalizations.of(context)?.signOutWarning ?? "You'll be signed out and returned to the login screen."),
             actions: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -180,7 +179,7 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
                   ChurchChoiceButtons(
                     context: context,
                     onPressed: () => Navigator.pop(context, false),
-                    text: "Stay",
+                    text: AppLocalizations.of(context)?.stay ?? "Stay",
                     icon: Icons.home_rounded,           // or Icons.cancel, Icons.arrow_back
                     topColor: Theme.of(context).colorScheme.onSurface,
                     textColor: Theme.of(context).colorScheme.surface, // softer shadow for cancel-like action
@@ -189,7 +188,7 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
                   ChurchChoiceButtons(
                     context: context,
                     onPressed: () => Navigator.pop(context, true),
-                    text: "Sign Out",
+                    text: AppLocalizations.of(context)?.signOut ?? "Sign Out",
                     icon: Icons.logout_rounded,         // very clear logout icon
                     topColor: AppColors.primaryContainer,       // ← strong red for danger
                     textColor: Colors.white,
@@ -216,8 +215,8 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
               final confirm = await showDialog<bool>(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: const Text("Leave without joining?"),
-                  content: const Text("You'll be signed out and returned to the login screen."),
+                  title: Text(AppLocalizations.of(context)?.leaveWithoutJoining ?? "Leave without joining?"),
+                  content: Text(AppLocalizations.of(context)?.signOutWarning ?? "You'll be signed out and returned to the login screen."),
                   actions: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -226,7 +225,7 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
                         ChurchChoiceButtons(
                           context: context,
                           onPressed: () => Navigator.pop(context, false),
-                          text: "Stay",
+                          text: AppLocalizations.of(context)?.stay ?? "Stay",
                           icon: Icons.cancel,           // or Icons.cancel, Icons.arrow_back
                           topColor: Theme.of(context).colorScheme.onSurface,
                           textColor: Theme.of(context).colorScheme.surface, // softer shadow for cancel-like action
@@ -235,7 +234,7 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
                         ChurchChoiceButtons(
                           context: context,
                           onPressed: () => Navigator.pop(context, true),
-                          text: "Sign Out",
+                          text: AppLocalizations.of(context)?.signOut ?? "Sign Out",
                           icon: Icons.logout_rounded,         // very clear logout icon
                           topColor: AppColors.primaryContainer,       // ← strong red for danger
                           textColor: Colors.white,
@@ -265,7 +264,7 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        "Welcome!",
+                        AppLocalizations.of(context)?.welcome ?? "Welcome!",
                         style: TextStyle(fontSize: 30.sp, 
                         fontWeight: FontWeight.bold,
                         ),
@@ -273,7 +272,7 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
                       ),
                       SizedBox(height: 10.sp),
                       Text(
-                        "Let's get you connected to your church",
+                        AppLocalizations.of(context)?.connectToChurch ?? "Let's get you connected to your church",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 16.sp,
@@ -285,8 +284,8 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
                       _optionCard(
                         icon: Icons.add_business,
                         color: Colors.deepPurple,
-                        title: "Create My Church",
-                        subtitle: "Set up your parish and become its admin",
+                        title: AppLocalizations.of(context)?.registerParish ?? "Register Parish",
+                        subtitle: AppLocalizations.of(context)?.setUpYourParish ?? "Set up your parish and become its admin",
                         onTap: () async {
                           final result = await Navigator.push(
                             context,
@@ -301,20 +300,26 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
                       _optionCard(
                         icon: Icons.vpn_key,
                         color: Colors.teal,
-                        title: "Join with Church Code",
-                        subtitle: "Enter the 6-digit code from your pastor",
+                        title: AppLocalizations.of(context)?.joinParish ?? "Join Parish",
+                        subtitle: AppLocalizations.of(context)?.enterSixDigitCode ?? "Enter the 6-digit code provided by your parish admin",
                         onTap: () {
                           final localController = TextEditingController();
 
                           showDialog(
                             context: context,
                             builder: (dialogContext) => AlertDialog(
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.sp)),
-                              title: const Text("Enter Church Code"),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.sp)),
+                              title: Text(
+                                AppLocalizations.of(context)?.enterChurchCode ?? "Enter Church Code",
+                                style: TextStyle(
+                                  fontSize: 24.sp,                    // bigger title size
+                                  fontWeight: FontWeight.bold,        // or w700/w800
+                                ),
+                              ),
                               content: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text("Ask your pastor for the code"),
+                                  Text(AppLocalizations.of(context)?.askPastorForCode ?? "Ask your pastor for the code"),
                                   SizedBox(height: 16.sp),
                                   TextField(
                                     controller: localController,
@@ -345,14 +350,12 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
                                     ChurchChoiceButtons(
                                       context: context,
                                       onPressed: () => Navigator.pop(dialogContext),
-                                      text: "Cancel",
+                                      text: AppLocalizations.of(context)?.cancel ?? "Cancel",
                                       icon: Icons.close_rounded,
                                       topColor: Theme.of(context).colorScheme.onSurface,
                                       textColor: Theme.of(context).colorScheme.surface,
                                     ),
-
-                                    SizedBox(width: 24),  // ← nice breathing room between buttons
-
+                                    SizedBox(width: 5.sp),
                                     ChurchChoiceButtons(
                                       context: context,
                                       onPressed: _isJoining ? null : () {
@@ -360,7 +363,7 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
                                         Navigator.pop(dialogContext);
                                         _joinWithCode(code);
                                       },
-                                      text: "Join",
+                                      text: AppLocalizations.of(context)?.join ?? "Join",
                                       icon: Icons.login_rounded,
                                       topColor: Theme.of(context).colorScheme.primary,
                                       textColor: Theme.of(context).colorScheme.onPrimary,
@@ -368,24 +371,6 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
                                   ],
                                 ),
                               ],
-                              /*actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(dialogContext);
-                                  },
-                                  child: const Text("Cancel"),
-                                ),
-                                ElevatedButton(
-                                  onPressed: _isJoining
-                                      ? null
-                                      : () {
-                                          final code = localController.text;
-                                          Navigator.pop(dialogContext); // Close dialog
-                                          _joinWithCode(code); // Call your method with the code
-                                        },
-                                  child: const Text("Join"),
-                                ),
-                              ],*/
                             ),
                           );
                         },
@@ -401,10 +386,4 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
       ),
     );
   }
-
- /* @override
-  void dispose() {
-    _codeController.dispose();
-    super.dispose();
-  }*/
 }

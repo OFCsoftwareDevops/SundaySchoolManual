@@ -32,6 +32,9 @@ extension DeviceType on BuildContext {
 
   /// Scale factor: 1.0 on phones, 0.7 (or your preferred value) on tablets
   double get tabletScaleFactor => isTablet ? 1.1 : 1.0;
+  double get lineHeight => isTablet ? 1.3 : 1.4;
+  double get highlightColorContainer => isTablet ? 40 : 35;
+  double get mySizedBoxHeight => isTablet ? 8 : 10;
 
   /// Optional: helpful for fine-tuning
   double get screenWidth => MediaQuery.of(this).size.width;

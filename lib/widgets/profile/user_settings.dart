@@ -2,13 +2,17 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-//import 'package:permission_handler/permission_handler.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../backend_data/service/analytics/analytics_service.dart';
-/*import '../../backend_data/service/notification/notification_service.dart';
-import '../../backend_data/service/notification/reminder_tile.dart';*/
+import '../../backend_data/service/firestore/assignment_dates_provider.dart';
+import '../../backend_data/service/firestore/firestore_service.dart';
+import '../../l10n/app_localizations.dart';
+import '../../main.dart';
 import '../../utils/media_query.dart';
+import '../../utils/store_links.dart';
+import '../bible_app/bible.dart';
 import 'user_feedback.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -19,109 +23,18 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _dailyReminderEnabled = false;
-  TimeOfDay _reminderTime = const TimeOfDay(hour: 8, minute: 0);
-  static const int _reminderId = 1;
-
   @override
   void initState() {
     super.initState();
-    _loadPreferences();
   }
-
-  Future<void> _loadPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _dailyReminderEnabled = prefs.getBool('daily_reminder_enabled') ?? false;
-      final savedHour = prefs.getInt('reminder_hour') ?? 8;
-      final savedMinute = prefs.getInt('reminder_minute') ?? 0;
-      _reminderTime = TimeOfDay(hour: savedHour, minute: savedMinute);
-    });
-
-    /*if (_dailyReminderEnabled) {
-      await _scheduleNotification(_reminderTime);
-    }*/
-  }
-
-  /*Future<void> _toggleDailyReminder(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('daily_reminder_enabled', value);
-
-    setState(() {
-      _dailyReminderEnabled = value;
-    });
-
-    if (value) {
-      // Android: request exact alarms permission
-      if (Platform.isAndroid) {
-        final status = await Permission.scheduleExactAlarm.request();
-        if (status.isDenied || status.isPermanentlyDenied) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Exact timing denied. Reminder will be approximate."),
-                duration: Duration(seconds: 5),
-              ),
-            );
-          }
-        }
-      }
-
-      await _scheduleNotification(_reminderTime);
-    } else {
-      await NotificationService().cancelDailyReminder(_reminderId);
-    }
-  }
-
-  Future<void> _pickReminderTime() async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: _reminderTime,
-      helpText: "Choose Daily Reminder Time",
-    );
-
-    if (picked != null && picked != _reminderTime) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt('reminder_hour', picked.hour);
-      await prefs.setInt('reminder_minute', picked.minute);
-
-      setState(() {
-        _reminderTime = picked;
-      });
-
-      if (_dailyReminderEnabled) {
-        await _scheduleNotification(picked);
-      }
-    }
-  }
-
-  /// Schedule notification using robust NotificationService
-  Future<void> _scheduleNotification(TimeOfDay time) async {
-    try {
-      await NotificationService().scheduleDailyReminder(
-        id: _reminderId,
-        title: "Sunday School Reminder 📖",
-        body: "Time for today's Bible lesson! Open the app to study.",
-        time: time,
-      );
-    } catch (e) {
-      debugdebugPrint("Failed to schedule daily reminder: $e");
-      // Fallback: show immediate test notification in 15 seconds
-      Future.delayed(const Duration(seconds: 15), () async {
-        await NotificationService().showNotification(
-          id: _reminderId,
-          title: "Sunday School Reminder 📖",
-          body: "Time for today's Bible lesson! Open the app to study.",
-        );
-      });
-    }
-  }*/
 
   Future<void> _rateApp() async {
-    final url = Uri.parse(
-        'https://play.google.com/store/apps/details?id=your.package.name.here'); // CHANGE
+    final url = Uri.parse(StoreLinks.review);
     if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
+      await launchUrl(
+        url, 
+        mode: LaunchMode.externalApplication,
+      );
     }
   }
 
@@ -144,7 +57,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: FittedBox(
           fit: BoxFit.scaleDown, // Scales down text if it would overflow
           child: Text(
-            "Settings",
+            AppLocalizations.of(context)?.settings ?? "Settings",
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: style.monthFontSize.sp, // Matches your other screen's style
@@ -160,55 +73,54 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: EdgeInsets.all(16.sp),
         children: [
-          /*Padding(
-            padding: EdgeInsets.symmetric(vertical: 8.sp),
-            child: Text(
-              "Reminders",
-              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
-            ),
-          ),
-          ReminderTile(
-            notificationId: 1,
-            title: "Daily Bible Lesson Reminder 📖",
-            body: "Time for today's Bible lesson! Open the app to study.",
-          ),
-          const Divider(),*/
           Padding(
             padding: EdgeInsets.symmetric(vertical: 2.sp),
             child: Text(
-              "Feedback",
+              AppLocalizations.of(context)?.feedback ?? "Feedback",
               style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
             ),
           ),
           ListTile(
             leading: const Icon(Icons.star_rate, color: Colors.amber),
-            title: const Text("Rate App on Google Play"),
+            title: Text(AppLocalizations.of(context)?.rateAppOnGooglePlay ?? "Rate App on Google Play"),
             onTap: _rateApp,
           ),
           ListTile(
             leading: const Icon(Icons.lightbulb_outline),
-            title: const Text("Suggest a Feature"),
+            title: Text(AppLocalizations.of(context)?.suggestAFeature ?? "Suggest a Feature"),
             onTap: _requestFeature,
           ),
           const Divider(),
           Padding(
             padding: EdgeInsets.symmetric(vertical: 2.sp),
             child: Text(
-              "Preferences",
+              AppLocalizations.of(context)?.preferences ?? "Preferences",
               style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
             ),
           ),
-          /*const ListTile(
-            leading: Icon(Icons.color_lens),
-            title: Text("Theme"),
-            subtitle: Text("Coming soon"),
-            enabled: false,
-          ),*/
-          const ListTile(
-            leading: Icon(Icons.language),
-            title: Text("Language"),
-            subtitle: Text("Coming soon"),
-            enabled: false,
+          ListTile(
+            leading: const Icon(Icons.language),
+            title: Text(AppLocalizations.of(context)?.language ?? 'Language'),
+            subtitle: Builder(
+              builder: (context) {
+                final code = Localizations.localeOf(context).languageCode;
+                String displayName;
+
+                switch (code) {
+                  case 'fr':
+                    displayName = 'Français';
+                    break;
+                  /*case 'yo':
+                    displayName = 'Èdè Yorùbá';
+                    break;*/
+                  default:
+                    displayName = 'English';
+                }
+
+                return Text(displayName);
+              },
+            ),
+            onTap: () => _showLanguagePicker(context),
           ),
         ],
       ),
@@ -216,3 +128,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 }
 
+void _showLanguagePicker(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    builder: (context) => SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildLanguageTile(context, 'en', 'English'),
+          _buildLanguageTile(context, 'fr', 'Français'),
+          //_buildLanguageTile(context, 'yo', 'Èdè Yorùbá'),
+        ],
+      ),
+    ),
+  );
+}
+
+Widget _buildLanguageTile(BuildContext context, String code, String label) {
+  return ListTile(
+    title: Text(label),
+    leading: const Icon(Icons.language),
+    onTap: () async {
+      await Hive.box('settings').put('preferred_language', code);
+      MyApp.setLocale(context, Locale(code));
+
+      final bibleManager = context.read<BibleVersionManager>();
+      final newDefault = bibleManager.getDefaultVersion();
+      await bibleManager.changeVersion(newDefault);
+
+      final service = Provider.of<FirestoreService>(context, listen: false);
+      Provider.of<AssignmentDatesProvider>(context, listen: false)
+          .refresh(context, service);
+
+      Navigator.pop(context);
+    },
+  );
+}

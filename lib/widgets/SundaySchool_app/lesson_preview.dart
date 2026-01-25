@@ -9,16 +9,19 @@ import '../../UI/app_buttons.dart';
 import '../../UI/app_colors.dart';
 import '../../backend_data/database/lesson_data.dart';
 import '../../backend_data/service/analytics/analytics_service.dart';
+import '../../l10n/app_localizations.dart';
+import '../../utils/device_check.dart';
 import '../../utils/media_query.dart';
-import '../../utils/share_lesson.dart';
 import '../bible_app/bible.dart';
 import '../bible_app/bible_actions/highlight_manager.dart';
+import '../bible_app/bible_ref_verse_popup.dart';
+import '../helpers/snackbar.dart';
+import 'lesson_share.dart';
 import '../helpers/main_screen.dart';
 import 'assignment/assignment_response_page_user.dart';
 import 'lesson_bible_ref_parser.dart';
-import 'lesson_ref_verse_popup.dart';
 import '../../auth/login/auth_service.dart';
-import '../../backend_data/service/saved_items_service.dart';
+import '../../backend_data/service/firestore/saved_items_service.dart';
 
 class BeautifulLessonPage extends StatelessWidget {
   final SectionNotes data;
@@ -39,9 +42,7 @@ class BeautifulLessonPage extends StatelessWidget {
     final lessonShare = LessonShare(
       data: data,
       title: title,
-      lessonDate: lessonDate,
-      logoPath: 'assets/images/rccg_jhfan_share_image.png' // Optionally provide a logo path
-      
+      lessonDate: lessonDate,  
     );
 
     showModalBottomSheet(
@@ -58,7 +59,7 @@ class BeautifulLessonPage extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  "Share Lesson",
+                  AppLocalizations.of(context)?.shareLesson ?? "Share Lesson",
                   style: TextStyle(
                     fontSize: 20.sp, 
                     fontWeight: FontWeight.bold,
@@ -67,7 +68,7 @@ class BeautifulLessonPage extends StatelessWidget {
                 SizedBox(height: 6.sp),
                 ListTile(
                   leading: const Icon(Icons.picture_as_pdf, color: AppColors.primaryContainer),
-                  title: const Text("Share as PDF"),
+                  title: Text(AppLocalizations.of(context)?.shareAsLessonPdf ?? "Share as PDF"),
                   onTap: () async {
                     Navigator.pop(context); // Close bottom sheet
                     await lessonShare.shareAsPdf();
@@ -75,7 +76,7 @@ class BeautifulLessonPage extends StatelessWidget {
                 ),
                 ListTile(
                   leading: const Icon(Icons.link, color: AppColors.secondary),
-                  title: const Text("Share Link"),
+                  title: Text(AppLocalizations.of(context)?.shareLink ?? "Share Link"),
                   onTap: () async {
                     Navigator.pop(context);
                     await lessonShare.shareAsLink();
@@ -91,11 +92,12 @@ class BeautifulLessonPage extends StatelessWidget {
   }
 
   Widget _buildBlock(BuildContext context, ContentBlock block, ColorScheme colorScheme, TextTheme textTheme) {
+    final lineHeight = context.lineHeight;
     // ← exact same _buildBlock from the previous message (heading, text, memory_verse, numbered_list, bullet_list, quote, prayer)
     switch (block.type) {
       case "heading":
         return Padding(
-          padding: EdgeInsets.only(top: 10.sp, bottom: 10.sp),
+          padding: EdgeInsets.only(top: 10.sp, bottom: 4.sp),
           child: Text(
             block.text!, 
             style: textTheme.headlineMedium?.copyWith(
@@ -107,7 +109,7 @@ class BeautifulLessonPage extends StatelessWidget {
         );
       case "text":
         return Padding(
-          padding: EdgeInsets.only(bottom: 10.sp),
+          padding: EdgeInsets.only(bottom: 4.sp),
           child: buildRichText(context, block.text!, colorScheme),
         );
       case "memory_verse":
@@ -115,23 +117,41 @@ class BeautifulLessonPage extends StatelessWidget {
           padding: EdgeInsets.only(bottom: 10.sp),
           child: Container(
             width: double.infinity,
-            padding: EdgeInsets.all(24.sp),
+            padding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: 16.sp),
             decoration: BoxDecoration(
               color: colorScheme.surfaceVariant.withOpacity(0.5),
               borderRadius: BorderRadius.circular(16.sp),
               border: Border(
-                left: BorderSide(color: colorScheme.primary, width: 5.sp),
+                left: BorderSide(color: colorScheme.primaryContainer, width: 5.sp),
               ),
             ),
-            child: Text(
-              block.text!,
-              style: textTheme.titleMedium?.copyWith(
-                fontStyle: FontStyle.italic,
-                fontSize: 15.sp,
-                height: 1.4.sp,
-                color: colorScheme.onBackground,
-              ),
-              textAlign: TextAlign.center,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppLocalizations.of(context)?.memoryVerse ?? "Memory verse:",
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontStyle: FontStyle.italic,
+                    color: colorScheme.onBackground,
+                    fontSize: 14.sp,
+                  ),
+                ),
+                SizedBox(height: 5.sp),
+                Center(
+                  child: Text(
+                    block.text!,
+                    style: textTheme.titleMedium?.copyWith(
+                      fontStyle: FontStyle.italic,
+                      fontSize: 13.sp,
+                      height: lineHeight,
+                      color: colorScheme.onBackground,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
             ),
           ),
         );
@@ -170,6 +190,7 @@ class BeautifulLessonPage extends StatelessWidget {
                         e.value,
                         style: textTheme.bodyMedium?.copyWith(
                           fontSize: 15.sp,
+                          height: lineHeight,
                         ),
                       ),
                     ),
@@ -177,27 +198,6 @@ class BeautifulLessonPage extends StatelessWidget {
                 ),
               );
             }).toList(),
-          ),
-        );
-      case "bullet_list":
-        return Padding(
-          padding: EdgeInsets.only(bottom: 10.sp),
-          child: Column(
-            children: block.items!.map((item) => Padding(
-              padding: EdgeInsets.symmetric(vertical: 6.sp),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("• ", style: textTheme.bodyMedium),
-                  Expanded(
-                    child: Text(
-                      item,
-                      style: textTheme.bodyMedium?.copyWith(height: 5.sp),
-                    ),
-                  ),
-                ],
-              ),
-            )).toList(),
           ),
         );
       case "quote":
@@ -213,7 +213,7 @@ class BeautifulLessonPage extends StatelessWidget {
             block.text!,
             style: textTheme.bodyMedium?.copyWith(
               fontStyle: FontStyle.italic,
-              height: 1.4.sp,
+              height: lineHeight,
             ),
           ),
         );
@@ -228,15 +228,16 @@ class BeautifulLessonPage extends StatelessWidget {
           child: Column(
             children: [
               Text(
-                "Prayer",
+                AppLocalizations.of(context)?.prayer ?? "Prayer",
                 style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 16.sp),
+              SizedBox(height: 10.sp),
               Text(
                 block.text!,
                 style: textTheme.bodyMedium?.copyWith(
                   fontSize: 18.sp,
-                  height: 1.4.sp),
+                  height: lineHeight,
+                ),
               ),
             ],
           ),
@@ -246,48 +247,216 @@ class BeautifulLessonPage extends StatelessWidget {
     }
   }
 
-  // Wherever you show lesson text (e.g. in your lesson detail screen)
-  Widget buildRichText(BuildContext context, String text, ColorScheme colorScheme) {
-    final refs = findBibleReferences(text);
-    if (refs.isEmpty) {
-      return Text(
-        text, 
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-          height: 1.4.sp,
-          fontSize: 15.sp,
-        ),
-      );
-    }
+  List<TextSpan> buildRichTextSpans(
+    BuildContext context,
+    String text,
+    ColorScheme colorScheme, {
+    bool applyItalicToReferences = false,
+  }) {
+    // Pre-process: better paragraph spacing
+    final processedText = text
+        .replaceAllMapped(RegExp(r'([.!?])\s*\n'), (m) => '${m.group(1)}\n\n')
+        .replaceAll('\n', '\n');
 
-    final parts = <TextSpan>[];
-    int lastEnd = 0;
+    final lines = processedText.split('\n');
+    final spans = <TextSpan>[];
+    final lineHeight = context.lineHeight; // or set to 1.2 for tighter gaps
 
-    for (final ref in refs) {
-      final match = bibleRefRegex.firstMatch(text.substring(lastEnd));
-      if (match == null) continue;
+    bool inOutlineSection = false;
 
-      final start = lastEnd + match.start;
-      final end = lastEnd + match.end;
+    for (int i = 0; i < lines.length; i++) {
+      final line = lines[i].trimRight();
 
-      // Add normal text before reference
-      if (start > lastEnd) {
-        parts.add(TextSpan(text: text.substring(lastEnd, start)));
+      if (line.isEmpty) {
+        spans.add(const TextSpan(text: '\n'));
+        continue;
       }
 
-      // Add clickable reference
-      parts.add(
-        TextSpan(
-          text: text.substring(start, end),
-          style: const TextStyle(
-            color: AppColors.scriptureHighlight,
-            fontWeight: FontWeight.w600,
+      // Detect start of OUTLINE section (case-insensitive)
+      if (RegExp(r'^(lesson\s+)?outline\b', caseSensitive: false).hasMatch(line)) {
+        inOutlineSection = true;
+        spans.add(TextSpan(
+          text: '$line\n',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            fontSize: 18.sp,
           ),
-          recognizer: TapGestureRecognizer()
-            ..onTap = () {
+        ));
+        continue;
+      }
+
+      // Inside OUTLINE: normal rendering, no auto-numbered detection
+      if (inOutlineSection) {
+        // Exit outline on next major heading
+        if (RegExp(r'^[A-Z][A-Z\s]+:').hasMatch(line) ||
+            RegExp(r'^[A-Z][A-Z\s]+$').hasMatch(line)) {
+          inOutlineSection = false;
+        }
+        spans.add(TextSpan(text: '$line\n'));
+        continue;
+      }
+
+      // Outside OUTLINE: check for numbered item
+      final numberedMatch = RegExp(r'^\s*(\d+[.)])\s*(.*)$').firstMatch(line);
+      if (numberedMatch != null) {
+        final numberPrefix = numberedMatch.group(1)!; // e.g. "1." or "2)"
+        final itemText = numberedMatch.group(2)!;
+
+        // Add styled number prefix
+        spans.add(
+          TextSpan(
+            text: '$numberPrefix ',
+            style: TextStyle(
+              fontSize: 15.sp,
+            ),
+          ),
+        );
+
+        // Now apply the FULL Bible reference parsing to the item text (same as normal lines)
+        final refs = findBibleReferences(itemText);
+        if (refs.isEmpty) {
+          spans.add(
+            TextSpan(
+              text: itemText,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontSize: 15.sp,
+                height: lineHeight,
+              ),
+            ),
+          );
+        } else {
+          int lastEnd = 0;
+          for (final ref in refs) {
+            final match = bibleRefRegex.firstMatch(itemText.substring(lastEnd));
+            if (match == null) continue;
+
+            final start = lastEnd + match.start;
+            final end = lastEnd + match.end;
+
+            if (start > lastEnd) {
+              spans.add(
+                TextSpan(
+                  text: itemText.substring(lastEnd, start),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontSize: 15.sp,
+                    height: lineHeight,
+                  ),
+                ),
+              );
+            }
+
+            spans.add(
+              TextSpan(
+                text: itemText.substring(start, end),
+                style: TextStyle(
+                  color: AppColors.scriptureHighlight,
+                  fontWeight: FontWeight.w600,
+                  fontStyle: applyItalicToReferences ? FontStyle.italic : FontStyle.normal,
+                ),
+                recognizer: TapGestureRecognizer()..onTap = () {
+                  final refStr = ref.toString();
+                  final manager = context.read<BibleVersionManager>();
+                  final raw = manager.getVerseText(refStr) ?? AppLocalizations.of(context)?.verseTemporarilyUnavailable ?? "Verse temporarily unavailable";
+
+                  final lines = raw
+                      .split('\n')
+                      .map((l) => l.trim())
+                      .where((l) => l.isNotEmpty)
+                      .toList();
+
+                  final highlightMgr = context.read<HighlightManager>();
+
+                  final String bookKey = ref.book.toString().toLowerCase().replaceAll(' ', '');
+
+                  final List<Map<String, dynamic>> verses = [];
+
+                  for (final line in lines) {
+                    final parts = line.split(RegExp(r'\s+'));
+                    final int? verseNum = int.tryParse(parts.first);
+
+                    if (verseNum == null || verseNum == 0) continue;
+
+                    final String verseText = parts.skip(1).join(' ');
+
+                    final bool isHighlighted = highlightMgr.isHighlighted(
+                      bookKey,
+                      ref.chapter,
+                      verseNum,
+                    );
+                    verses.add({
+                      'verse': verseNum,
+                      'text': verseText,
+                      'highlighted': isHighlighted,
+                    });
+                  }
+
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    barrierColor: Colors.black.withOpacity(0.65),
+                    builder: (_) => VersePopup(
+                      reference: refStr,
+                      verses: verses,
+                      rawText: raw,
+                    ),
+                  );
+                },
+              ),
+            );
+
+            lastEnd = end;
+          }
+
+          if (lastEnd < itemText.length) {
+            spans.add(
+              TextSpan(
+                text: itemText.substring(lastEnd),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontSize: 15.sp,
+                  height: lineHeight,
+                ),
+              ),
+            );
+          }
+        }
+
+        spans.add(const TextSpan(text: ''));
+        continue;
+      }
+
+      // Normal line (not numbered) — your original Bible ref parsing
+      final refs = findBibleReferences(line);
+      if (refs.isEmpty) {
+        spans.add(TextSpan(text: '$line\n'));
+        continue;
+      }
+
+      int lastEnd = 0;
+      for (final ref in refs) {
+        final match = bibleRefRegex.firstMatch(line.substring(lastEnd));
+        if (match == null) continue;
+
+        final start = lastEnd + match.start;
+        final end = lastEnd + match.end;
+
+        if (start > lastEnd) {
+          spans.add(TextSpan(text: line.substring(lastEnd, start)));
+        }
+
+        spans.add(
+          TextSpan(
+            text: line.substring(start, end),
+            style: TextStyle(
+              color: AppColors.scriptureHighlight,
+              fontWeight: FontWeight.w600,
+              fontStyle: applyItalicToReferences ? FontStyle.italic : FontStyle.normal,
+            ),
+            recognizer: TapGestureRecognizer()..onTap = () {
               final refStr = ref.toString();
               final manager = context.read<BibleVersionManager>();
-              final raw = manager.getVerseText(refStr) ?? "Verse temporarily unavailable";
-              
+              final raw = manager.getVerseText(refStr) ?? AppLocalizations.of(context)?.verseTemporarilyUnavailable ?? "Verse temporarily unavailable";
+
               final lines = raw
                   .split('\n')
                   .map((l) => l.trim())
@@ -296,9 +465,7 @@ class BeautifulLessonPage extends StatelessWidget {
 
               final highlightMgr = context.read<HighlightManager>();
 
-              // Normalize book name exactly like your HighlightManager expects
               final String bookKey = ref.book.toString().toLowerCase().replaceAll(' ', '');
-              // → "genesis", "exodus", "psalms", "1corinthians", etc.
 
               final List<Map<String, dynamic>> verses = [];
 
@@ -310,11 +477,10 @@ class BeautifulLessonPage extends StatelessWidget {
 
                 final String verseText = parts.skip(1).join(' ');
 
-                // This is the correct call — per-verse highlight check
                 final bool isHighlighted = highlightMgr.isHighlighted(
-                  bookKey,           // String book
-                  ref.chapter,       // int chapter
-                  verseNum,          // int verse ← now used!
+                  bookKey,
+                  ref.chapter,
+                  verseNum,
                 );
                 verses.add({
                   'verse': verseNum,
@@ -322,6 +488,7 @@ class BeautifulLessonPage extends StatelessWidget {
                   'highlighted': isHighlighted,
                 });
               }
+
               showModalBottomSheet(
                 context: context,
                 isScrollControlled: true,
@@ -334,25 +501,40 @@ class BeautifulLessonPage extends StatelessWidget {
                 ),
               );
             },
-        ),
-      );
-      lastEnd = end;
+          ),
+        );
+
+        lastEnd = end;
+      }
+
+      if (lastEnd < line.length) {
+        spans.add(TextSpan(text: line.substring(lastEnd)));
+      }
+      spans.add(const TextSpan(text: '\n'));
     }
 
-    // Add remaining text
-    if (lastEnd < text.length) {
-      parts.add(TextSpan(text: text.substring(lastEnd)));
-    }
+    return spans;
+  }
 
+  Widget buildRichText(BuildContext context, String text, ColorScheme colorScheme) {
+    final lineHeight = context.lineHeight;
+    
     return RichText(
       text: TextSpan(
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-          height: 1.4.sp,
+          height: lineHeight,
           fontSize: 15.sp,
           color: colorScheme.onBackground,
         ),
-        children: parts,
+        children: buildRichTextSpans(
+          context, 
+          text, 
+          colorScheme,
+          applyItalicToReferences: false,
+        ),
       ),
+      textAlign: TextAlign.justify,               // ← optional, looks nicer
+      softWrap: true,
     );
   }
 
@@ -362,6 +544,7 @@ class BeautifulLessonPage extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
+    final lineHeight = context.lineHeight;
 
     final user = FirebaseAuth.instance.currentUser;
 
@@ -404,7 +587,7 @@ class BeautifulLessonPage extends StatelessWidget {
             size: 20.sp,
           ),
           label: Text(
-            "Share Lesson",
+            AppLocalizations.of(context)?.shareLesson ?? "Share Lesson",
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16.sp,
@@ -419,28 +602,44 @@ class BeautifulLessonPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 10.sp),
-              // Topic Title — dynamic and theme-aware
+              // TOPIC TITLE
               Text(
                 data.topic,
                 style: textTheme.headlineLarge?.copyWith(
                   fontWeight: FontWeight.w300,
                   fontSize: 32.sp,
-                  height: 1.4.sp,
+                  height: lineHeight,
                   color: colorScheme.onBackground,
                 ) ?? TextStyle(fontSize: 36.sp, fontWeight: FontWeight.w300),
               ),
+              //BIBLE PASSAGE
               if (data.biblePassage.isNotEmpty) ...[
-                SizedBox(height: 1.4.sp),
-                Text(
-                  data.biblePassage,
-                  style: textTheme.titleMedium?.copyWith(
-                    fontStyle: FontStyle.italic,
-                    fontSize: 16.sp,
-                    color: colorScheme.onBackground.withOpacity(0.7),
+                SizedBox(height: 8.sp),
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: AppLocalizations.of(context)?.biblePassage ?? "BIBLE PASSAGE:  ",
+                        style: textTheme.titleMedium?.copyWith(
+                          fontStyle: FontStyle.italic,
+                          fontSize: 16.sp,
+                          color: colorScheme.onBackground,
+                        ),
+                      ),
+                      ...buildRichTextSpans(
+                        context, 
+                        data.biblePassage, 
+                        colorScheme,
+                        applyItalicToReferences: true,
+                      ),
+                    ],
+                    style: textTheme.titleMedium?.copyWith(   // ← base style for whole thing
+                      fontSize: 16.sp,
+                      color: colorScheme.onBackground,
+                    ),
                   ),
                 ),
               ],
-              SizedBox(height: 20.sp),
               ...data.blocks.map((block) => _buildBlock(context, block, colorScheme, textTheme)),
               // REAL ASSIGNMENT FROM YOUR NEW COLLECTION
               SizedBox(height: 20.sp),
@@ -449,8 +648,8 @@ class BeautifulLessonPage extends StatelessWidget {
                 child: AssignmentWidgetButton(
                   context: context,
                   text: user != null && !user.isAnonymous
-                      ? "Answer Weekly Assignment"
-                      : "Login For Assignment",
+                      ? AppLocalizations.of(context)?.answerWeeklyAssignment ?? "Answer Weekly Assignment"
+                      : AppLocalizations.of(context)?.loginForAssignment ?? "Login For Assignment",
                   icon: Icon(
                     user != null && !user.isAnonymous ? Icons.edit_note_rounded : Icons.login,
                   ),
@@ -543,44 +742,51 @@ class _SmartSaveLessonButtonState extends State<_SmartSaveLessonButton> {
     }
   }
 
-  Future<void> _saveLesson() async {
+  Future<void> _toggleSave() async {
     final user = FirebaseAuth.instance.currentUser;
     final auth = context.read<AuthService>();
 
     if (user == null || auth.churchId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sign in and join a church to save lessons')),
+      showTopToast(
+        context,
+        AppLocalizations.of(context)?.saveLessonPrompt ?? 'Sign in and join a church to save lessons',
       );
       return;
     }
 
-    if (_isSaved) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lesson already saved! 📚')),
-      );
-      return;
-    }
-
+    final service = SavedItemsService();
     final lessonId = '${widget.lessonDate.year}-${widget.lessonDate.month}-${widget.lessonDate.day}';
     final lessonType = widget.isTeen ? 'teen' : 'adult';
 
     try {
-      await SavedItemsService().saveLessonFromDate(
-        user.uid,
-        lessonId: lessonId,
-        lessonType: lessonType,
-        title: widget.title,
-        preview: widget.preview,
-      );
-
-      setState(() => _isSaved = true);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lesson saved! 📚')),
-      );
+      if (_isSaved) {
+        // REMOVE
+        await service.removeSavedLessonById(user.uid, lessonId);
+        setState(() => _isSaved = false);
+        showTopToast(
+          context,
+          AppLocalizations.of(context)?.lessonRemovedFromSaved ?? 'Lesson removed from saved',
+        );
+      } else {
+        // ADD
+        await service.saveLessonFromDate(
+          user.uid,
+          lessonId: lessonId,
+          lessonType: lessonType,
+          title: widget.title,
+          preview: widget.preview,
+          // note: null,   ← you can add note support later if wanted
+        );
+        setState(() => _isSaved = true);
+        showTopToast(
+          context,
+          AppLocalizations.of(context)?.lessonSaved ?? 'Lesson saved! 📚',
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save: $e')),
+      showTopToast(
+        context,
+        AppLocalizations.of(context)?.operationFailed ?? 'Operation failed: $e',
       );
     }
   }
@@ -588,8 +794,8 @@ class _SmartSaveLessonButtonState extends State<_SmartSaveLessonButton> {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      tooltip: _isSaved ? 'Already saved' : 'Save this lesson',
-      onPressed: _saveLesson,
+      tooltip: _isSaved ? AppLocalizations.of(context)?.removedFromSavedLessons ?? 'Remove from saved lessons' : AppLocalizations.of(context)?.saveThisLesson ?? 'Save this lesson',
+      onPressed: _isChecking ? null : _toggleSave,
       icon: _isChecking
           ? SizedBox(
               width: style.monthFontSize.sp, 

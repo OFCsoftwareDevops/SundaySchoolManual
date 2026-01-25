@@ -1,15 +1,17 @@
-// lib/widgets/current_church_card.dart
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../../UI/app_buttons.dart';
-import '../../UI/app_colors.dart';
-import '../../auth/login/auth_service.dart';
-import '../../utils/leave_church.dart';
-import '../../utils/share_church.dart';
-import 'analytics/analytics_service.dart';
+import '../../../UI/app_buttons.dart';
+import '../../../UI/app_colors.dart';
+import '../../../auth/login/auth_service.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../widgets/church/leave_church.dart';
+import '../../../widgets/church/share_church.dart';
+import '../../../widgets/helpers/snackbar.dart';
+import '../analytics/analytics_service.dart';
 
 class CurrentChurchCard extends StatefulWidget {
   const CurrentChurchCard({super.key});
@@ -27,13 +29,19 @@ class _CurrentChurchCardState extends State<CurrentChurchCard> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    // Hide entire card for anonymous users or if no church
-    if (user?.isAnonymous == true || !context.select<AuthService, bool>((auth) => auth.hasChurch)) {
+    // Anonymous users never see this card
+    if (user?.isAnonymous == true) {
       return const SizedBox.shrink();
     }
     
     return Consumer<AuthService>(
       builder: (context, auth, child) {
+        // ⛔ Auth still initializing — do nothing yet
+        if (auth.isLoading || !auth.hasChurch) {
+          return const SizedBox.shrink();
+        }
+
+        // Data is guaranteed to exist here
         final isScheduled = auth.isScheduledForDeletion;
         final scheduledTimestamp = auth.deletionScheduledAt;
         final deletionDate = scheduledTimestamp?.add(const Duration(days: 30));
@@ -52,8 +60,10 @@ class _CurrentChurchCardState extends State<CurrentChurchCard> {
             child: Padding(
               padding: EdgeInsets.all(16.sp),
               child: AnimatedCrossFade(
-                duration: const Duration(milliseconds: 300),
-                crossFadeState: _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                duration: const Duration(milliseconds: 100),
+                crossFadeState: _expanded 
+                  ? CrossFadeState.showSecond 
+                  : CrossFadeState.showFirst,
                 firstChild: _collapsedView(auth, textTheme, colorScheme),
                 secondChild: _expandedView(auth, context, textTheme, colorScheme, isScheduled, deletionDate),
               ),
@@ -64,31 +74,19 @@ class _CurrentChurchCardState extends State<CurrentChurchCard> {
     );
   }
 
+  // ---------------- COLLAPSED ----------------
   Widget _collapsedView(AuthService auth, TextTheme textTheme, ColorScheme colorScheme) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                auth.displayChurchName,
-                style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface,
-                  fontSize: 18.sp,
-                ),
-              ),
-              if (auth.parishName != null)
-                Text(
-                  auth.parishName!,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    fontSize: 16.sp,
-                  ),
-                ),
-            ],
+          child: Text(
+            auth.displayChurchName,
+            style: textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+              fontSize: 18.sp,
+            ),
           ),
         ),
         Icon(
@@ -128,10 +126,10 @@ class _CurrentChurchCardState extends State<CurrentChurchCard> {
         ],
       ),
         SizedBox(height: 10.sp),
-        _detailRow("Church", auth.churchName, textTheme, colorScheme),
-        _detailRow("Parish", auth.parishName, textTheme, colorScheme),
-        _detailRow("Join Code", auth.accessCode ?? "Not available", textTheme, colorScheme),
-        _detailRow("Pastor", auth.pastorName ?? "Not listed", textTheme, colorScheme),
+        _detailRow(AppLocalizations.of(context)?.church ?? "Church", auth.churchName, textTheme, colorScheme),
+        _detailRow(AppLocalizations.of(context)?.parish ?? "Parish", auth.parishName, textTheme, colorScheme),
+        _detailRow(AppLocalizations.of(context)?.joinCode ?? "Join Code", auth.accessCode ?? AppLocalizations.of(context)?.notAvailable ?? "Not available", textTheme, colorScheme),
+        _detailRow(AppLocalizations.of(context)?.pastor ?? "Pastor", auth.pastorName ?? AppLocalizations.of(context)?.notAvailable ?? "Not available", textTheme, colorScheme),
         SizedBox(height: 10.sp),
 
         // Leave & Share Buttons Row
@@ -155,8 +153,8 @@ class _CurrentChurchCardState extends State<CurrentChurchCard> {
         // Delete Account Section
         Text(
           isScheduled
-              ? "Account scheduled for permanent deletion on:\n${DateFormat('EEEE, MMMM d, yyyy').format(deletionDate!)}"
-              : "Delete Account",
+              ? AppLocalizations.of(context)?.deletionScheduledOn(DateFormat('EEEE, MMMM d, yyyy').format(deletionDate!)) ?? "Account scheduled for permanent deletion on:\n${DateFormat('EEEE, MMMM d, yyyy').format(deletionDate!)}"
+              : AppLocalizations.of(context)?.getStarted ?? "Delete Account",
           style: TextStyle(
             fontSize: 16.sp,
             fontWeight: FontWeight.bold,
@@ -166,8 +164,8 @@ class _CurrentChurchCardState extends State<CurrentChurchCard> {
         SizedBox(height: 8.sp),
         Text(
           isScheduled
-              ? "Log in before this date to cancel deletion and restore your account."
-              : "Your account and all data will be permanently deleted after 30 days.\nYou can cancel anytime by logging back in.",
+              ? AppLocalizations.of(context)?.logInToCancel ?? "Log in before this date to cancel deletion and restore your account."
+              : AppLocalizations.of(context)?.permanentDeletionWarning ?? "Your account and all data will be permanently deleted after 30 days.\nYou can cancel anytime by logging back in.",
           style: textTheme.bodyMedium?.copyWith(
             color: colorScheme.onSurfaceVariant,
             fontSize: 14.sp,
@@ -189,14 +187,14 @@ class _CurrentChurchCardState extends State<CurrentChurchCard> {
                 context: context,
                 builder: (ctx) => AlertDialog(
                   title: Text(
-                    "Delete Account?", 
+                    AppLocalizations.of(context)?.deleteAccountDialogTitle ?? "Delete Account?", 
                     style: textTheme.titleLarge?.copyWith(
                       fontSize: 20.sp,  // Explicit size (overrides theme default)
                       fontWeight: FontWeight.bold, // optional: make it stand out more
                     ),
                   ),
                   content: Text(
-                    "• Your account will be permanently deleted in 30 days.\n"
+                    AppLocalizations.of(context)?.deleteAccountDialogContent ?? "• Your account will be permanently deleted in 30 days.\n"
                     "• All your data (bookmarks, streaks, assignments, leaderboard) will be gone.\n"
                     "• You can cancel this anytime by simply logging back in.\n\n"
                     "Are you sure?",
@@ -208,7 +206,7 @@ class _CurrentChurchCardState extends State<CurrentChurchCard> {
                     TextButton(
                       onPressed: () => Navigator.pop(ctx, false), 
                       child: Text(
-                        "Cancel", 
+                        AppLocalizations.of(context)?.cancel ?? "Cancel", 
                         style: TextStyle(
                           color: colorScheme.primary,
                           fontSize: 16.sp,
@@ -218,7 +216,7 @@ class _CurrentChurchCardState extends State<CurrentChurchCard> {
                     TextButton(
                       onPressed: () => Navigator.pop(ctx, true),
                       child: Text(
-                        "Delete in 30 Days",
+                        AppLocalizations.of(context)?.deleteIn30Days ?? "Delete in 30 Days",
                         style: TextStyle(
                           color: colorScheme.error,
                           fontSize: 16.sp,
@@ -234,18 +232,17 @@ class _CurrentChurchCardState extends State<CurrentChurchCard> {
                 await FirebaseAuth.instance.signOut();
 
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text(
-                        "Account scheduled for deletion in 30 days. Log in to cancel."),
-                      backgroundColor: colorScheme.errorContainer,
-                    ),
+                  showTopToast(
+                    context,
+                    AppLocalizations.of(context)?.accountDeletionScheduledSnack ?? "Account scheduled for deletion in 30 days. Log in to cancel.",
+                    backgroundColor: colorScheme.error,
+                    textColor: colorScheme.onError,
                   );
                 }
               }
             },
             child: Text(
-              isScheduled ? "Deletion Scheduled" : "Delete Account",
+              isScheduled ? AppLocalizations.of(context)?.deletionScheduledButton ?? "Deletion Scheduled" : AppLocalizations.of(context)?.deleteAccount ?? "Delete Account",
               style: TextStyle(
                 color: Colors.white, 
                 fontWeight: FontWeight.bold,
@@ -262,17 +259,18 @@ class _CurrentChurchCardState extends State<CurrentChurchCard> {
             child: TextButton(
               onPressed: () async {
                 await auth.cancelAccountDeletion();
+
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text("Account deletion cancelled! Welcome back 🎉"),
-                      backgroundColor: colorScheme.primaryContainer,
-                    ),
+                  showTopToast(
+                    context,
+                    AppLocalizations.of(context)?.deletionCancelledSnack ?? "Account deletion cancelled! Welcome back 🎉",
+                    backgroundColor: colorScheme.primaryContainer,
+                    textColor: colorScheme.onPrimaryContainer,
                   );
                 }
               },
               child: Text(
-                "Cancel Deletion",
+                AppLocalizations.of(context)?.cancelDeletion ?? "Cancel Deletion",
                 style: TextStyle(
                   color: colorScheme.primary,
                   fontWeight: FontWeight.w600,
@@ -300,16 +298,17 @@ class _CurrentChurchCardState extends State<CurrentChurchCard> {
               style: textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: colorScheme.onSurfaceVariant,
-                fontSize: 16.sp,
+                fontSize: 14.sp,
               ),
             ),
           ),
+          SizedBox(width: 8.sp),
           Expanded(
             child: Text(
               value ?? "—",
               style: textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurface,
-                fontSize: 16.sp,
+                fontSize: 14.sp,
               ),
             ),
           ),

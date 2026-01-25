@@ -6,8 +6,9 @@ import 'package:provider/provider.dart';
 import '../../../UI/app_buttons.dart';
 import '../../../UI/app_colors.dart';
 import '../../../auth/login/auth_service.dart';
-import '../../../backend_data/service/firestore_service.dart';
+import '../../../backend_data/service/firestore/firestore_service.dart';
 import '../../../backend_data/database/lesson_data.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../utils/media_query.dart';
 
 class AssignmentResponseDetailPage extends StatefulWidget {
@@ -27,7 +28,7 @@ class AssignmentResponseDetailPage extends StatefulWidget {
 
 class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailPage> {
   late final FirestoreService _service;
-  String _question = "Loading question...";
+  String _question = "";
   bool _loading = true;
   Map<String, bool> _userGradedStatus = {}; // userId → feedback
   Map<String, List<int>> userScores = {}; // userId → list of scores
@@ -43,8 +44,8 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
   }
 
   Future<void> _loadQuestion() async {
-    final assignmentDay = await _service.loadAssignment(widget.date);
-    String extracted = "No question available for this day.";
+    final assignmentDay = await _service.loadAssignment(context, widget.date);
+    String extracted = AppLocalizations.of(context)?.noQuestionAvailableForThisDay ?? "No question available for this day.";
 
     if (assignmentDay != null) {
       final SectionNotes? sectionNotes = widget.isTeen
@@ -66,9 +67,9 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
 
   // Reused exactly from your AssignmentResponsePage — no duplication!
   String _extractSingleQuestion(Map<String, dynamic>? sectionMap) {
-    if (sectionMap == null) return "No question available.";
+    if (sectionMap == null) return AppLocalizations.of(context)?.noQuestionAvailable ?? "No question available.";
     final List<dynamic>? blocks = sectionMap['blocks'] as List<dynamic>?;
-    if (blocks == null || blocks.isEmpty) return "No question available.";
+    if (blocks == null || blocks.isEmpty) return AppLocalizations.of(context)?.noQuestionAvailable ?? "No question available.";
 
     for (final block in blocks) {
       final map = block as Map<String, dynamic>;
@@ -107,7 +108,7 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
       }
     }
 
-    return "No question available.";
+    return AppLocalizations.of(context)?.noQuestionAvailable ?? "No question available.";
   }
 
   @override
@@ -125,8 +126,8 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
     // If no church, show message
     if ((!isGlobalAdmin || !isGroupAdmin) && churchId == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text("Responses")),
-        body: const Center(child: Text("Global admins only — no church selected.")),
+        appBar: AppBar(title: Text(AppLocalizations.of(context)?.teenOrAdultResponses ?? "Responses")),
+        body: Center(child: Text(AppLocalizations.of(context)?.globalAdminsOnlyNoChurch ?? "Global admins only — no church selected.")),
       );
     }
 
@@ -137,7 +138,7 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
         title: FittedBox(
           fit: BoxFit.scaleDown, // Scales down text if it would overflow
           child: Text(
-            "${widget.isTeen ? 'Teen' : 'Adult'} Responses",
+            "${widget.isTeen ? AppLocalizations.of(context)?.teen ?? 'Teen' : AppLocalizations.of(context)?.adult ?? 'Adult'} ${AppLocalizations.of(context)?.teenOrAdultResponses ?? "Responses"}",
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: style.monthFontSize.sp, // Matches your other screen's style
@@ -163,16 +164,13 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
                     // Use surface color from theme (elevated surface in Material 3)
                     color: Theme.of(context).colorScheme.surface,
 
-                    // Optional: add a slight surface tint or keep it clean
-                    //surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
-
                     child: Padding(
                       padding: EdgeInsets.all(20.sp),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Question",
+                            AppLocalizations.of(context)?.question ?? "Question",
                             style: TextStyle(
                               fontSize: 20.sp,
                               fontWeight: FontWeight.bold,
@@ -192,7 +190,7 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
                   ),
                   SizedBox(height: 20.sp),
                   Text(
-                    "Submissions",
+                    AppLocalizations.of(context)?.submissions ?? "Submissions",
                     style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.bold),
                   ),
                   Divider(height: 30.sp),
@@ -222,7 +220,7 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
 
         final responses = snapshot.data!;
         if (responses.isEmpty) {
-          return const Center(child: Text("No submissions yet."));
+          return Center(child: Text(AppLocalizations.of(context)?.noSubmissionsYet ?? "No submissions yet."));
         }
 
         return ListView.builder(
@@ -240,16 +238,15 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
           final isGraded = response.isGraded ?? false;
 
           return Card(
-            margin: EdgeInsets.only(bottom: 10.sp),
+            margin: EdgeInsets.only(bottom: 12.sp), // keep some space between cards
             child: Stack(
               children: [
                 ExpansionTile(
-                  // Use theme colors for icons and text
                   leading: Icon(
                     isGraded ? Icons.check_circle : Icons.pending,
                     size: 16.sp,
                     color: isGraded
-                        ? Theme.of(context).colorScheme.onSurface // Brand blue when graded
+                        ? Theme.of(context).colorScheme.onSurface
                         : Theme.of(context).colorScheme.onSurface.withOpacity(0.0),
                   ),
                   title: Row(
@@ -260,9 +257,9 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
                         child: Text(
                           response.userEmail ?? response.userId,
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15.sp,
-                          ),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15.sp,
+                              ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -283,6 +280,7 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
                   collapsedIconColor: Theme.of(context).colorScheme.onSurface,
                   childrenPadding: EdgeInsets.all(16.sp),
                   children: [
+                    // All the answers
                     ...response.responses.asMap().entries.map((entry) {
                       final i = entry.key;
                       final answer = entry.value;
@@ -290,93 +288,112 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            "• Answer ${i + 1}: $answer",
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          SizedBox(height: 10.sp),
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(2, (score) {
-                              return GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    scores[i] = score;
-                                  });
-                                },
-                                child: Container(
-                                  margin: EdgeInsets.symmetric(horizontal: 6.sp),
-                                  width: 40.sp,
-                                  height: 30.sp,
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                    color: scores[i] == score
-                                        ? _getColorForScore(score, context)
-                                        : _getColorForScore(score, context).withOpacity(0.3),
-                                    borderRadius: BorderRadius.circular(2.sp),
-                                  ),
-                                  child: Text(
-                                    "$score",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 15.sp,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }),
-                          ),
-                          const Divider(),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Reset Button (destructive)
-                              GradeButtons(
-                                context: context,
-                                onPressed: isGraded
-                                    ? () async {
-                                        await _service.resetGrading(
-                                          userId: response.userId,
-                                          date: widget.date,
-                                          type: type,
-                                        );
-                                        setState(() {});
-                                      }
-                                    : null, // disabled if not graded
-                                text: "Reset",
-                                icon: Icons.restore,
-                                topColor: Theme.of(context).colorScheme.error,
-                                textColor: Theme.of(context).colorScheme.onError,
-                                backDarken: 0.5, // deeper shadow for red to enhance depth
+                              Expanded(
+                                child: Text(
+                                  AppLocalizations.of(context)?.answerWithIndex(
+                                    (i + 1).toString(),
+                                    answer,
+                                  ) ?? "• Answer ${i + 1}: $answer",
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                  softWrap: true,
+                                  overflow: TextOverflow.visible,
+                                ),
                               ),
-
-                              GradeButtons(
-                                context: context,
-                                onPressed: isGraded
-                                    ? null // disabled when already graded
-                                    : () async {
-                                        await _service.saveGrading(
-                                          userId: response.userId,
-                                          date: widget.date,
-                                          type: type,
-                                          scores: scores,
-                                        );
-                                        setState(() {});
-                                      },
-                                text: "Grade",
-                                icon: Icons.check_circle_outline,
-                                topColor: Theme.of(context).colorScheme.onSurface,
-                                textColor: Theme.of(context).colorScheme.surface,
+                              SizedBox(width: 12.sp), // small gap
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: List.generate(2, (score) {
+                                  return GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        scores[i] = score;
+                                      });
+                                    },
+                                    child: Container(
+                                      margin: EdgeInsets.symmetric(horizontal: 4.sp),
+                                      width: 40.sp,
+                                      height: 30.sp,
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                        color: scores[i] == score
+                                            ? _getColorForScore(score, context)
+                                            : _getColorForScore(score, context).withOpacity(0.3),
+                                        borderRadius: BorderRadius.circular(2.sp),
+                                      ),
+                                      child: Text(
+                                        "$score",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15.sp,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }),
                               ),
                             ],
                           ),
+                          SizedBox(height: 10.sp),
                         ],
                       );
                     }),
+
+                    // Divider and buttons row – placed at the very end, inside the card
+                    const Divider(height: 20, thickness: 1),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: 12.sp),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          // Reset Button (destructive)
+                          GradeButtons(
+                            context: context,
+                            onPressed: isGraded
+                              ? () async {
+                                await _service.resetGrading(
+                                  userId: response.userId,
+                                  date: widget.date,
+                                  type: type,
+                                );
+                                setState(() {});
+                              }
+                            : null,
+                            text: AppLocalizations.of(context)?.reset ?? "Reset",
+                            icon: Icons.restore,
+                            topColor: Theme.of(context).colorScheme.error,
+                            textColor: Theme.of(context).colorScheme.onError,
+                            backDarken: 0.5,
+                          ),
+
+                          GradeButtons(
+                            context: context,
+                            onPressed: isGraded
+                              ? null
+                              : () async {
+                                await _service.saveGrading(
+                                  userId: response.userId,
+                                  date: widget.date,
+                                  type: type,
+                                  scores: scores,
+                                );
+                                setState(() {});
+                              },
+                            text: AppLocalizations.of(context)?.grade ?? "Grade",
+                            icon: Icons.check_circle_outline,
+                            topColor: Theme.of(context).colorScheme.onSurface,
+                            textColor: Theme.of(context).colorScheme.surface,
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
-                // ✅ Graded stamp overlay
+
+                // Graded stamp overlay (unchanged)
                 if (_userGradedStatus[response.userId] ?? false)
                   Positioned(
                     bottom: 4.sp,
@@ -384,7 +401,7 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
                     child: Container(
                       padding: EdgeInsets.symmetric(horizontal: 7.sp, vertical: 3.sp),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary, // Brand blue
+                        color: Theme.of(context).colorScheme.primary,
                         borderRadius: BorderRadius.circular(12.sp),
                       ),
                       child: Row(
@@ -393,7 +410,7 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
                           Icon(Icons.verified, color: Colors.white, size: 12.sp),
                           SizedBox(width: 4.sp),
                           Text(
-                            "Graded",
+                            AppLocalizations.of(context)?.graded ?? "Graded",
                             style: TextStyle(
                               fontSize: 10.sp,
                               color: Colors.white,
@@ -422,42 +439,4 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
       default: return colorScheme.onSurface.withOpacity(0.4);
     }
   }
-
-  /*
-  How to Sum Up All Scores Later (Future-Proof)
-You can query all the user's responses and sum the totalScore (or scores array if you prefer).
-Example: Sum All Scores for a User (Future Code)
-DartFuture<int> getUserTotalScore(String userId) async {
-  int total = 0;
-
-  // Query all assignment responses for this user
-  final snapshot = await _service.responsesCollection
-      .where('userId', isEqualTo: userId)
-      .get();
-
-  for (var doc in snapshot.docs) {
-    final data = doc.data() as Map<String, dynamic>;
-    final score = data['totalScore'] as int? ?? 0;
-    total += score;
-  }
-
-  return total;
-}
-Or sum per assignment type/date if needed:
-DartFuture<Map<String, int>> getUserScoresByDate(String userId) async {
-  final Map<String, int> scoresByDate = {};
-
-  final snapshot = await _service.responsesCollection
-      .where('userId', isEqualTo: userId)
-      .get();
-
-  for (var doc in snapshot.docs) {
-    final data = doc.data() as Map<String, dynamic>;
-    final date = doc.reference.parent.parent!.id; // e.g., "2025-12-28"
-    final score = data['totalScore'] as int? ?? 0;
-    scoresByDate[date] = score;
-  }
-
-  return scoresByDate;
-}*/
 }

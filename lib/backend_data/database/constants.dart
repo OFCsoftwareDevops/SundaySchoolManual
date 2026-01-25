@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
+
 const List<String> ownerEmails = [
   "olaoluwa.ogunseye@gmail.com",
   // add more later

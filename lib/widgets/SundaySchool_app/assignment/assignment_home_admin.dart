@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import '../../../UI/app_colors.dart';
-import '../../../UI/segment_sliding.dart';
+import '../../../UI/app_segment_sliding.dart';
 import '../../../auth/login/auth_service.dart';
 import '../../../backend_data/database/constants.dart';
-import '../../../backend_data/service/assignment_dates_provider.dart';
-import '../../../backend_data/service/firestore_service.dart';
+import '../../../backend_data/service/firestore/assignment_dates_provider.dart';
+import '../../../backend_data/service/firestore/firestore_service.dart';
 import '../../../utils/media_query.dart';
+import '../../../l10n/app_localizations.dart';
 import 'assignment_response_page_admin.dart';
 
 
@@ -26,10 +27,10 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
 
   int _selectedQuarter = 0;
 
-  // Cache for submission counts to avoid repeated queries
-  final Map<String, Map<String, int>> _submissionCache = {}; // { "2025-12-26_adult": {"total": 5, "graded": 3}, ... }  
+  // Cache for submission info to avoid repeated queries
+  final Map<String, Map<String, int>> _submissionCache = {};
 
-  final List<String> _ageGroups = ["Adult", "Teen"];
+  late final List<String> _ageGroups;
 
   String _formatDateId(DateTime date) =>
     "${date.year}-${date.month.toString().padLeft(2,'0')}-${date.day.toString().padLeft(2,'0')}";
@@ -38,6 +39,15 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
   @override
   void initState() {
     super.initState();
+    // Initialize localized age groups after frame is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        _ageGroups = [
+          AppLocalizations.of(context)?.adult ?? "Adult",
+          AppLocalizations.of(context)?.teen ?? "Teen",
+        ];
+      });
+    });
     final now = DateTime.now();
     final currentMonth = now.month;
 
@@ -83,9 +93,9 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
         appBar: AppBar(
           centerTitle: true,
           title: FittedBox(
-            fit: BoxFit.scaleDown, // Prevents overflow on small screens
+            fit: BoxFit.scaleDown,
             child: Text(
-              "Admin — $parishName",
+              "${AppLocalizations.of(context)?.adminTools ?? 'Admin'} — $parishName",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: style.monthFontSize.sp, // Matches the style from your Bible screen
@@ -100,11 +110,11 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
           actions: [
             IconButton(
               icon: const Icon(Icons.refresh),
-              iconSize: style.monthFontSize.sp, // Same size as in Bible app bar
-              tooltip: "Refresh assignments",
+              iconSize: style.monthFontSize.sp,
+              tooltip: AppLocalizations.of(context)?.refreshAssignments ?? "Refresh assignments",
               onPressed: () {
                 final service = FirestoreService(churchId: auth.churchId);
-                datesProvider.refresh(service);
+                datesProvider.refresh(context, service);
                 _submissionCache.clear();
                 setState(() {});
               },
@@ -122,7 +132,7 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
         title: FittedBox(
           fit: BoxFit.scaleDown, // Prevents overflow on small screens
           child: Text(
-            "Admin — $parishName",
+            "${AppLocalizations.of(context)?.adminTools ?? 'Admin'} — $parishName",
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: style.monthFontSize.sp, // Matches the style from your Bible screen
@@ -138,10 +148,10 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
           IconButton(
             icon: const Icon(Icons.refresh),
             iconSize: style.monthFontSize.sp, // Same size as in Bible app bar
-            tooltip: "Refresh assignments",
+            tooltip: AppLocalizations.of(context)?.refreshAssignments ?? "Refresh assignments",
             onPressed: () {
               final service = FirestoreService(churchId: auth.churchId);
-              datesProvider.refresh(service);
+              datesProvider.refresh(context, service);
               _submissionCache.clear();
               setState(() {});
             },
@@ -203,7 +213,7 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "${AppConstants.monthNames[month - 1]} $year",
+                  "${_getMonthName(month, context)} $year",
                   style: TextStyle(fontSize: 18.sp, 
                     fontWeight: FontWeight.bold, 
                     color: Theme.of(context).colorScheme.secondary,
@@ -230,7 +240,7 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
                         final total = snapshot.data!['total'] ?? 0;
                         final graded = snapshot.data!['graded'] ?? 0;
 
-                        final label = total == 0 ? "Empty!" : "$graded / $total \n Graded";
+                        final label = total == 0 ? (AppLocalizations.of(context)?.empty ?? "Empty!") : "$graded / $total \n ${AppLocalizations.of(context)?.graded ?? 'Graded'}";
 
                         return Material(
                           color: total > 0 ? Colors.green.shade100 : AppColors.grey200,
@@ -297,7 +307,7 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
     if (monthWidgets.isEmpty) {
       return Center(
         child: Text(
-          "No assignments in this quarter.",
+          AppLocalizations.of(context)?.noAssignmentsInQuarter ?? "No assignments in this quarter.",
           style: TextStyle(fontSize: 18.sp, color: Colors.grey),
         ),
       );
@@ -314,5 +324,23 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
         .where((d) => d.month == month && d.weekday == DateTime.sunday)
         .toList()
       ..sort();
+  }
+
+  String _getMonthName(int m, BuildContext context) {
+    final loc = AppLocalizations.of(context);
+    return [
+      loc?.january ?? 'January',
+      loc?.february ?? 'February',
+      loc?.march ?? 'March',
+      loc?.april ?? 'April',
+      loc?.may ?? 'May',
+      loc?.june ?? 'June',
+      loc?.july ?? 'July',
+      loc?.august ?? 'August',
+      loc?.september ?? 'September',
+      loc?.october ?? 'October',
+      loc?.november ?? 'November',
+      loc?.december ?? 'December'
+    ][m - 1];
   }
 }

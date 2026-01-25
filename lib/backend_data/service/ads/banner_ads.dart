@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // Add this
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../../../l10n/app_localizations.dart';
 import 'premium_provider.dart';
 
 class BannerAdWidget extends ConsumerStatefulWidget {
@@ -75,12 +76,29 @@ class _BannerAdWidgetState extends ConsumerState<BannerAdWidget> {
             }
           });
         }
-
-        if (!_isLoaded || _bannerAd == null) {
-          return _placeholder(context);
-        }
-
-        return _adContainer(context);
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(vertical: 1.sp),
+              color: Theme.of(context).colorScheme.onSurface,
+              child: Text(
+                AppLocalizations.of(context)?.advertsDisclosure ?? "Adverts fund the app and server maintenance, for your pleasure.",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 8.sp,
+                  height: 1.sp,
+                  color: Theme.of(context).colorScheme.surface.withOpacity(1),
+                ),
+              ),
+            ),
+            if (_isLoaded && _bannerAd != null)
+              _adContainer(context)
+            else
+              _placeholder(context),
+          ],
+        );
       },
       loading: () => _placeholder(context),
       error: (_, __) => const SizedBox.shrink(),

@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
+import '../../../UI/app_colors.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../widgets/helpers/snackbar.dart';
 import 'notification_service.dart';
 
 class ReminderTile extends StatefulWidget {
@@ -56,11 +59,10 @@ class _ReminderTileState extends State<ReminderTile> {
         final status = await Permission.scheduleExactAlarm.request();
         if (status.isDenied || status.isPermanentlyDenied) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Exact timing denied. Reminder will be approximate."),
-                duration: Duration(seconds: 5),
-              ),
+            showTopToast(
+              context,
+              AppLocalizations.of(context)?.exactTimingDenied ?? "Exact timing denied. Reminder will be approximate.",
+              duration: const Duration(seconds: 5),
             );
           }
         }

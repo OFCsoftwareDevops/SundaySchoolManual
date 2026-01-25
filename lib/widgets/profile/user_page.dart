@@ -1,19 +1,23 @@
 // lib/screens/user_profile_screen.dart
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:http/http.dart';
 import 'package:provider/provider.dart';
 import '../../UI/app_buttons.dart';
 import '../../UI/app_colors.dart';
+import '../../l10n/app_localizations.dart';
 import '../../auth/login/auth_service.dart';
 import '../../backend_data/service/analytics/analytics_service.dart';
-import '../../backend_data/service/current_church_service.dart';
+import '../../backend_data/service/firestore/current_church_service.dart';
 import '../../utils/media_query.dart';
 import '../../utils/share_app.dart';
 import '../SundaySchool_app/assignment/assignment_home_admin.dart';
 import '../SundaySchool_app/assignment/assignment_home_user.dart';
-import '../helpers/admin_tools_screen.dart';
+import '../church/church_admin_tools_screen.dart';
+import '../church/church_dashboard.dart';
 import '../helpers/color_palette_page.dart';
 import 'user_feedback.dart';
 import 'user_leaderboard.dart';
@@ -27,9 +31,28 @@ class UserProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    final displayName = user?.displayName ?? "Guest User";
-    final email = user?.email ?? "guest mode";
-    final photoUrl = user?.photoURL;
+    final displayName = user?.displayName ?? (AppLocalizations.of(context)?.guestUser ?? "Guest User");
+    final email = user?.email ?? (AppLocalizations.of(context)?.guestMode ?? "guest mode");
+
+    // Inside your build method, replace:
+    String? photoUrl;
+    final url = user?.photoURL;
+    if (url != null) {
+      if (url.contains('googleusercontent.com')) {
+        // Replace low-res size param with higher-res (512px is sharp + reasonable size)
+        photoUrl = url.replaceAllMapped(
+          RegExp(r'(=s\d+-c|\?sz=\d+)'),
+          (_) => '=s512-c',
+        );
+
+        // Safety for unusual formats (rare, but covers edge cases)
+        if (!photoUrl.contains('s512-c')) {
+          photoUrl += photoUrl.contains('?') ? '&sz=512' : '?sz=512';
+        }
+      } else {
+        photoUrl = url; // fallback for non-Google providers
+      }
+    }
 
     final auth = context.read<AuthService>();
     final style = CalendarDayStyle.fromContainer(context, 50);
@@ -41,11 +64,12 @@ class UserProfileScreen extends StatelessWidget {
       appBar: AppBar(
         centerTitle: true,
         title: Text(
-          "Profile",
+          AppLocalizations.of(context)?.navAccount ?? "Profile",
           style: theme.appBarTheme.titleTextStyle?.copyWith(
             fontSize: style.monthFontSize.sp,
             fontWeight: FontWeight.bold),
         ),
+
         actions: [
           IconButton(
             icon: Icon(Icons.settings_outlined, color: AppColors.onPrimary),
@@ -85,9 +109,7 @@ class UserProfileScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-            
                     SizedBox(height: 10.sp),
-            
                     // Name
                     Text(
                       user?.isAnonymous == true ? "Anonymous" : displayName,
@@ -97,9 +119,7 @@ class UserProfileScreen extends StatelessWidget {
                         color: colorScheme.onBackground,
                       ),
                     ),
-            
                     SizedBox(height: 3.sp),
-            
                     // Email / Mode
                     Text(
                       user?.isAnonymous == true ? "Guest Mode" : email,
@@ -123,33 +143,33 @@ class UserProfileScreen extends StatelessWidget {
                 padding: EdgeInsets.only(bottom: 0),
                   child: Column(
                     children: [  
-                      const CurrentChurchCard(),   
-                      Divider(
-                        thickness: 0.8.sp,
-                        height: 10.sp,
-                        indent: 16.sp,
-                        endIndent: 16.sp,
-                        color: AppColors.grey600.withOpacity(0.6),
-                      ),
-            
+                      const CurrentChurchCard(),
+                      if (user?.isAnonymous != true) ...[
+                        Divider(
+                          thickness: 0.8.sp,
+                          height: 10.sp,
+                          indent: 16.sp,
+                          endIndent: 16.sp,
+                          color: AppColors.grey600.withOpacity(0.6),
+                        ),
+                      ], 
                       SizedBox(height: 10.sp),      
-
                       // NEW: 2x2 Button Grid (2 rows, 2 buttons each)
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16.sp),
                         child: GridView.count(
                           crossAxisCount: 2,
-                          crossAxisSpacing: 10.sp,   // Horizontal spacing between items
-                          mainAxisSpacing: 10.sp,    // Vertical spacing between items
-                          childAspectRatio: 4.0,  // Makes items square (adjust if you want taller/shorter)
-                          shrinkWrap: true,       // Important: prevents infinite height error in Column
-                          physics: const NeverScrollableScrollPhysics(), // Optional: disables scrolling since it's small
+                          crossAxisSpacing: 10.sp,
+                          mainAxisSpacing: 10.sp,
+                          childAspectRatio: 4,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
                           children: [
                             // Item 1: Bookmarks
                             _profileGridButton(
                               context: context,
                               icon: Icons.bookmark_border,
-                              title: "Bookmarks",
+                              title: AppLocalizations.of(context)?.bookmarks ?? "Bookmarks",
                               onPressed: () async {
                                 await AnalyticsService.logButtonClick('profile_bookmarks');
                                 Navigator.push(
@@ -163,7 +183,7 @@ class UserProfileScreen extends StatelessWidget {
                             _profileGridButton(
                               context: context,
                               icon: Icons.local_fire_department,
-                              title: "Streaks",
+                              title: AppLocalizations.of(context)?.streaks ?? "Streaks",
                               onPressed: () async {
                                 await AnalyticsService.logButtonClick('profile_streaks');
                                 Navigator.push(
@@ -172,6 +192,20 @@ class UserProfileScreen extends StatelessWidget {
                                 );
                               },
                             ),
+                            /*if (auth.isGlobalAdmin || user!.isAnonymous)
+                              _profileGridButton(
+                                context: context,
+                                icon: Icons.admin_panel_settings,
+                                title: "Admin Board",
+                                onPressed: () async {
+                                  await AnalyticsService.logButtonClick('admin_tools_open');
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
+                                    //MaterialPageRoute(builder: (_) => const AdminToolsScreen()),
+                                  );
+                                },
+                              ),*/
               
                             // Conditional items (only if not anonymous)
                             if (user?.isAnonymous != true) ...[
@@ -179,7 +213,7 @@ class UserProfileScreen extends StatelessWidget {
                               _profileGridButton(
                                 context: context,
                                 icon: Icons.leaderboard,
-                                title: "Leaderboard",
+                                title: AppLocalizations.of(context)?.leaderboard ?? "Leaderboard",
                                 onPressed: () async {
                                   await AnalyticsService.logButtonClick('profile_leaderboard');
                                   Navigator.push(
@@ -197,7 +231,7 @@ class UserProfileScreen extends StatelessWidget {
                                   return _profileGridButton(
                                     context: context,
                                     icon: isAdmin ? Icons.grading : Icons.assignment,
-                                    title: isAdmin ? "Teachers" : "Assignments",
+                                    title: isAdmin ? (AppLocalizations.of(context)?.teachers ?? "Teachers") : (AppLocalizations.of(context)?.assignments ?? "Assignments"),
                                     onPressed: () async {
                                       if (isAdmin) {
                                         Navigator.push(
@@ -214,44 +248,6 @@ class UserProfileScreen extends StatelessWidget {
                                   );
                                 },
                               ),
-                              _profileGridButton(
-                                context: context,
-                                icon: Icons.feedback_outlined,
-                                title: "Feedback",
-                                onPressed: () async {
-                                  await AnalyticsService.logButtonClick('profile_feedback');
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (_) => const FeedbackScreen()),
-                                  );
-                                },
-                              ),              
-                              if (auth.isGlobalAdmin || auth.isChurchAdmin )
-                                _profileGridButton(
-                                  context: context,
-                                  icon: Icons.admin_panel_settings,
-                                  title: "Admin Tools",
-                                  onPressed: () async {
-                                    await AnalyticsService.logButtonClick('admin_tools_open');
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (_) => const AdminToolsScreen()),
-                                    );
-                                  },
-                                ),
-                              // Admin-only full-width Color Palette button (spans both columns)
-                              if (auth.isGlobalAdmin)
-                                _profileGridButton(
-                                  context: context,
-                                  icon: Icons.palette,
-                                  title: "Color Palette",
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (_) => const ColorPalettePage()),
-                                    );
-                                  },
-                                ),
                             ],
                           ],
                         ),
@@ -264,39 +260,99 @@ class UserProfileScreen extends StatelessWidget {
                         endIndent: 20.sp,
                         color: Colors.grey.shade400.withOpacity(0.6),
                       ),
-              
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.sp),
+                        child: GridView.count(
+                          crossAxisCount: 1,
+                          crossAxisSpacing: 0.sp,                 
+                          mainAxisSpacing: 10.sp,                 
+                          childAspectRatio: 8.5,                  
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          children: [
+                            _profileGridButton(
+                              context: context,
+                              icon: Icons.feedback_outlined,
+                              title: AppLocalizations.of(context)?.appSuggestions ?? "App Suggestions",
+                              isWide: (auth.isGlobalAdmin || auth.isChurchAdmin ) == true ? false : true,
+                              onPressed: () async {
+                                await AnalyticsService.logButtonClick('profile_feedback');
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const FeedbackScreen()),
+                                );
+                              },
+                            ),              
+                            if (auth.isGlobalAdmin || auth.isChurchAdmin )
+                              _profileGridButton(
+                                context: context,
+                                icon: Icons.admin_panel_settings,
+                                isWide: true,
+                                title: AppLocalizations.of(context)?.adminTools ?? "Admin Tools",
+                                onPressed: () async {
+                                  await AnalyticsService.logButtonClick('admin_tools_open');
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const AdminToolsScreen()),
+                                  );
+                                },
+                              ),
+                            // Admin-only full-width Color Palette button (spans both columns)
+                            if (auth.isGlobalAdmin)
+                              _profileGridButton(
+                                context: context,
+                                icon: Icons.palette,
+                                isWide: true,
+                                title: AppLocalizations.of(context)?.colorPalette ?? "Color Palette",
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const ColorPalettePage()),
+                                  );
+                                },
+                              ),
+                          ],
+                        ),
+                      ),
+                      Divider(
+                        thickness: 0.8,
+                        height: 20.sp,
+                        indent: 20.sp,
+                        endIndent: 20.sp,
+                        color: Colors.grey.shade400.withOpacity(0.6),
+                      ),
                       // Bottom row: Share + Sign Out
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 24.sp),
                         child: Column(
                           children: [
-                            if (auth.isGlobalAdmin)
+                            //if (auth.isGlobalAdmin)
                               // Invite Friends (Share)
-                              LoginButtons(
-                                context: context,
-                                topColor: AppColors.primaryContainer,
-                                onPressed: () async {
-                                  await AnalyticsService.logButtonClick('Share_invite_friends');
+                            LoginButtons(
+                              context: context,
+                              topColor: AppColors.primaryContainer,
+                              onPressed: () async {
+                                await AnalyticsService.logButtonClick('Share_invite_friends');
 
-                                  await shareApp(context);
-                                },
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.share, color: AppColors.onPrimary, size: 22.sp),
-                                    SizedBox(width: 10.sp),
-                                    Text(
-                                      "Invite Your Friends",
-                                      style: TextStyle(
-                                        color: AppColors.onPrimary,
-                                        fontSize: 15.sp,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                await shareApp(context);
+                              },
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.share, color: AppColors.onPrimary, size: 22.sp),
+                                  SizedBox(width: 10.sp),
+                                  Text(
+                                    AppLocalizations.of(context)?.inviteYourFriends ?? "Invite Your Friends",
+                                    style: TextStyle(
+                                      color: AppColors.onPrimary,
+                                      fontSize: 15.sp,
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                  ],
-                                ),
-                                text: '',
+                                  ),
+                                ],
                               ),
+                              text: '',
+                            ),
                             SizedBox(height: 10.sp),
                             // Sign Out
                             LoginButtons(
@@ -314,7 +370,7 @@ class UserProfileScreen extends StatelessWidget {
                                   Icon(Icons.logout, color: AppColors.surface, size: 22.sp),
                                   SizedBox(width: 10.sp),
                                   Text(
-                                    "Sign Out",
+                                    AppLocalizations.of(context)?.signOut ?? "Sign Out",
                                     style: TextStyle(
                                       color: AppColors.surface,
                                       fontSize: 15.sp,
@@ -346,6 +402,7 @@ class UserProfileScreen extends StatelessWidget {
     required BuildContext context,
     required IconData icon,
     required String title,
+    bool? isWide,
     required VoidCallback onPressed,
   }) {
     final theme = Theme.of(context);
@@ -354,6 +411,7 @@ class UserProfileScreen extends StatelessWidget {
       context: context,
       text: title,
       icon: icon,
+      isWide: isWide,
       onPressed: onPressed,
       textColor: theme.colorScheme.surface,
       topColor: theme.colorScheme.onSurface,

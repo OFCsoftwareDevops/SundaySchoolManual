@@ -3,8 +3,11 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import '../../l10n/app_localizations.dart';
 import '../SundaySchool_app/lesson_bible_ref_parser.dart';
 import 'bible_entry_point.dart';
+
 
 class BibleBook {
   final String name;
@@ -17,7 +20,7 @@ class BibleVersionManager extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  String _currentVersion = 'kjv';
+  String _currentVersion = '';
   String get currentVersion => _currentVersion;
 
   List<Map<String, dynamic>> _loadedBooks = [];
@@ -29,10 +32,172 @@ class BibleVersionManager extends ChangeNotifier {
     {'code': 'bbe', 'name': 'Bible in Basic English'},
     {'code': 'web', 'name': 'World English Bible'},
     {'code': 'ylt', 'name': 'Youngs Literal Translation'},
+    {'code': 'lsg', 'name': 'Louis Segond 1910'},
   ];
+
+  // Map English book names to translation keys
+  static const Map<String, String> _bookTranslationKeys = {
+    'Genesis': 'bibleGenesis',
+    'Exodus': 'bibleExodus',
+    'Leviticus': 'bibleLeviticus',
+    'Numbers': 'bibleNumbers',
+    'Deuteronomy': 'bibleDeuteronomy',
+    'Joshua': 'bibleJoshua',
+    'Judges': 'bibleJudges',
+    'Ruth': 'bibleRuth',
+    '1 Samuel': 'bible1Samuel',
+    '2 Samuel': 'bible2Samuel',
+    '1 Kings': 'bible1Kings',
+    '2 Kings': 'bible2Kings',
+    '1 Chronicles': 'bible1Chronicles',
+    '2 Chronicles': 'bible2Chronicles',
+    'Ezra': 'bibleEzra',
+    'Nehemiah': 'bibleNehemiah',
+    'Esther': 'bibleEsther',
+    'Job': 'bibleJob',
+    'Psalms': 'biblePsalms',
+    'Proverbs': 'bibleProverbs',
+    'Ecclesiastes': 'bibleEcclesiastes',
+    'Songofsolomon': 'bibleSongOfSolomon',
+    'Isaiah': 'bibleIsaiah',
+    'Jeremiah': 'bibleJeremiah',
+    'Lamentations': 'bibleLamentations',
+    'Ezekiel': 'bibleEzekiel',
+    'Daniel': 'bibleDaniel',
+    'Hosea': 'bibleHosea',
+    'Joel': 'bibleJoel',
+    'Amos': 'bibleAmos',
+    'Obadiah': 'bibleObadiah',
+    'Jonah': 'bibleJonah',
+    'Micah': 'bibleMicah',
+    'Nahum': 'bibleNahum',
+    'Habakkuk': 'bibleHabakkuk',
+    'Zephaniah': 'bibleZephaniah',
+    'Haggai': 'bibleHaggai',
+    'Zechariah': 'bibleZechariah',
+    'Malachi': 'bibleMalachi',
+    'Matthew': 'bibleMatthew',
+    'Mark': 'bibleMark',
+    'Luke': 'bibleLuke',
+    'John': 'bibleJohn',
+    'Acts': 'bibleActs',
+    'Romans': 'bibleRomans',
+    '1 Corinthians': 'bible1Corinthians',
+    '2 Corinthians': 'bible2Corinthians',
+    'Galatians': 'bibleGalatians',
+    'Ephesians': 'bibleEphesians',
+    'Philippians': 'biblePhilippians',
+    'Colossians': 'bibleColossians',
+    '1 Thessalonians': 'bible1Thessalonians',
+    '2 Thessalonians': 'bible2Thessalonians',
+    '1 Timothy': 'bible1Timothy',
+    '2 Timothy': 'bible2Timothy',
+    'Titus': 'bibleTitus',
+    'Philemon': 'biblePhilemon',
+    'Hebrews': 'bibleHebrews',
+    'James': 'bibleJames',
+    '1 Peter': 'bible1Peter',
+    '2 Peter': 'bible2Peter',
+    '1 John': 'bible1John',
+    '2 John': 'bible2John',
+    '3 John': 'bible3John',
+    'Jude': 'bibleJude',
+    'Revelation': 'bibleRevelation',
+  };
+
+  // Get translated book name, falling back to English if translation missing
+  static String getTranslatedBookName(String englishName, AppLocalizations? l10n) {
+    if (l10n == null) return englishName;
+    
+    final key = _bookTranslationKeys[englishName];
+    if (key == null) return englishName;
+    
+    // Access the translation via the generated method
+    switch (key) {
+      case 'bibleGenesis': return l10n.bibleGenesis;
+      case 'bibleExodus': return l10n.bibleExodus;
+      case 'bibleLeviticus': return l10n.bibleLeviticus;
+      case 'bibleNumbers': return l10n.bibleNumbers;
+      case 'bibleDeuteronomy': return l10n.bibleDeuteronomy;
+      case 'bibleJoshua': return l10n.bibleJoshua;
+      case 'bibleJudges': return l10n.bibleJudges;
+      case 'bibleRuth': return l10n.bibleRuth;
+      case 'bible1Samuel': return l10n.bible1Samuel;
+      case 'bible2Samuel': return l10n.bible2Samuel;
+      case 'bible1Kings': return l10n.bible1Kings;
+      case 'bible2Kings': return l10n.bible2Kings;
+      case 'bible1Chronicles': return l10n.bible1Chronicles;
+      case 'bible2Chronicles': return l10n.bible2Chronicles;
+      case 'bibleEzra': return l10n.bibleEzra;
+      case 'bibleNehemiah': return l10n.bibleNehemiah;
+      case 'bibleEsther': return l10n.bibleEsther;
+      case 'bibleJob': return l10n.bibleJob;
+      case 'biblePsalms': return l10n.biblePsalms;
+      case 'bibleProverbs': return l10n.bibleProverbs;
+      case 'bibleEcclesiastes': return l10n.bibleEcclesiastes;
+      case 'bibleSongOfSolomon': return l10n.bibleSongOfSolomon;
+      case 'bibleIsaiah': return l10n.bibleIsaiah;
+      case 'bibleJeremiah': return l10n.bibleJeremiah;
+      case 'bibleLamentations': return l10n.bibleLamentations;
+      case 'bibleEzekiel': return l10n.bibleEzekiel;
+      case 'bibleDaniel': return l10n.bibleDaniel;
+      case 'bibleHosea': return l10n.bibleHosea;
+      case 'bibleJoel': return l10n.bibleJoel;
+      case 'bibleAmos': return l10n.bibleAmos;
+      case 'bibleObadiah': return l10n.bibleObadiah;
+      case 'bibleJonah': return l10n.bibleJonah;
+      case 'bibleMicah': return l10n.bibleMicah;
+      case 'bibleNahum': return l10n.bibleNahum;
+      case 'bibleHabakkuk': return l10n.bibleHabakkuk;
+      case 'bibleZephaniah': return l10n.bibleZephaniah;
+      case 'bibleHaggai': return l10n.bibleHaggai;
+      case 'bibleZechariah': return l10n.bibleZechariah;
+      case 'bibleMalachi': return l10n.bibleMalachi;
+      case 'bibleMatthew': return l10n.bibleMatthew;
+      case 'bibleMark': return l10n.bibleMark;
+      case 'bibleLuke': return l10n.bibleLuke;
+      case 'bibleJohn': return l10n.bibleJohn;
+      case 'bibleActs': return l10n.bibleActs;
+      case 'bibleRomans': return l10n.bibleRomans;
+      case 'bible1Corinthians': return l10n.bible1Corinthians;
+      case 'bible2Corinthians': return l10n.bible2Corinthians;
+      case 'bibleGalatians': return l10n.bibleGalatians;
+      case 'bibleEphesians': return l10n.bibleEphesians;
+      case 'biblePhilippians': return l10n.biblePhilippians;
+      case 'bibleColossians': return l10n.bibleColossians;
+      case 'bible1Thessalonians': return l10n.bible1Thessalonians;
+      case 'bible2Thessalonians': return l10n.bible2Thessalonians;
+      case 'bible1Timothy': return l10n.bible1Timothy;
+      case 'bible2Timothy': return l10n.bible2Timothy;
+      case 'bibleTitus': return l10n.bibleTitus;
+      case 'biblePhilemon': return l10n.biblePhilemon;
+      case 'bibleHebrews': return l10n.bibleHebrews;
+      case 'bibleJames': return l10n.bibleJames;
+      case 'bible1Peter': return l10n.bible1Peter;
+      case 'bible2Peter': return l10n.bible2Peter;
+      case 'bible1John': return l10n.bible1John;
+      case 'bible2John': return l10n.bible2John;
+      case 'bible3John': return l10n.bible3John;
+      case 'bibleJude': return l10n.bibleJude;
+      case 'bibleRevelation': return l10n.bibleRevelation;
+      default: return englishName;
+    }
+  }
 
   // SINGLE SOURCE OF TRUTH
   List<Map<String, dynamic>> get books => _loadedBooks;
+
+  String getDefaultVersion() {
+    final savedLang = Hive.box('settings').get('preferred_language') as String?;
+
+    // If user saved French → use LSG
+    if (savedLang == 'fr') {
+      return 'lsg';
+    }
+
+    // Everything else → KJV (including no saved value, 'en', or anything else)
+    return 'kjv';
+  }
 
   // Called once at startup
   Future<void> loadInitialBible() async {
@@ -42,7 +207,14 @@ class BibleVersionManager extends ChangeNotifier {
     _isLoading = true;
     scheduleMicrotask(notifyListeners);
 
-    _loadedBooks = await _loadBibleVersion(_currentVersion);
+    _currentVersion = getDefaultVersion();
+
+    try {
+      _loadedBooks = await _loadBibleVersion(_currentVersion);
+    } catch (e, stack) {
+      debugPrint('Bible load error: $e\n$stack');
+    }
+
     _isLoading = false;
     scheduleMicrotask(notifyListeners);
   }
@@ -191,7 +363,6 @@ class BibleVersionManager extends ChangeNotifier {
   }
 
   // In your BibleVersionManager class
-
   String? getVerseText(String reference) {
     if (kDebugMode) {
       debugPrint('DEBUG: getVerseText called with: $reference');

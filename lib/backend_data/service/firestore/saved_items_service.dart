@@ -64,6 +64,17 @@ class SavedItemsService {
         .doc(bookmarkId)
         .delete();
 
+  Future<void> removeBookmarkByRefId(String userId, String refId) async {
+    final query = await _getMemberSubcollection(userId, 'bookmarks')
+        .where('refId', isEqualTo: refId)
+        .limit(1)
+        .get();
+
+    if (query.docs.isNotEmpty) {
+      await query.docs.first.reference.delete();
+    }
+  }
+
   /// Update a bookmark's note
   Future<void> updateBookmarkNote(
     String userId,
@@ -111,6 +122,18 @@ class SavedItemsService {
       'savedAt': FieldValue.serverTimestamp(),
     });
     return docRef.id;
+  }
+
+  /// Remove a saved lesson by its lessonId (e.g. "2025-12-7")
+  Future<void> removeSavedLessonById(String userId, String lessonId) async {
+    final query = await _getMemberSubcollection(userId, 'saved_lessons')
+        .where('lessonId', isEqualTo: lessonId)
+        .limit(1)
+        .get();
+
+    if (query.docs.isNotEmpty) {
+      await query.docs.first.reference.delete();
+    }
   }
 
   /// Remove a saved lesson
@@ -172,6 +195,18 @@ class SavedItemsService {
       _getMemberSubcollection(userId, 'further_readings')
         .doc(readingId)
         .delete();
+
+  /// Remove a further reading by title (or change to use a better unique key if you have one)
+  Future<void> removeFurtherReadingByTitle(String userId, String title) async {
+    final query = await _getMemberSubcollection(userId, 'further_readings')
+        .where('title', isEqualTo: title)
+        .limit(1)
+        .get();
+
+    if (query.docs.isNotEmpty) {
+      await query.docs.first.reference.delete();
+    }
+  }
 
   /// Update a further reading's note
   Future<void> updateFurtherReadingNote(

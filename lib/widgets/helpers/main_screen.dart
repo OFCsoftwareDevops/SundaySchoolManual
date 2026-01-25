@@ -7,8 +7,9 @@ import '../../auth/login/auth_service.dart';
 import '../../auth/login/login_page.dart';
 import '../../backend_data/service/ads/banner_ads.dart';
 import '../../backend_data/service/analytics/analytics_service.dart';
+import '../../l10n/app_localizations.dart';
 import '../bible_app/bible_entry_point.dart';
-import 'church_selection.dart';
+import '../church/church_selection.dart';
 import '../home.dart';
 import '../profile/user_page.dart';
 
@@ -187,10 +188,10 @@ class MainScreenState extends State<MainScreen> {
             await _resumeBiblePosition();
           }
         },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.book), label: "Bible"),
-          BottomNavigationBarItem(icon: Icon(Icons.verified_user), label: "Account"),
+        items: [
+          BottomNavigationBarItem(icon: const Icon(Icons.home), label: AppLocalizations.of(context)?.navHome ?? "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.book), label: AppLocalizations.of(context)?.navBible ?? "Bible"),
+          BottomNavigationBarItem(icon: Icon(Icons.verified_user), label: AppLocalizations.of(context)?.navAccount ?? "Account"),
         ],
       ),
     );

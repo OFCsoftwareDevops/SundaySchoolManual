@@ -2,13 +2,294 @@
   "@@locale": "yo",
 
   "appName": "Ẹ̀kọ́ Sunday School",
+  "language": "Ede",
+
   "sundaySchoolLesson": "Ẹ̀kọ́ Sunday School",
   "noLessonToday": "Kò sí ẹ̀kọ́ lónìí",
   "noTeenLesson": "Kò sí ẹ̀kọ́ fún àwọn ọ̀dọ́",
   "noAdultLesson": "Kò sí ẹ̀kọ́ fún àgbàlagbà",
 
+  "sundaySchoolManual": "Ìwé Ilé-Ẹ̀kọ́ Ọjọ́ Sunday",
+  "accessWeeklyLessonsOffline": "Wọlé sí àwọn ẹ̀kọ́ Bíbélì ọ̀sẹ̀ fún ọ̀dọ́ àti àgbàlagbà nígbàkúgbà, ní ibikíbi — àní láìsí ayélujára pàápàá!",
+  "builtForRccg": "Ti a ṣe fún Ẹ̀gbẹ́ Kristẹni Onírẹ̀lẹ̀ ti Ọlọ́run!",
+  "getStarted": "Bẹ̀rẹ̀",
+  "openFullChapter": "Ṣí apakan kíkún →",
+  "close": "Pa á",
+
+  "preparing": "Ìmúrasílẹ̀...",
+  "preparingWithProgress": "Ìmúrasílẹ̀... ({progress}/{totalSteps})",
+
+  "login": "Wọlé",
+  "signInToCreateOrJoin": "Wọlé láti ṣẹ̀dá tàbí darapọ̀ ilé ìjọ rẹ",
+  "google": "Google",
+  "apple": "Apple",
+  "guest": "Àlùba",
+  "signInFailed": "Wíwọ́ dárá ṣubú",
+  "applSignInFailed": "Apple wíwọ́ dárá ṣubú",
+  "guestModeFailed": "Ìyálé àlùba dárá ṣubú",
+  "guestUser": "Olùmúlò àlùba",
+  "guestMode": "Ìyálé àlùba",
+  "anonymous": "Àkọjọ̀",
+  "continueWithGoogle": "Tẹ̀síwájú pẹ̀lú Google",
+  "signInWithApple": "Wọlé pẹ̀lú Apple",
+  "continueAsGuest": "Tẹ̀síwájú gẹ́gẹ́ bí àlejò",
+  "guestDataWarning": "Gbogbo dátà ti wa ni ipamọ́ fún ìgbà díẹ̀, wọn yóò parẹ́ lẹ́yìn tí o bá jáde.",
+  "fullAccessDescription": "Wiwọlé pátápátá: dá tàbí darapọ̀ mọ́ ṣọ́ọ̀ṣì rẹ",
+  "limitedAccessDescription": "Wiwọlé díẹ̀: lo ipò gbogbogbò nìkan",
+
+  "profile": "Profáìlì",
+  "settings": "Àwọn ètò",
+  "bookmarks": "Àwọn ìbalẹ̀",
+  "streaks": "Àwọn ìdì",
+  "leaderboard": "Tabili àwọn olódájú",
+  "assignments": "Ìṣẹ̀ àkọ́kọ́",
+  "teachers": "Àwọn olùkọ́",
+  "appSuggestions": "Àwọn ìmọ̀ràn app",
+  "adminTools": "Àwọn erọ́ àdìmìnì",
+  "colorPalette": "Àwọn elu ìlọ̀",
+  "parish": "Ìjọ ìsìn",
+  "joinCode": "Kòòdù ìdarapọ̀",
+  "pastor": "Alagba",
+  "notAvailable": "Kò sí",
+
+  "deleteAccount": "Pa àkọọlẹ rẹ",
+  "deletionScheduledOn": "Àkọọlẹ ti ṣètò fún ìparẹ́ pátápátá ní:\n{date}",
+  "logInToCancel": "Wọlé ṣáájú ọjọ́ yìí láti fagilẹ ìparẹ́ àti dá àkọọlẹ rẹ padà.",
+  "permanentDeletionWarning": "Àkọọlẹ rẹ àti gbogbo dátà yóò parẹ́ pátápátátá lẹ́yìn ọjọ́ ọgbọ̀n.\nO lè fagilẹ nígbàkúgbà nípa wíwọlé padà.",
+  "deleteAccountDialogTitle": "Pa àkọọlẹ rẹ?",
+  "deleteAccountDialogContent": "• Àkọọlẹ rẹ yóò parẹ́ pátápátá ní ọjọ́ ọgbọ̀n.\n• Gbogbo dátà rẹ (àwọn àmì ìfihàn, ìtẹ̀síwájú, iṣẹ́, ipò) yóò parẹ́.\n• O lè fagilẹ nígbàkúgbà nípa wíwọlé padà.\n\nṢé o dá ọ lójú?",
+  "cancelDeletion": "Fagilẹ Ìparẹ́",
+  "deleteIn30Days": "Pa ní ọjọ́ ọgbọ̀n",
+  "deletionScheduledButton": "Ìparẹ́ ti ṣètò",
+  "accountDeletionScheduledSnack": "Àkọọlẹ ti ṣètò fún ìparẹ́ ní ọjọ́ ọgbọ̀n. Wọlé láti fagilẹ.",
+  "deletionCancelledSnack": "Ìparẹ́ àkọọlẹ ti fagilẹ! Káàbọ̀ padà 🎉",
+
+  "feedback": "Ìdáhún",
+  "rateAppOnGooglePlay": "Ìdánilójú app lórí Google Play",
+  "suggestAFeature": "Ìmọ̀ràn nǹkan kan",
+  "preferences": "Àwọn ìfẹ́",
+
+  "signIn": "Wọlé",
+  "register": "Ìforítilẹ̀",
+  "join": "Darapọ̀",
+  "registerParish": "Ìforítilẹ̀ ilé ìjọ",
+  "createChurch": "Ṣẹ̀dá ilé ìjọ",
+  "joinChurch": "Darapọ̀ ilé ìjọ",
+  "selectChurch": "Yan ilé ìjọ kan",
+  "churchAccessCode": "Koodu wíwọ́ ilé ìjọ",
+  "churchName": "Orúkọ ilé ìjọ",
+  "pastorName": "Orúkọ òjìṣẹ́",
+  "leaveChurch": "Kúrò nínú ilé ìjọ",
+  "selectYourChurch": "Yan ilé ìjọ rẹ",
+  "noChurchSelected": "Kò há yan ilé ìjọ",
+
+  "shareAsLessonPdf": "Pín gẹ́gẹ́ PDF",
+  "shareLink": "Pín àsopọ̀",
+  "saveLessonPrompt": "Wọlé kí o darapọ̀ ilé ìjọ láti gbé àwọn ẹ̀kọ́",
+  "lessonRemovedFromSaved": "Ẹ̀kọ́ yìí tí wá kúrò nínú àwọn tí a gbé",
+  "lessonSaved": "Ẹ̀kọ́ ti gbé! 📚",
+  "operationFailed": "Iṣẹ̀ dárá ṣubú",
+  "removedFromSavedLessons": "Ìpalẹ̀ kúrò nínú àwọn tí a gbé",
+  "saveThisLesson": "Gbé ẹ̀kọ́ yìí",
+
+  "verseTemporarilyUnavailable": "Àsàlẹ̀ kò sí ní àkókò yìí",
+  "removedFromSavedReadings": "Ìpalẹ̀ kúrò nínú àwọn tí a gbé",
+  "saveThisReading": "Gbé ìpalẹ̀ yìí",
+
+  "pleaseSelectYourChurchFirst": "Jọ̀wọ́ yan ilé ìjọ rẹ dájú!",
+  "pleaseEnterAtLeastOneAnswer": "Jọ̀wọ́ tún orí àtijọ́ kan tàbí ju.",
+  "yourAnswersHaveBeenSubmitted": "A ti gbà àwọn orí àtijọ́ rẹ!",
+  "failedToSaveYourAnswers": "A kò le gbé àwọn orí àtijọ́ rẹ. Jọ̀wọ́ gbìyànjú lẹ́ẹ̀kansi.",
+  "responses": "Àwọn ìdáhún",
+  "globalAdminsOnlyNoChurch": "Àdìmìnì àgbáyé nìkan — kò han ilé ìjọ.",
+
+  "addAnotherResponse": "Fi orí àtijọ́ mìi sẹ̀",
+  "noSubmissionsYet": "Kò si ẹnìkọ́kan tí o fi sẹ̀.",
+  "currentStatus": "Àpẹ̀rẹ̀ ìgbà yìí",
+  "submitted": "A ti fi sẹ̀",
+  "notSubmitted": "Kò fi sẹ̀",
+  "graded": "Àti ìyán",
+  "viewFeedback": "Wo ìdáhún",
+  "leaveFeedback": "Fi ìdáhún sẹ̀",
+
+  "lessonTitle": "Àkọlé ẹ̀kọ́",
+  "topic": "Ọrọ̀ àkọ́kọ́",
+  "biblePassage": "ÀTẸ̀GÙN BÍBÉLÌ:",
+  "guestUserLabel": "Olùmúlò àlùba",
+  "loading": "Ń lo ìṣẹ",
+  "answerWeeklyAssignment": "Dahùn iṣẹ́ ìdánilẹ́kọ̀ọ́ ọ̀sẹ̀",
+  "loginForAssignment": "Wọlé láti dahùn iṣẹ́ ìdánilẹ́kọ̀ọ́",
+
+  "monday": "Ọjọ́ Aje",
+  "tuesday": "Ọjọ́ Ìsẹ̀gun",
+  "wednesday": "Ọjọ́ Ọ̀rọ̀",
+  "thursday": "Ọjọ́ Ọ̀bọ̀",
+  "friday": "Ọjọ́ Ẹtì",
+  "saturday": "Ọjọ́ Àbámẹ́ta",
+  "sunday": "Ọjọ́ Àìkú",
+
+  "january": "Ọṣù KìNní",
+  "february": "Ọṣù Èrèlè",
+  "march": "Ọṣù Ẹ̀rẹ̀nà",
+  "april": "Ọṣù Ìgbé",
+  "may": "Ọṣù Ẹ̀bibi",
+  "june": "Ọṣù Òkúdu",
+  "july": "Ọṣù Agẹmọ",
+  "august": "Ọṣù Ọ̀gun",
+  "september": "Ọṣù Owewe",
+  "october": "Ọṣù Ọ̀wàrà",
+  "november": "Ọṣù Bélú",
+  "december": "Ọṣù Ọ̀pẹ̀",
+
+  "switchedToGeneral": "Gba àwọn ẹ̀kọ́ Àpapọ̀ (Àgbáyé)",
+  "shareLesson": "Pín ẹ̀kọ́",
+  "readingStreak": "Ìdì Ìkàwe",
+  "memoryVerse": "Àsàlẹ̀ tí a mọ̀:",
+  "prayer": "Àdúrá",
+  "todaysReading": "Kíkà Òní:",
+  "completeReading": "Kíkà Kíkún",
+  "readingTimer": "Ṣáájú ìtẹ̀síwájú… ({remainingSeconds} s)",
+  "noReading": "Kò sí kíkà",
+  "noBookmarksYet": "Kò sí ìbalẹ̀ fun",
+  "signInToSaveFavorites": "Wọlé láti gbé àwọn ìfẹ́ rẹ",
+  "bookmarksSyncMessage": "Àwọn ìbalẹ̀, àwọn ẹ̀kọ́, àti àwọn ìpalẹ̀ yìó ní ìfasẹ̀sì ní gbogbo àwọn ẹrọ́ rẹ.",
+  "english": "English",
+  "francais": "Français",
+  "copied": "Dá!",
+  "invalidSavedLessonId": "ID ẹ̀kọ́ tí a gbé rẹ̀ láìtọ́",
+  "lessonNotFound": "Ẹ̀kọ́ yìí kò rí",
+  "savedLessonContentNotAvailable": "Àkópọ̀ ẹ̀kọ́ tí a gbé yìí kò sí",
+  "pleaseAddAComment": "Jọ̀wọ́ fi àkiyèsi kan sẹ̀",
+  "thankYouFeedbackSubmitted": "E ṣeun! Àkiyèsi ti síralẹ̀.",
+  "errorSharingChurch": "Àṣìṣe láti pín ilé ìjọ: {error}",
+  "youHaveLeftTheChurch": "O ti kúrò nínú ilé ìjọ",
+  "pleaseLogInToViewAssignments": "Jọ̀wọ́ wọlé láti wo àwọn ìṣẹ̀ àkọ́kọ́ rẹ",
+  "teenResponses": "Àwọn ìdáhún àgẹ ọ̀dọ́",
+  "adultResponses": "Àwọn ìdáhún àgbà",
+  "editResponses": "Ṣatúnṣe àwọn ìdáhún",
+  "yourScore": "Ìdánilójú rẹ: {score} / {total}",
+  "myResponses": "Àwọn ìdáhún mi:",
+  "yourSubmittedResponses": "Àwọn ìdáhún tí o fìsẹ̀",
+  "assignmentGraded": "A ti ṣe àyẹ̀wò.",
+  "gradedNoEdit": "A ti ṣe àyẹ̀wò — kò lè ṣàtúnṣe",
+  "noQuestionAvailable": "Kò sí ìbéèrè.",
+  "noQuestionAvailableForThisDay": "Kò sí ìbéèrè lónìí.",
+  "myAssignment": "Iṣẹ́ mi",
+  "thisWeeksAssignment": "Iṣẹ́ ọ̀sẹ̀ yìí",
+  "dueDateFormatted": "Parí: {dateFormatted}",
+  "gradedByTeacher": "Olùkọ́ ṣe àyẹ̀wò",
+  "teachersFeedback": "Àlàyé olùkọ́:",
+  "noTeacherFeedbackProvided": "Kò sí àlàyé.",
+  "submittedTapEditToChange": "A ránṣẹ́ — Ṣàtúnṣe",
+  "writeYourResponseHere": "Kọ ìdáhùn síbí…",
+  "submit": "Ránṣẹ́",
+  "loadingQuestion": "Ń gba ìbéèrè…",
+  "teenOrAdultResponses": "Ìdáhùn",
+  "question": "Ìbéèrè",
+  "submissions": "Fífi ránṣẹ́",
+  "answerWithIndex": "Ìdáhùn {i}: {answer}",
+  "reset": "Tun bẹ̀rẹ̀",
+  "grade": "Ṣe àyẹ̀wò",
+  "teenSundaySchoolLesson": "Ẹ̀kọ́ Sunday School àgẹ ọ̀dọ́",
+  "adultSundaySchoolLesson": "Ẹ̀kọ́ Sunday School àgbà",
+  "youWillBeSignedOut": "A yóò tú ọ lọ́wọ́ àti padà sí ọ̀ṣè wíwọ́.",
+  "leaveWithoutJoining": "Kúrò láìdarapọ̀?",
+  "setUpYourParish": "Ṣe àkójọ ilé ìjọ rẹ àti jẹ́ nǹkan rẹ̀ àgba",
+  "enterSixDigitCode": "Tún koodu mẹ́ẹ̀fadihlokan tí àgba ilé ìjọ rẹ fún",
+  "copiedHex": "Dá: {hex}",
+  "rccgSundaySchoolGeneral": "RCCG Sunday School (Àpapọ̀)",
+  "savedItems": "Àwọn nkan tí a gbé",
+  "errorLoadingData": "Àṣìṣe: {error}",
+  "noRankingsYet": "Kò sí àti ìyán ní ẹ̀ká yìí níbìí.",
+  "couldNotDetermineBook": "Kò le túmo akúnlẹ̀ tàbí ìkòkò",
+  "bookNotFoundInBibleVersion": "Akúnlẹ̀ kò rí nínú ìyálé Bíbélì tó wà níbìí",
+  "signInAndJoinToBookmarks": "Wọlé àti darapọ̀ ilé ìjọ láti gbé àwọn ìbalẹ̀",
+  "bookmarkRemoved": "Ìbalẹ̀ yí kúrò",
+  "bookmarked": "Ìbalẹ̀ sí! ⭐",
+  "pleaseSelectChurchFirst": "Jọ̀wọ́ yan ilé ìjọ rẹ dájú!",
+  "couldNotSendRequest": "Kò le rán ìbeèrè náà",
+  "thankYouPastor": "E ṣeun, {name}!",
+  "createYourChurch": "Ṣẹ̀dá ilé ìjọ rẹ",
+  "pleaseFillAllRequiredFields": "Jọ̀wọ́ kun gbogbo àwọn ìpò tí a nilo",
+  "leaveChurchMessage": "O kò le níní ìsopọ̀ pẹ̀lú ilé ìjọ yìí mọ́.",
+  "cancel": "Fagile",
+  "accessRestricted": "Wíwọ́ ti díkun",
+  "manageChurchSettings": "Ṣatúnṣe àwọn ètò ilé ìjọ",
+  "askYourPastor": "Béèrè koodu lọ́wọ́ àgba ilé ìjọ rẹ",
+  "primaryColors": "Àwọn elu nǹkan pàtàkì",
+  "secondaryColors": "Àwọn elu kejì",
+  "neutralAndBackground": "Àlàáro àti ẹhin",
+  "statusColors": "Àwọn elu àpẹ̀rẹ̀",
+  "greyScale": "Grey Scale",
+  "darkTheme": "Ìyálé dúdú",
+  "members": "Àwọn ọmọ ajọ",
+  "lessonCompletion": "Ìkẹhin ẹ̀kọ́",
+  "dailyActive": "Tó nrimọ̀ ojoojúmọ́",
+  "weeklyActive": "Tó nrimọ̀ ní ọ̀sẹ̀",
+  "activity": "Iṣẹ̀ (Ọjọ́ 7 tó kẹ́yìn)",
+  "lessonProgress": "Iṣẹ̀lợra ẹ̀kọ́",
+  "alertsAndHighlights": "Àwọn ìkìlọ àti àwọn ohun tí a ní àkíyèsi",
+  "testNotificationScheduled": "Àkiyèsi ìdánwò ti ṣeé ọjọ́ nílẹ̀ àwọn iṣẹ̀jú 30!",
+  "exactTimingDenied": "Àkókò gan-an ti díkun. Ìrántí yìí yóò jẹ́ àpapọ̀.",
+  "addItem": "Fi nkan kan sẹ̀",
+
+  "yoruba": "Èdè Yorùbá",
+  "navHome": "Ilé",
+  "navBible": "Bibeli",
+  "navAccount": "Àkáọ̀nt",
+  "pleaseLogInToViewStreak": "Jọ̀wọ́ wọ sísẹ̀ láti wo ìbámu rẹ.",
+  "offlineMode": "Ìmọ̀ Ìgúnrin • Lilo àwọn ẹ̀kọ́ tí a sábè",
+  "newLesson": "Ẹ̀kọ́ tuntun!",
+  "openButton": "TI ÌPILẸ̀",
+  "leaveButton": "Kúrò",
+  "leaveChurchDialog": "Kúrò nínú ìlú?",
+  "oldTestament": "Iwe Atijọ",
+  "newTestament": "Iwe Titun",
+
+  "updateAvailable": "Imudojúìwọ̀n tuntun wà!",
+  "updateMessage": "Ẹ̀dà tuntun kan ti ṣetan pẹ̀lú àtúnṣe àti ìmúlò.\nṢe o fẹ́ gba a báyìí?",
+  "later": "Lẹ́yìnna",
+  "updateNow": "Ṣe imudojúìwọ̀n báyìí",
+
+  "invalidSixDigitCode": "Jọ̀wọ́ tẹ kóòdù nọ́mbà mẹ́fà tó pé",
+  "invalidServerResponse": "Ìdáhùn sẹ́fà àìtọ́",
+  "failedToJoinChurch": "Kò lè darapọ̀ mọ́ ṣọ́ọ̀ṣì",
+  "joinedSuccessfully": "O ti darapọ̀ ní àṣeyọrí!",
+
+  "signOutWarning": "A ó jáde ọ́, a ó sì da ọ padà sí ojú-ìbẹ̀rẹ̀ ìwọlé.",
+  "stay": "Dúró",
+
+  "welcome": "Káàbọ̀!",
+  "connectToChurch": "Ẹ jẹ́ ká so ọ pọ̀ mọ́ ṣọ́ọ̀ṣì rẹ",
+
+  "registerParishDescription": "Ṣètò páríṣì rẹ kí o sì di alábòójútó rẹ",
+
+  "joinParish": "Darapọ̀ mọ́ Páríṣì",
+  "enterChurchCode": "Tẹ kóòdù ṣọ́ọ̀ṣì",
+  "askPastorForCode": "Bẹ̀rẹ̀ lọ́wọ́ pásítọ̀ rẹ fún kóòdù",
+
+  "mustBeSignedIn": "O gbọ́dọ̀ ti wọlé",
+
+  "requestSent": "A rán ìbéèrè náà!",
+  "requestSummary": "Ìbéèrè rẹ láti dá sílẹ̀:\n\n🏛️ $churchName\n📍 $parishName\n🌍 $country\n\nti ránṣẹ́.",
+  "approvalNotice": "Iwọ yóò gba ìkìlọ̀ láàárín wákàtí 24 lẹ́yìn ìfọwọ́sí.",
+  "gotIt": "Mo ye!",
+
+  "churchAlreadyExists": "Ṣọ́ọ̀ṣì kan pẹ̀lú orúkọ yìí ti wà tẹ́lẹ̀. Jọ̀wọ́ kan sí ìtìlẹ́yìn.",
+  "genericError": "Àṣìṣe: {toString}",
+
+  "churchInformation": "Alaye Ṣọ́ọ̀ṣì",
+  "parishName": "Orúkọ Páríṣì / Ẹ̀ka *",
+  "adminEmail": "Imeeli Alábòójútó *",
+  "addressOptional": "Àdírẹ́sì (aṣàyàn)",
+  "country": "Orílẹ̀-èdè *",
+  "submitRequest": "Fi ìbéèrè ránṣẹ́",
+
   "@appName": {
     "description": "Orúkọ app náà"
+  },
+  "@language": {
+    "description": "Ẹ̀dá èdè"
   },
   "@sundaySchoolLesson": {
     "description": "Àkọlé nígbà tí ẹ̀kọ́ bá wà"
@@ -21,5 +302,691 @@
   },
   "@noAdultLesson": {
     "description": "Ìfihàn nígbà tí kò sí ẹ̀kọ́ fún àwọn àgbà"
-  }
+  },
+  "@sundaySchoolManual": {
+    "description": "Orúkọ fún app tàbí apá ìwé ẹ̀kọ́"
+  },
+  "@accessWeeklyLessonsOffline": {
+    "description": "Àpèjúwe tí ń sọ̀rọ̀ nípa wíwọlé sí ẹ̀kọ́ láìsí ayélujára"
+  },
+  "@builtForRccg": {
+    "description": "Ìsọ̀rọ̀ ìdánilẹ́kọ̀ọ́ fún àwọn ọmọ Ẹ̀gbẹ́ RCCG"
+  },
+  "@getStarted": {
+    "description": "Bọ́tìnì láti bẹ̀rẹ̀ lílo app"
+  },
+  "@openFullChapter": {
+    "description": "Button text to open the full chapter view"
+  },
+  "@close": {
+    "description": "Button text to close a dialog or screen"
+  },
+  "@preparing": {
+    "description": "Ọ̀rọ̀ ìfihàn ìgbà ìmúrasílẹ̀ / ìkóṣẹ́"
+  },
+  "@preparingWithProgress": {
+    "description": "Ìfihàn ìmúrasílẹ̀ pẹ̀lú ìwọ̀n ìlọsíwájú",
+    "placeholders": {
+      "progress": {},
+      "totalSteps": {}
+    }
+  },
+  "@login": {
+    "description": "Àkúlé búsì wíwọ́"
+  },
+  "@signInToCreateOrJoin": {
+    "description": "Orísun àkọ́kọ́ lórí ọ̀ṣè wíwọ́"
+  },
+  "@google": {
+    "description": "Àkúlé àrópo Google wíwọ́"
+  },
+  "@apple": {
+    "description": "Àkúlé àrópo Apple wíwọ́"
+  },
+  "@guest": {
+    "description": "Àrópo wíwọ́ àlùba"
+  },
+  "@signInFailed": {
+    "description": "Ìpilẹ̀ẹ̀ ìyẹn wíwọ́ dárá"
+  },
+  "@applSignInFailed": {
+    "description": "Ìpilẹ̀ẹ̀ Apple wíwọ́ dárá"
+  },
+  "@guestModeFailed": {
+    "description": "Ìpilẹ̀ẹ̀ ìyálé àlùba dárá"
+  },
+  "@guestUser": {
+    "description": "Orúkọ ìdáhùn fún olùmúlò àlùba"
+  },
+  "@guestMode": {
+    "description": "Àkúlé tí n ìfihàn pé olùmúlò wa nínú ìyálé àlùba"
+  },
+  "@anonymous": {
+    "description": "Àkúlé olùmúlò àkọjọ̀"
+  },
+  "@continueWithGoogle": { 
+    "description": "Àkọlé bọ́tìnì fún wíwọlé pẹ̀lú Google" 
+  },
+  "@signInWithApple": { 
+    "description": "Àkọlé bọ́tìnì fún wíwọlé pẹ̀lú Apple (iOS nìkan)" 
+  },
+  "@continueAsGuest": { 
+    "description": "Àkọlé bọ́tìnì fún ipò àlejò" 
+  },
+  "@guestDataWarning": { 
+    "description": "Ìkìlọ̀ nípa ìparẹ́ dátà lẹ́yìn ìyọkúrò nínú ipò àlejò" 
+  },
+  "@fullAccessDescription": { 
+    "description": "Àlàyé àǹfàní tí ó wà nínú wíwọlé déédéé" 
+  },
+  "@limitedAccessDescription": { 
+    "description": "Àlàyé àwọn ìdènà nínú ipò àlejò" 
+  },
+  "@profile": {
+    "description": "Àkọlé ọ̀ṣè profáìlì olùmúlò"
+  },
+  "@settings": {
+    "description": "Àkọlé ọ̀ṣè àwọn ètò"
+  },
+  "@bookmarks": {
+    "description": "Apá àwọn ìbalẹ̀/àwọn nkan tí a gbé"
+  },
+  "@streaks": {
+    "description": "Apá àwọn ìdì ojoojúmọ́"
+  },
+  "@leaderboard": {
+    "description": "Apá tabili àwọn olódájú"
+  },
+  "@assignments": {
+    "description": "Apá ìṣẹ̀ àkọ́kọ́ fún àwọn olùmúlò"
+  },
+  "@teachers": {
+    "description": "Apá àwọn olùkọ́/ìyán fún àdìmìnì"
+  },
+  "@appSuggestions": {
+    "description": "Apá àwọn ìmọ̀ràn/ìdáhún nipa app"
+  },
+  "@adminTools": {
+    "description": "Apá àwọn erọ́ àdìmìnì"
+  },
+  "@colorPalette": {
+    "description": "Ìṣeléṣilẹ̀ pàlẹ́ỳí ìlọ̀"
+  },
+  "@parish": {
+    "description": "Àkọlé fún orúkọ ìjọ ìsìn / ṣọ́ọ̀ṣì olùmúlò"
+  },
+  "@joinCode": {
+    "description": "Àkọlé fún kòòdù àádọ́ta-mẹ́fà tí a fi ń darapọ̀ mọ́ ìjọ ìsìn"
+  },
+  "@pastor": {
+    "description": "Àkọlé fún orúkọ olùkọ́ ìjọ ìsìn"
+  },
+  "@notAvailable": {
+    "description": "Ọ̀rọ̀ ìdánilẹ́kọ̀ọ́ tí a fi hàn nígbà tí dátà kan (bí orúkọ olùkọ́ ìjọ tàbí kòòdù ìdarapọ̀) kò sí tàbí kò tíì jẹ́ títò"
+  },
+  "@feedback": {
+    "description": "Àkọlé apá ìdáhún"
+  },
+  "@rateAppOnGooglePlay": {
+    "description": "Àkúlé ní imẹ̀nu láti ìdánilójú app"
+  },
+  "@suggestAFeature": {
+    "description": "Àkúlé ní imẹ̀nu láti mọ̀ràn nǹkan"
+  },
+  "@preferences": {
+    "description": "Apá àwọn ìfẹ́ olùmúlò"
+  },
+  "@signIn": {
+    "description": "Búsì wíwọ́"
+  },
+  "@register": {
+    "description": "Búsì ìforítilẹ̀"
+  },
+  "@join": {
+    "description": "Búsì darapọ̀"
+  },
+  "@registerParish": {
+    "description": "Ìforítilẹ̀ ilé ìjọ tuntun kan"
+  },
+  "@createChurch": {
+    "description": "Ṣẹ̀dá ilé ìjọ tuntun kan"
+  },
+  "@joinChurch": {
+    "description": "Darapọ̀ ilé ìjọ tí ó wà tẹ́lẹ̀"
+  },
+  "@selectChurch": {
+    "description": "Àkọlé ọ̀ṣè sísàní ilé ìjọ"
+  },
+  "@churchAccessCode": {
+    "description": "Koodu wíwọ́ láti darapọ̀ ilé ìjọ"
+  },
+  "@churchName": {
+    "description": "Orúkọ ilé ìjọ"
+  },
+  "@pastorName": {
+    "description": "Orúkọ òjìṣẹ́"
+  },
+  "@leaveChurch": {
+    "description": "Kúrò nínú ilé ìjọ ìgbà yìí"
+  },
+  "@selectYourChurch": {
+    "description": "Ìpènilẹ̀ sísàní ilé ìjọ"
+  },
+  "@noChurchSelected": {
+    "description": "Ìsìlẹ̀ nígbà tí kò há yan ilé ìjọ"
+  },
+  "@shareAsLessonPdf": {
+    "description": "Àrópo pín ẹ̀kọ́ gẹ́gẹ́ PDF"
+  },
+  "@shareLink": {
+    "description": "Àrópo pín àsopọ̀ ẹ̀kọ́"
+  },
+  "@saveLessonPrompt": {
+    "description": "Ìpènilẹ̀ láti wọlé láti gbé àwọn ẹ̀kọ́"
+  },
+  "@lessonRemovedFromSaved": {
+    "description": "Ìsìlẹ̀ àkójọ nígbà tí ẹ̀kọ́ tí kúrò"
+  },
+  "@lessonSaved": {
+    "description": "Ìsìlẹ̀ àkójọ nígbà tí ẹ̀kọ́ ti gbé"
+  },
+  "@operationFailed": {
+    "description": "Ìsìlẹ̀ iṣẹ̀ àpapọ̀"
+  },
+  "@removedFromSavedLessons": {
+    "description": "Àrángó fún búsì ìpalẹ̀ kúrò"
+  },
+  "@saveThisLesson": {
+    "description": "Àrángó fún búsì gbé ẹ̀kọ́"
+  },
+  "@verseTemporarilyUnavailable": {
+    "description": "Ìsìlẹ̀ nígbà tí àsàlẹ̀ Bíbélì ò sí"
+  },
+  "@removedFromSavedReadings": {
+    "description": "Àrángó fún búsì ìpalẹ̀ kúrò"
+  },
+  "@saveThisReading": {
+    "description": "Àrángó fún búsì gbé ìpalẹ̀"
+  },
+  "@pleaseSelectYourChurchFirst": {
+    "description": "Ìsìlẹ̀ ìyẹn nígbà tí olùmúlò kò ha yan ilé ìjọ"
+  },
+  "@pleaseEnterAtLeastOneAnswer": {
+    "description": "Ìsìlẹ̀ ìdánilójú fún àwọn ìdáhún ìṣẹ̀ àkọ́kọ́"
+  },
+  "@yourAnswersHaveBeenSubmitted": {
+    "description": "Ìsìlẹ̀ àkójọ lẹ́yìn ríralẹ̀ ìṣẹ̀ àkọ́kọ́"
+  },
+  "@failedToSaveYourAnswers": {
+    "description": "Ìsìlẹ̀ ìyẹn nígbà tí gbé ìṣẹ̀ àkọ́kọ́ dárá"
+  },
+  "@responses": {
+    "description": "Apá àwọn ìdáhún/síralẹ̀"
+  },
+  "@globalAdminsOnlyNoChurch": {
+    "description": "Ìsìlẹ̀ ìyẹn wíwọ́ dákun"
+  },
+  "@addAnotherResponse": {
+    "description": "Búsì láti fi ìdáhún mìi sẹ̀"
+  },
+  "@noSubmissionsYet": {
+    "description": "Ìsìlẹ̀ apá onípa"
+  },
+  "@currentStatus": {
+    "description": "Àkúlé àpẹ̀rẹ̀ ìgbà yìí síralẹ̀"
+  },
+  "@submitted": {
+    "description": "Àpẹ̀rẹ̀: ìṣẹ̀ àkọ́kọ́ tí síralẹ̀"
+  },
+  "@notSubmitted": {
+    "description": "Àpẹ̀rẹ̀: ìṣẹ̀ àkọ́kọ́ tí kò síralẹ̀"
+  },
+  "@graded": {
+    "description": "Àpẹ̀rẹ̀: ìṣẹ̀ àkọ́kọ́ àti ìyán"
+  },
+  "@viewFeedback": {
+    "description": "Búsì láti wo ìdáhún"
+  },
+  "@leaveFeedback": {
+    "description": "Búsì láti fi ìdáhún sẹ̀"
+  },
+  "@lessonTitle": {
+    "description": "Àkọlé ẹ̀kọ́"
+  },
+  "@topic": {
+    "description": "Ọrọ̀ àkọ́kọ́"
+  },
+  "@biblePassage": {
+    "description": "Àtẹ̀gùn Bíbélì ní ìtọ́kasí"
+  },
+  "@guestUserLabel": {
+    "description": "Àkúlé fún olùmúlò àlùba"
+  },
+  "@loading": {
+    "description": "Àkúlé ìfihàn olùfẹ̀dìkọ"
+  },
+  "@answerWeeklyAssignment": {
+    "description": "Bọ́tìnì tàbí àkọlé láti bẹ̀rẹ̀ ìdáhùn iṣẹ́ ọ̀sẹ̀"
+  },
+  "@loginForAssignment": {
+    "description": "Ìfihàn fún olùmúlò láti wọlé kí ó tó lè dahùn iṣẹ́"
+  },
+  "@monday": {
+    "description": "Ọjọ́ ní ọ̀ṣè: Ọjọ́ Aje"
+  },
+  "@tuesday": {
+    "description": "Ọjọ́ ní ọ̀ṣè: Ọjọ́ Ìsẹ̀gun"
+  },
+  "@wednesday": {
+    "description": "Ọjọ́ ní ọ̀ṣè: Ọjọ́ Ọ̀rọ̀"
+  },
+  "@thursday": {
+    "description": "Ọjọ́ ní ọ̀ṣè: Ọjọ́ Ọ̀bọ̀"
+  },
+  "@friday": {
+    "description": "Ọjọ́ ní ọ̀ṣè: Ọjọ́ Ẹtì"
+  },
+  "@saturday": {
+    "description": "Ọjọ́ ní ọ̀ṣè: Ọjọ́ Àbámẹ́ta"
+  },
+  "@sunday": {
+    "description": "Ọjọ́ ní ọ̀ṣè: Ọjọ́ Àìkú"
+  },
+  "@january": {
+    "description": "Ọṣù: KìNní"
+  },
+  "@february": {
+    "description": "Ọṣù: Èrèlè"
+  },
+  "@march": {
+    "description": "Ọṣù: Ẹ̀rẹ̀nà"
+  },
+  "@april": {
+    "description": "Ọṣù: Ìgbé"
+  },
+  "@may": {
+    "description": "Ọṣù: Ẹ̀bibi"
+  },
+  "@june": {
+    "description": "Ọṣù: Òkúdu"
+  },
+  "@july": {
+    "description": "Ọṣù: Agẹmọ"
+  },
+  "@august": {
+    "description": "Ọṣù: Ọ̀gun"
+  },
+  "@september": {
+    "description": "Ọṣù: Owewe"
+  },
+  "@october": {
+    "description": "Ọṣù: Ọ̀wàrà"
+  },
+  "@november": {
+    "description": "Ọṣù: Bélú"
+  },
+  "@december": {
+    "description": "Ọṣù: Ọ̀pẹ̀"
+  },
+  "@switchedToGeneral": {
+    "description": "Ìsìlẹ̀ gbà ẹ̀kọ́ Àpapọ̀"
+  },
+  "@shareLesson": {
+    "description": "Àkọlé dialog pín ẹ̀kọ́"
+  },
+  "@readingStreak": {
+    "description": "Àkọlé ọ̀ṣè ìdì ìkàwe"
+  },
+  "@memoryVerse": {
+    "description": "Àkúlé apá àsàlẹ̀ tí a mọ̀"
+  },
+  "@prayer": {
+    "description": "Àkúlé apá àdúrá"
+  },
+  "@todaysReading": {
+    "description": "Àkúlé apá kíkà òní"
+  },
+  "@completeReading": {
+    "description": "Búsì láti parí kíkà"
+  },
+  "@readingTimer": {
+    "description": "Ìfihàn apá àkókò ìtẹ̀síwájú kíkà"
+  },
+  "@noReading": {
+    "description": "Ìsìlẹ̀ apá onípa kíkà"
+  },
+  "@noBookmarksYet": {
+    "description": "Ìsìlẹ̀ apá onípa àwọn ìbalẹ̀"
+  },
+  "@signInToSaveFavorites": {
+    "description": "Ìpènilẹ̀ láti wọlé láti gbé"
+  },
+  "@bookmarksSyncMessage": {
+    "description": "Ìsìlẹ̀ nipa ìfasẹ̀sì àwọn ìbalẹ̀"
+  },
+  "@english": {
+    "description": "Àrópo ede English"
+  },
+  "@francais": {
+    "description": "Àrópo ede Francais"
+  },
+  "@copied": {
+    "description": "Ìsìlẹ̀ àkópọ̀ dá"
+  },
+  "@invalidSavedLessonId": {
+    "description": "Ìsìlẹ̀ àṣìṣe ID ẹ̀kọ́ láìtọ́"
+  },
+  "@lessonNotFound": {
+    "description": "Ìsìlẹ̀ àṣìṣe ẹ̀kọ́ kò rí"
+  },
+  "@savedLessonContentNotAvailable": {
+    "description": "Ìsìlẹ̀ àṣìṣe àkópọ̀ ẹ̀kọ́ kò sí"
+  },
+  "@pleaseAddAComment": {
+    "description": "Ìsìlẹ̀ ìdánilójú àkiyèsi"
+  },
+  "@thankYouFeedbackSubmitted": {
+    "description": "Ìsìlẹ̀ àkójọ lẹ́yìn ríwájú àkiyèsi"
+  },
+  "@errorSharingChurch": {
+    "description": "Ìsìlẹ̀ àṣìṣe pín ilé ìjọ"
+  },
+  "@youHaveLeftTheChurch": {
+    "description": "Ìsìlẹ̀ ìgbéìka lẹ́yìn kúrò ilé ìjọ"
+  },
+  "@pleaseLogInToViewAssignments": {
+    "description": "Ìsìlẹ̀ olùmúlò kò wọ nígbà wo ìṣẹ̀"
+  },
+  "@myAssignments": {
+    "description": "Àkọlé ọ̀ṣè àwọn ìṣẹ̀ àkọ́kọ́ mi"
+  },
+  "@teenResponses": {
+    "description": "Àkọlé àwọn ìdáhún ọ̀dọ́"
+  },
+  "@adultResponses": {
+    "description": "Àkọlé àwọn ìdáhún àgbà"
+  },
+  "@editResponses": {
+    "description": "Búsì ṣatúnṣe àwọn ìdáhún"
+  },
+  "@yourScore": {
+    "description": "Ìfihàn ìdánilójú olùmúlò"
+  },
+  "@myResponses": {
+    "description": "Àkúlé apá àwọn ìdáhún mi"
+  },
+  "@yourSubmittedResponses": {
+    "description": "Àkúlé àwọn ìdáhún tí síralẹ̀"
+  },
+  "@assignmentGraded": {
+    "description": "Ìsìlẹ̀ ìgbóràn lẹ́yìn àyẹ̀wò"
+  },
+  "@gradedNoEdit": {
+    "description": "Ìsìlẹ̀ àkójọ lẹ́yìn àyẹ̀wò kò lè ṣàtúnṣe"
+  },
+  "@teenSundaySchoolLesson": {
+    "description": "Àkọlé ẹ̀kọ́ ọ̀dọ́"
+  },
+  "@adultSundaySchoolLesson": {
+    "description": "Àkọlé ẹ̀kọ́ àgbà"
+  },
+  "@youWillBeSignedOut": {
+    "description": "Ìsìlẹ̀ ìkìlọ nípa tú lọ́wọ́"
+  },
+  "@leaveWithoutJoining": {
+    "description": "Àkọlé dialog ìgbéìka"
+  },
+  "@setUpYourParish": {
+    "description": "Àsùbálà fún ìforítilẹ̀ ilé ìjọ"
+  },
+  "@enterSixDigitCode": {
+    "description": "Àsùbálà fún darapọ̀ ilé ìjọ"
+  },
+  "@copiedHex": {
+    "description": "Ìsìlẹ̀ elu hex dá"
+  },
+  "@rccgSundaySchoolGeneral": {
+    "description": "Àkọlé RCCG ẹ̀kọ́ Àpapọ̀"
+  },
+  "@savedItems": {
+    "description": "Àkọlé ọ̀ṣè àwọn nkan tí a gbé"
+  },
+  "@errorLoadingData": {
+    "description": "Ìsìlẹ̀ àáànú ìṣẹ̀ lo ììmọ̀"
+  },
+  "@noRankingsYet": {
+    "description": "Ìsìlẹ̀ apá onípa àti ìyán"
+  },
+  "@couldNotDetermineBook": {
+    "description": "Ìsìlẹ̀ àṣìṣe ìdánwo akúnlẹ̀ Bíbélì"
+  },
+  "@bookNotFoundInBibleVersion": {
+    "description": "Àṣìṣe akúnlẹ̀ kò rí ní ìyálé"
+  },
+  "@signInAndJoinToBookmarks": {
+    "description": "Ìpènilẹ̀ láti wọlé láti gbé àwọn ìbalẹ̀"
+  },
+  "@bookmarkRemoved": {
+    "description": "Ìsìlẹ̀ ìbalẹ̀ kúrò"
+  },
+  "@bookmarked": {
+    "description": "Ìsìlẹ̀ nkan sí ìbalẹ̀"
+  },
+  "@pleaseSelectChurchFirst": {
+    "description": "Àṣìṣe ilé ìjọ kò yan"
+  },
+  "@couldNotSendRequest": {
+    "description": "Àṣìṣe ìbeèrè kò rán"
+  },
+  "@thankYouPastor": {
+    "description": "Thank-you message shown after sending a request",
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "@createYourChurch": {
+    "description": "Àkọlé ọ̀ṣè ṣẹ̀dá ilé ìjọ"
+  },
+  "@pleaseFillAllRequiredFields": {
+    "description": "Ìsìlẹ̀ ìdánilójú fọọmu"
+  },
+  "@leaveChurchMessage": {
+    "description": "Ìsìlẹ̀ ìkìlọ bí tẹ̀lẹ̀ kúrò ilé ìjọ"
+  },
+  "@cancel": {
+    "description": "Àkúlé búsì fagile"
+  },
+  "@accessRestricted": {
+    "description": "Ìsìlẹ̀ àṣìṣe wíwọ́ díkun"
+  },
+  "@manageChurchSettings": {
+    "description": "Àkúlé búsì àwọn ètò ilé ìjọ"
+  },
+  "@askYourPastor": {
+    "description": "Òpó ìranlọ́wọ́ fún koodu ilé ìjọ"
+  },
+  "@primaryColors": {
+    "description": "Àkọlé apá àwọn elu nǹkan pàtàkì"
+  },
+  "@secondaryColors": {
+    "description": "Àkọlé apá àwọn elu kejì"
+  },
+  "@neutralAndBackground": {
+    "description": "Àkọlé apá àwọn elu àlàáro"
+  },
+  "@statusColors": {
+    "description": "Àkọlé apá àwọn elu àpẹ̀rẹ̀"
+  },
+  "@greyScale": {
+    "description": "Àkọlé apá ìwádìí awọ"
+  },
+  "@darkTheme": {
+    "description": "Àkọlé apá àwọn elu ìyálé dúdú"
+  },
+  "@members": {
+    "description": "Àkọlé stat àwọn ọmọ ajọ"
+  },
+  "@lessonCompletion": {
+    "description": "Àkọlé stat ìkẹhin ẹ̀kọ́"
+  },
+  "@dailyActive": {
+    "description": "Àkọlé stat tó nrimọ̀ ojoojúmọ́"
+  },
+  "@weeklyActive": {
+    "description": "Àkọlé stat tó nrimọ̀ ní ọ̀sẹ̀"
+  },
+  "@activity": {
+    "description": "Àkọlé àwòkọ iṣẹ̀"
+  },
+  "@lessonProgress": {
+    "description": "Àkọlé àwòkọ iṣẹ̀lợra ẹ̀kọ́"
+  },
+  "@alertsAndHighlights": {
+    "description": "Àkọlé apá àwọn ìkìlọ"
+  },
+  "@testNotificationScheduled": {
+    "description": "Ìsìlẹ̀ lẹ́yìn ṣeé àkiyèsi ìdánwò"
+  },
+  "@exactTimingDenied": {
+    "description": "Ìsìlẹ̀ ìniyi àkókò àkiyèsi"
+  },
+  "@addItem": {
+    "description": "Búsì fi nkan kan sẹ̀"
+  },
+
+  "bibleGenesis": "Genesis",
+  "bibleExodus": "Exodus",
+  "bibleLeviticus": "Leviticus",
+  "bibleNumbers": "Àwọn Nọ́ẹ̀ẹ́",
+  "bibleDeuteronomy": "Deuteronomio",
+  "bibleJoshua": "Joshua",
+  "bibleJudges": "Àwọn Onídìtì",
+  "bibleRuth": "Ruth",
+  "bible1Samuel": "1 Samuel",
+  "bible2Samuel": "2 Samuel",
+  "bible1Kings": "1 Oba",
+  "bible2Kings": "2 Oba",
+  "bible1Chronicles": "1 Iwe Àwọn Ọjọ́",
+  "bible2Chronicles": "2 Iwe Àwọn Ọjọ́",
+  "bibleEzra": "Ezra",
+  "bibleNehemiah": "Nehemiah",
+  "bibleEsther": "Esther",
+  "bibleJob": "Job",
+  "biblePsalms": "Àwọn Ewì",
+  "bibleProverbs": "Àwọn Òwe",
+  "bibleEcclesiastes": "Eklesiastis",
+  "bibleSongOfSolomon": "Orin Iyalode",
+  "bibleIsaiah": "Isaiah",
+  "bibleJeremiah": "Jeremiah",
+  "bibleLamentations": "Awọn Ariwi",
+  "bibleEzekiel": "Ezekiel",
+  "bibleDaniel": "Daniel",
+  "bibleHosea": "Hosea",
+  "bibleJoel": "Joel",
+  "bibleAmos": "Amos",
+  "bibleObadiah": "Obadiah",
+  "bibleJonah": "Jonah",
+  "bibleMicah": "Micah",
+  "bibleNahum": "Nahum",
+  "bibleHabakkuk": "Habakkuk",
+  "bibleZephaniah": "Zephaniah",
+  "bibleHaggai": "Haggai",
+  "bibleZechariah": "Zechariah",
+  "bibleMalachi": "Malachi",
+  "bibleMatthew": "Matthew",
+  "bibleMark": "Mark",
+  "bibleLuke": "Luke",
+  "bibleJohn": "John",
+  "bibleActs": "Iwe Awọn Iṣẹ̀",
+  "bibleRomans": "Romans",
+  "bible1Corinthians": "1 Corinthians",
+  "bible2Corinthians": "2 Corinthians",
+  "bibleGalatians": "Galatians",
+  "bibleEphesians": "Ephesians",
+  "biblePhilippians": "Philippians",
+  "bibleColossians": "Colossians",
+  "bible1Thessalonians": "1 Thessalonians",
+  "bible2Thessalonians": "2 Thessalonians",
+  "bible1Timothy": "1 Timothy",
+  "bible2Timothy": "2 Timothy",
+  "bibleTitus": "Titus",
+  "biblePhilemon": "Philemon",
+  "bibleHebrews": "Hebrews",
+  "bibleJames": "James",
+  "bible1Peter": "1 Peter",
+  "bible2Peter": "2 Peter",
+  "bible1John": "1 John",
+  "bible2John": "2 John",
+  "bible3John": "3 John",
+  "bibleJude": "Jude",
+  "bibleRevelation": "Ifihàn",
+
+  "signInAndJoinToBookmarks": "Wọlẹ àti darapọ ẹgbẹ kan láti tọjú àwọn àmì",
+  "bookmarkRemoved": "Àmì tiíkúrò",
+  "copy": "Àtúkọ",
+  "share": "Pín",
+  "bookmarked": "Àmìlẹ",
+  "bookmark": "Àmì",
+  "removeHighlight": "Yọ ìyalẹnu kúrò",
+  "copied": "Àtúkọ pẹ̀lú!",
+  "verseSelected": "ẹsẹ ti yan",
+  "versesSelected": "àwọn ẹsẹ ti yan",
+  "cancel": "Fagile",
+  "advertsDisclosure": "Àwọn ibi-ilana ni o finanse app ati aṣẹwádìí ọ̀pọ̀lọ, fun ayọ rẹ.",
+  "teachers": "Àwọn oníkòó",
+  "appSuggestions": "Àwọn ìpinnu app",
+  "adminTools": "Àwọn ọ̀rọ̀ aláṣẹ",
+  "colorPalette": "Palette àwọ",
+  "inviteYourFriends": "Ṣe asopọ àwọn ọ̀rẹ́ rẹ",
+  "signOut": "Jáde",
+  "guestUser": "Oniborí àfojúkọ",
+  "guestMode": "ìkọ̀kọ̀ àfojúkọ",
+  "pleaseAddComment": "Jọ̀wọ́ fi àsìkò kan kun",
+  "feedbackSubmitted": "O dupe! Ìfidìbá rẹ ti jáde.",
+  "yourSuggestions": "Àwọn ìpinnu rẹ",
+  "suggestionsHelpApp": "Àwọn ìpinnu rẹ ṣe ilò ìwé yìí fun gbogbo!",
+  "tellUsWhatYouThink": "Sọ fún wa ètò rẹ...",
+  "submitFeedback": "Fipilẹ̀ Ìfidìbá",
+  "rateAppSettings": "Àáá... Láti ṣe ìwontunwonsi ìwé yìí, jọ̀wọ́ lọ sí Settings ...",
+  "pleaseSignInStreak": "Jọ̀wọ́ wọlẹ láti wo òun rẹ ti kìkì.",
+  "dayStreak": "ọjọ́ ti kìkì",
+  "freezesAvailable": "Àwọn tutu tẹ́tẹ́",
+  "freezesDescription": "Àwọn tutu ṣe agbára fun yin láti fọ́ ọjọ́ kan láìsẹ̀da òun rẹ.",
+  "lastCompleted": "Ìpari tẹ́lẹ̀",
+  "never": "Kò dájú",
+  "progressNextFreeze": "Ọ̀nà sí tutu tẹ́lẹ̀",
+  "daysUntilNextFreeze": "ọjọ́(s) títí òun tutu tẹ́lẹ̀ (òun ọgójú nígbà kọọkan tabi sẹ́tẹ́ ara 1 tutu)",
+  "howFreezesWork": "Báwo ni àwọn tutu ṣe ìṣẹ̀",
+  "freezeExplanation": "Tí ẹ bá kọ ọjọ́ kan, tutu yóò ti wà nípa láti pa òun rẹ.",
+  "savedItemsTitle": "Àwọn nkan tí a gbé",
+  "noBookmarksYetMessage": "Kò sí àmì fun",
+  "saveFavoriteScriptures": "Gbé àwọn ẹsẹ tí o fẹ́ láti ka wọn ní àkókò gbogbo.",
+  "noChurchSelected": "Kò há yan ilé ìjọ",
+  "deleteBookmark": "Yọ àmì kúrò",
+  "yourNote": "Àsìkò rẹ",
+  "noSavedLessons": "Kò sí ẹ̀kọ́ tí a gbé",
+  "saveLessonsToReview": "Gbé àwọn ẹ̀kọ́ láti tẹ̀jọ́ wọn ní ìgbà ẹhìnrere.",
+  "invalidSavedLessonId": "ID ẹ̀kọ́ tí a gbé rẹ̀ láìtọ́",
+  "lessonNotFound": "Ẹ̀kọ́ kò rí",
+  "savedLessonContentNotAvailable": "Àkópọ̀ ẹ̀kọ́ tí a gbé kò sí",
+  "openLesson": "Ṣí ẹ̀kọ́",
+  "deleteLesson": "Yọ ẹ̀kọ́ kúrò",
+  "noteLabel": "Àsìkò",
+  "noFurtherReadings": "Kò sí ìpalẹ̀ àfikun",
+  "saveReadingMaterials": "Gbé ìpalẹ̀ láti ṣàwòran wọn ní òpólòpò.",
+  "deleteReading": "Yọ ìpalẹ̀ kúrò",
+  "lessons": "Àwọn ẹ̀kọ́",
+  "readings": "Àwọn ìpalẹ̀",
+  "adult": "Àgbà",
+  "teen": "Ọ̀dọ́",
+  "church": "Ilé ìjọ",
+  "global": "Àgbáyé",
+  "errorWithMessage": "Àṣìṣe:",
+  "yourRank": "Àti rẹ:",
+  "anonymousStudent": "Ọmọ-ẹ̀kọ́ Àkọjọ̀",
+  "pointsLabel": "pts",
+  "refreshAssignments": "Túnkatà àwọn",
+  "empty": "Bẹ́loji!",
+  "noAssignmentsInQuarter": "Kọ́ àwọn láti ẹ́ kọ́ɔkò yíì.",
+  "myAssignments": "Mọ Àwọn"
 }

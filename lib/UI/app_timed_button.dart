@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../l10n/app_localizations.dart';
 import 'app_buttons.dart';
 import 'app_colors.dart';
 
 Widget TimedFeedbackButton({
   required BuildContext context,
   required String text,
+  String? subtitle,
   required VoidCallback onPressed,
   required Color topColor,
   int seconds = 10, // time to wait before enabling
@@ -17,6 +19,7 @@ Widget TimedFeedbackButton({
 }) {
   return TimedFeedbackButtonStateful(
     text: text,
+    subtitle: subtitle,
     topColor: topColor,
     onPressed: onPressed,
     seconds: seconds,
@@ -29,6 +32,7 @@ Widget TimedFeedbackButton({
 
 class TimedFeedbackButtonStateful extends StatefulWidget {
   final String text;
+  final String? subtitle;
   final Color topColor;
   final VoidCallback onPressed;
   final int seconds;
@@ -39,13 +43,14 @@ class TimedFeedbackButtonStateful extends StatefulWidget {
 
   const TimedFeedbackButtonStateful({
     required this.text,
+    this.subtitle,
     required this.topColor,
     required this.onPressed,
     required this.seconds,
     required this.borderColor,
     required this.borderWidth,
     required this.backOffset,
-    required this.backDarken,
+    required this.backDarken, 
   });
 
   @override
@@ -91,6 +96,8 @@ class _TimedFeedbackButtonStatefulState extends State<TimedFeedbackButtonStatefu
     final double buttonWidth = screenSize.width * 0.8;
     final double buttonHeight = screenSize.height * 0.04;
     const double pressDepth = 4.0;
+    final String displayText = _enabled ? widget.text
+      : (widget.subtitle ?? AppLocalizations.of(context)?.readingTimer(_remainingSeconds) ?? "Time till streak… ($_remainingSeconds s)");
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -98,6 +105,7 @@ class _TimedFeedbackButtonStatefulState extends State<TimedFeedbackButtonStatefu
         SizedBox(
           height: buttonHeight + widget.backOffset,
           width: buttonWidth.sp,
+          
           child: AnimatedPress3D(
             onTap: _enabled ? widget.onPressed : () {},
             topColor: _enabled ? widget.topColor : Colors.grey, // grey if disabled
@@ -108,9 +116,7 @@ class _TimedFeedbackButtonStatefulState extends State<TimedFeedbackButtonStatefu
             pressDepth: pressDepth,
             child: Center(
               child: Text(
-                _enabled
-                    ? widget.text
-                    : "${widget.text} ($_remainingSeconds s)", // optional countdown text
+                displayText,
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 18.sp,
@@ -163,8 +169,8 @@ Widget PreloadProgressButton({
   final String displayText = isReady
       ? text
       : hasProgressInfo
-          ? "Preparing... ($progress/$totalSteps)"
-          : "Preparing...";
+          ? AppLocalizations.of(context)?.preparingWithProgress(progress, totalSteps) ?? "Preparing... ($progress/$totalSteps)"
+          : AppLocalizations.of(context)?.preparing ?? "Preparing...";
 
   final screenSize = MediaQuery.of(context).size;
   final double buttonWidth = screenSize.width * 0.8;

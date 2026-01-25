@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../UI/app_colors.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/media_query.dart';
 
 class StreakPage extends StatelessWidget {
@@ -17,8 +18,8 @@ class StreakPage extends StatelessWidget {
 
     if (uid == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Reading Streak')),
-        body: const Center(child: Text('Please sign in to view your streak.')),
+        appBar: AppBar(title: Text(AppLocalizations.of(context)?.readingStreak ?? 'Reading Streak')),
+        body: Center(child: Text(AppLocalizations.of(context)?.pleaseSignInStreak ?? 'Please sign in to view your streak.')),
       );
     }
 
@@ -31,7 +32,7 @@ class StreakPage extends StatelessWidget {
         title: FittedBox(
           fit: BoxFit.scaleDown, // Scales down text if it would overflow
           child: Text(
-            "Reading Streak",
+            AppLocalizations.of(context)?.readingStreak ?? "Reading Streak",
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: style.monthFontSize.sp, // Matches your other screen's style
@@ -61,7 +62,7 @@ class StreakPage extends StatelessWidget {
           final int streak = (data['readingStreak'] ?? 0) as int;
           final int freezeCount = (data['freezeCount'] ?? 0) as int;
           final ts = data['readingLastDate'];
-          String last = 'Never';
+          String last = AppLocalizations.of(context)?.never ?? 'Never';
           if (ts is Timestamp) {
             final d = ts.toDate();
             last = '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
@@ -85,7 +86,7 @@ class StreakPage extends StatelessWidget {
                         style: TextStyle(fontSize: 60.sp, fontWeight: FontWeight.bold),
                       ),
                       SizedBox(height: 5.sp),
-                      Text('day streak', style: TextStyle(fontSize: 15.sp)),
+                      Text(AppLocalizations.of(context)?.dayStreak ?? 'day streak', style: TextStyle(fontSize: 15.sp)),
                     ],
                   ),
                 ),
@@ -99,7 +100,7 @@ class StreakPage extends StatelessWidget {
                       size: 24.sp,
                     ),
                     title: Text(
-                      'Freezes available',
+                      AppLocalizations.of(context)?.freezesAvailable ?? 'Freezes available',
                       style: TextStyle(
                         fontSize: 15.sp,
                         fontWeight: FontWeight.w600,
@@ -113,7 +114,7 @@ class StreakPage extends StatelessWidget {
                       ),
                     ),
                     subtitle: Text(
-                      'Freezes let you skip a day without breaking your streak.',
+                      AppLocalizations.of(context)?.freezesDescription ?? 'Freezes let you skip a day without breaking your streak.',
                       style: TextStyle(
                         fontSize: 15.sp, 
                       ),
@@ -129,7 +130,7 @@ class StreakPage extends StatelessWidget {
                       size: 24.sp,
                     ),
                     title: Text(
-                      'Last Completed',
+                      AppLocalizations.of(context)?.lastCompleted ?? 'Last Completed',
                       style: TextStyle(
                         fontSize: 15.sp,
                         fontWeight: FontWeight.w600,
@@ -152,11 +153,11 @@ class StreakPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Progress to next freeze', 
+                          AppLocalizations.of(context)?.progressNextFreeze ?? 'Progress to next freeze', 
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 15.sp,
-                            color: Theme.of(context).colorScheme.onBackground,
+                            //color: Theme.of(context).colorScheme.onBackground,
                           ),
                         ),
                         SizedBox(height: 5.sp),
@@ -166,7 +167,7 @@ class StreakPage extends StatelessWidget {
                         ),
                         SizedBox(height: 5.sp),
                         Text(
-                          '$daysToNext day(s) until next freeze (every 7-day streak awards 1 freeze)',
+                          '$daysToNext ${AppLocalizations.of(context)?.daysUntilNextFreeze ?? "day(s) until next freeze (every 7-day streak awards 1 freeze)"}',
                           style: TextStyle(
                             fontSize: 15.sp,
                           ),
@@ -184,14 +185,14 @@ class StreakPage extends StatelessWidget {
                       size: 24.sp,
                     ),
                     title: Text(
-                      'How freezes work',
+                      AppLocalizations.of(context)?.howFreezesWork ?? 'How freezes work',
                       style: TextStyle(
                         fontSize: 15.sp,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     subtitle: Text(
-                      'If you miss a day, a freeze will be consumed to keep your streak.',
+                      AppLocalizations.of(context)?.freezeExplanation ?? 'If you miss a day, a freeze will be consumed to keep your streak.',
                       style: TextStyle(
                         fontSize: 15.sp,
                       ),

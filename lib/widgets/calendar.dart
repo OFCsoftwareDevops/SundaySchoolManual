@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../UI/app_theme.dart';
 import '../utils/media_query.dart';
+import '../l10n/app_localizations.dart';
 
 class MonthCalendar extends StatefulWidget {
   final Function(DateTime) onDateSelected;
@@ -64,7 +65,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
                   icon: Icon(Icons.chevron_left, size: style.iconSize.sp),
                 ),
                 Text(
-                  "${_monthName(currentMonth.month)} ${currentMonth.year}",
+                  "${_monthName(currentMonth.month, context)} ${currentMonth.year}",
                   style: TextStyle(
                     fontSize: style.monthFontSize.sp, 
                     fontWeight: FontWeight.bold,
@@ -80,7 +81,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
 
             // Weekdays
             Row(
-              children: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+              children: _getDayLabels(context)
                 .map((d) => Expanded(
                   child: Center(
                     child: Text(
@@ -249,8 +250,34 @@ class _MonthCalendarState extends State<MonthCalendar> {
     return rows;
   }
 
-  String _monthName(int m) => [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-      ][m - 1];
+  List<String> _getDayLabels(BuildContext context) {
+    final loc = AppLocalizations.of(context);
+    return [
+      (loc?.sunday ?? 'Sunday').substring(0, 3),
+      (loc?.monday ?? 'Monday').substring(0, 3),
+      (loc?.tuesday ?? 'Tuesday').substring(0, 3),
+      (loc?.wednesday ?? 'Wednesday').substring(0, 3),
+      (loc?.thursday ?? 'Thursday').substring(0, 3),
+      (loc?.friday ?? 'Friday').substring(0, 3),
+      (loc?.saturday ?? 'Saturday').substring(0, 3),
+    ];
+  }
+
+  String _monthName(int m, BuildContext context) {
+    final loc = AppLocalizations.of(context);
+    return [
+      loc?.january ?? 'January',
+      loc?.february ?? 'February',
+      loc?.march ?? 'March',
+      loc?.april ?? 'April',
+      loc?.may ?? 'May',
+      loc?.june ?? 'June',
+      loc?.july ?? 'July',
+      loc?.august ?? 'August',
+      loc?.september ?? 'September',
+      loc?.october ?? 'October',
+      loc?.november ?? 'November',
+      loc?.december ?? 'December'
+    ][m - 1];
+  }
 }

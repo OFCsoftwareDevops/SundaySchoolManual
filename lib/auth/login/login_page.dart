@@ -12,8 +12,10 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../../UI/app_buttons.dart';
 import '../../UI/app_colors.dart';
 import '../../backend_data/service/analytics/analytics_service.dart';
+import '../../l10n/app_localizations.dart';
+import '../../widgets/helpers/snackbar.dart';
 import 'auth_service.dart';
-import '../../UI/loading_overlay.dart';
+import '../../UI/app_loading_overlay.dart';
 
 // lib/screens/auth_screen.dart
 class AuthScreen extends StatefulWidget {
@@ -71,8 +73,12 @@ class _AuthScreenState extends State<AuthScreen> {
     } catch (e) {
       LoadingOverlay.hide();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Sign-in failed: $e"), backgroundColor: Colors.red),
+        showTopToast(
+          context,
+          AppLocalizations.of(context)?.signInFailed ?? "Sign-in failed",
+          backgroundColor: AppColors.error,
+          textColor: AppColors.onError,
+          duration: const Duration(seconds: 5),
         );
       }
     } finally {
@@ -116,21 +122,23 @@ class _AuthScreenState extends State<AuthScreen> {
         return;
       }
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Apple sign-in failed: ${e.message ?? 'Unknown error'}"),
-            backgroundColor: Colors.red,
-          ),
+        showTopToast(
+          context,
+          AppLocalizations.of(context)?.applSignInFailed ?? "Apple sign-in failed",
+          backgroundColor: AppColors.error,
+          textColor: AppColors.onError,
+          duration: const Duration(seconds: 5),
         );
       }
     } catch (e) {
       // Catch any other errors (network, Firebase, etc.)
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Sign-in failed: $e"),
-            backgroundColor: Colors.red,
-          ),
+        showTopToast(
+          context,
+          AppLocalizations.of(context)?.signInFailed ?? "Sign-in failed",
+          backgroundColor: AppColors.error,
+          textColor: AppColors.onError,
+          duration: const Duration(seconds: 5),
         );
       }
     } finally {
@@ -157,8 +165,12 @@ class _AuthScreenState extends State<AuthScreen> {
     } catch (e) {
       LoadingOverlay.hide();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Guest mode failed: $e"), backgroundColor: Colors.red),
+        showTopToast(
+          context,
+          AppLocalizations.of(context)?.guestModeFailed ?? "Guest mode failed",
+          backgroundColor: AppColors.error,
+          textColor: AppColors.onError,
+          duration: const Duration(seconds: 5),
         );
       }
     } finally {
@@ -211,7 +223,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 SizedBox(height: 20.sp),
 
                 Text(
-                  "Login",
+                  AppLocalizations.of(context)?.login ?? "Login",
                   textAlign: TextAlign.center,
                     style: TextStyle(
                     fontSize: 28.sp,
@@ -222,7 +234,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 SizedBox(height: 8.sp),
                 Text(
-                  "Sign in to create or join your church",
+                  AppLocalizations.of(context)?.signInToCreateOrJoin ?? "Sign in to create or join your church",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16.sp,
@@ -324,7 +336,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                   borderRadius: BorderRadius.circular(30.sp),
                                 ),
                                 child: Text(
-                                  "Guest",
+                                  AppLocalizations.of(context)?.guest ?? "Guest",
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
@@ -375,7 +387,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                   Image.asset('assets/images/google_logo.png', height: 20.sp),
                                   SizedBox(width: 12.sp),
                                   Text(
-                                    "Continue with Google",
+                                    AppLocalizations.of(context)?.continueWithGoogle ?? "Continue with Google",
                                     style: TextStyle(color: Colors.black87, fontSize: 16.sp, fontWeight: FontWeight.bold),
                                   ),
                                 ]
@@ -384,7 +396,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                   Icon(Icons.apple, size: 20.sp, color: Colors.white),
                                   SizedBox(width: 12.sp),
                                   Text(
-                                    "Sign in with Apple",
+                                    AppLocalizations.of(context)?.signInWithApple ?? "Sign in with Apple",
                                     style: TextStyle(color: Colors.white, fontSize: 16.sp, fontWeight: FontWeight.bold),
                                   ),
                                 ]
@@ -393,7 +405,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                   Icon(Icons.person_outline, size: 20.sp, color: Colors.black87),
                                   SizedBox(width: 12.sp),
                                   Text(
-                                    "Continue as Guest",
+                                    AppLocalizations.of(context)?.continueAsGuest ?? "Continue as Guest",
                                     style: TextStyle(color: Colors.black87, fontSize: 16.sp, fontWeight: FontWeight.bold),
                                   ),
                                 ],
@@ -406,7 +418,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 Text(
                   _selectedTab == 0
                       ? ""
-                      : "All data are temporarily saved and lost after logout.",
+                      : AppLocalizations.of(context)?.guestDataWarning ?? "All data are temporarily saved and lost after logout.",
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppColors.onPrimary, fontSize: 14.sp),
                 ),
@@ -416,8 +428,8 @@ class _AuthScreenState extends State<AuthScreen> {
                 // Subtle info text
                 Text(
                   _selectedTab == 0
-                      ? "Full access: create or join your church"
-                      : "Limited access: use general mode only",
+                      ? AppLocalizations.of(context)?.fullAccessDescription ?? "Full access: create or join your church"
+                      : AppLocalizations.of(context)?.limitedAccessDescription ?? "Limited access: use general mode only",
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppColors.onPrimary, fontSize: 14.sp),
                 ),

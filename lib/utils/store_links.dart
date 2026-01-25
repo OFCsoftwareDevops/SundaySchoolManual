@@ -1,0 +1,24 @@
+import 'dart:io';
+
+class StoreLinks {
+  /// Google Play Store
+  static const String android = 'https://play.google.com/store/apps/details?id=com.ofcsoftwareDevops.rccgsundayschoolmanual';
+
+  /// Apple App Store
+  static const String ios = 'https://apps.apple.com/app/idYOUR_APP_ID';
+
+  /// Apple direct review link
+  static const String iosReview = 'https://apps.apple.com/app/idYOUR_APP_ID?action=write-review';
+
+  /// Returns correct store link for current platform
+  static String get current {
+    if (Platform.isIOS) return ios;
+    return android;
+  }
+
+  /// Returns correct review link for current platform
+  static String get review {
+    if (Platform.isIOS) return iosReview;
+    return android;
+  }
+}

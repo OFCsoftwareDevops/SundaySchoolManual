@@ -6,14 +6,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../../UI/app_colors.dart';
 import '../../../auth/login/auth_service.dart';
 import '../../../backend_data/service/analytics/analytics_service.dart';
-import '../../../backend_data/service/saved_items_service.dart';
-import '../../../backend_data/service/streak_service.dart';
+import '../../../backend_data/service/firestore/saved_items_service.dart';
+import '../../../backend_data/service/firestore/streak_service.dart';
 import '../../../UI/app_linear_progress_bar.dart';
-import '../../../UI/timed_button.dart';
+import '../../../UI/app_timed_button.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../bible_app/bible.dart';
 import '../../bible_app/bible_actions/highlight_manager.dart';
 import '../../helpers/main_screen.dart';
-import '../lesson_ref_verse_popup.dart';
+import '../../helpers/snackbar.dart';
+import '../../bible_app/bible_ref_verse_popup.dart';
 
 
 /// Opens the Further Reading as a centered dialog (not bottom sheet)
@@ -91,20 +93,6 @@ void showFurtherReadingDialog({
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Top row with reference and save icon
-            Padding(
-              padding: EdgeInsets.fromLTRB(16.sp, 12.sp, 8.sp, 8.sp),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(ref, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
-                  ),
-                  // NEW: Smart Save Button
-                  _SmartSaveReadingButton(ref: ref, todayReading: todayReading),
-                ],
-              ),
-            ),
-
             // The verse popup
             SizedBox(
               height: MediaQuery.of(context).size.height * 0.72,
@@ -112,7 +100,8 @@ void showFurtherReadingDialog({
                 reference: ref,
                 verses: verses,
                 rawText: raw,
-                heightFraction: 0.85.sp, // tall dialog
+                heightFraction: 0.85.sp,
+                showCloseButton: true,
               ),
             ),
           ],
@@ -124,7 +113,7 @@ void showFurtherReadingDialog({
           child: SizedBox(
             width: double.infinity, // full width in actions
               child: TimedFeedbackButtonStateful(
-              text: "Complete Reading",
+              text: AppLocalizations.of(context)?.completeReading ?? "Complete Reading",
               topColor: AppColors.success,
               seconds: readingSeconds, // time to wait before enabling
               onPressed: () async {
@@ -151,22 +140,26 @@ void showFurtherReadingDialog({
           ),
         ),
       ],
+      actionsPadding: EdgeInsets.zero,
     ),
   );
 }
 
 // Smart Save Button — uses your existing isFurtherReadingSaved()
-class _SmartSaveReadingButton extends StatefulWidget {
+class SmartSaveReadingButton extends StatefulWidget {
   final String ref;
   final String todayReading;
 
-  const _SmartSaveReadingButton({required this.ref, required this.todayReading});
+  const SmartSaveReadingButton({
+    required this.ref, 
+    required this.todayReading,
+  });
 
   @override
-  State<_SmartSaveReadingButton> createState() => _SmartSaveReadingButtonState();
+  State<SmartSaveReadingButton> createState() => SmartSaveReadingButtonState();
 }
 
-class _SmartSaveReadingButtonState extends State<_SmartSaveReadingButton> {
+class SmartSaveReadingButtonState extends State<SmartSaveReadingButton> {
   bool _isSaved = false;
   bool _isChecking = true;
 
@@ -199,39 +192,47 @@ class _SmartSaveReadingButtonState extends State<_SmartSaveReadingButton> {
     }
   }
 
-  Future<void> _saveReading() async {
+  Future<void> _toggleSave() async {
     final user = FirebaseAuth.instance.currentUser;
     final auth = context.read<AuthService>();
 
     if (user == null || auth.churchId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sign in and join a church to save readings')),
+      showTopToast(
+        context,
+        'Sign in to save readings',
       );
       return;
     }
 
-    if (_isSaved) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Already saved! 📖')),
-      );
-      return;
-    }
+    final service = SavedItemsService();
 
     try {
-      await SavedItemsService().addFurtherReading(
-        user.uid,
-        title: widget.ref,
-        reading: widget.todayReading,
-      );
-
-      setState(() => _isSaved = true);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Reading saved! 📖')),
-      );
+      if (_isSaved) {
+        // REMOVE
+        await service.removeFurtherReadingByTitle(user.uid, widget.ref);
+        setState(() => _isSaved = false);
+        showTopToast(
+          context,
+          'Reading removed',
+        );
+      } else {
+        // ADD
+        await service.addFurtherReading(
+          user.uid,
+          title: widget.ref,           // "Esther 4:16"
+          reading: widget.todayReading, // "Esther 4:16 (KJV)"
+          // note: null,               // optional
+        );
+        setState(() => _isSaved = true);
+        showTopToast(
+          context,
+          'Reading saved! 📖',
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save: $e')),
+      showTopToast(
+        context,
+        'Operation failed: $e',
       );
     }
   }
@@ -241,8 +242,8 @@ class _SmartSaveReadingButtonState extends State<_SmartSaveReadingButton> {
     final theme = Theme.of(context);
 
     return IconButton(
-      tooltip: _isSaved ? 'Already saved' : 'Save this reading',
-      onPressed: _saveReading,
+      tooltip: _isSaved ? 'Remove from saved readings' : 'Save this reading',
+      onPressed: _isChecking ? null : _toggleSave,
       icon: _isChecking
           ? SizedBox(
               width: 24.sp,
@@ -254,7 +255,7 @@ class _SmartSaveReadingButtonState extends State<_SmartSaveReadingButton> {
             )
           : Icon(
               _isSaved ? Icons.bookmark : Icons.bookmark_add,
-              color: _isSaved ? AppColors.success : theme.colorScheme.onPrimary,
+              color: _isSaved ? AppColors.success : theme.colorScheme.onBackground,
             ),
     );
   }

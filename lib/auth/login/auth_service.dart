@@ -301,47 +301,54 @@ class AuthService extends ChangeNotifier {
 
   Future<void> _autoDetectChurchFromMembership(User user) async {
     try {
-      final query = await FirebaseFirestore.instance
-          .collectionGroup('members')
-          .where(FieldPath.documentId, isEqualTo: user.uid)
-          .limit(1)
-          .get();
+      final userDocRef = FirebaseFirestore.instance.doc('users/${user.uid}');
+      final userSnap = await userDocRef.get();
 
-      if (query.docs.isEmpty) return;
+      if (!userSnap.exists) return;
 
-      final memberDoc = query.docs.first;
-      final churchRef = memberDoc.reference.parent.parent!;
+      final userData = userSnap.data();
+      if (userData == null) return;
+
+      final String? churchId = userData['churchId'] as String?;
+      final String? churchName = userData['churchName'] as String?;  // if you store it
+
+      if (churchId == null || churchId.isEmpty) return;
+
+      // Optional: Verify the church still exists (defensive)
+      final churchRef = FirebaseFirestore.instance.doc('churches/$churchId');
       final churchSnap = await churchRef.get();
 
-      if (!churchSnap.exists) return;
+      if (!churchSnap.exists) {
+        // Church was deleted? Clear it or handle gracefully
+        await userDocRef.update({'churchId': FieldValue.delete()});
+        return;
+      }
 
-      final Map<String, dynamic>? churchData = churchSnap.data();
+      final churchData = churchSnap.data();
       if (churchData == null) return;
 
-      final churchId = churchSnap.id;
-      final String fullName = (churchData['name'] as String?) ?? 'My Church';
+      final String fullName = churchData['name'] as String? ?? 'My Church';
       final String? code = churchData['accessCode'] as String?;
       final String? pastor = churchData['pastorName'] as String?;
 
       final parts = fullName.split(' - ');
-      final churchName = parts[0].trim();
+      final extractedChurchName = parts[0].trim();
       final parishName = parts.length > 1 ? parts[1].trim() : null;
 
+      // Set your state variables
       _currentChurchId = churchId;
-      _currentChurchName = churchName;
+      _currentChurchName = extractedChurchName;
       _churchFullName = fullName;
       _parishName = parishName;
       _accessCode = code;
       _pastorName = pastor;
 
+      // Save to SharedPreferences (same as before)
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('church_id', churchId);
       await prefs.setString('church_name', fullName);
 
-      await FirebaseFirestore.instance.doc('users/${user.uid}').set({
-        'churchId': churchId,
-        'churchName': churchName,
-      }, SetOptions(merge: true));
+      // No need to write back to user doc unless something changed
     } catch (e) {
       if (kDebugMode) {
         debugPrint("Error in _autoDetectChurchFromMembership: $e");

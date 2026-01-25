@@ -5,13 +5,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import '../../../UI/segment_sliding.dart';
+import '../../../UI/app_segment_sliding.dart';
 import '../../../auth/login/auth_service.dart';
 import '../../../backend_data/database/constants.dart';
-import '../../../backend_data/service/assignment_dates_provider.dart';
-import '../../../backend_data/service/firestore_service.dart';
-import '../../../backend_data/service/submitted_dates_provider.dart';
+import '../../../backend_data/service/firestore/assignment_dates_provider.dart';
+import '../../../backend_data/service/firestore/firestore_service.dart';
+import '../../../backend_data/service/firestore/submitted_dates_provider.dart';
 import '../../../utils/media_query.dart';
+import '../../../l10n/app_localizations.dart';
 import 'assignment_response_page_user.dart';
 
 
@@ -29,11 +30,20 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
   int _selectedQuarter = 0;
   bool _ensuredSubmittedDatesLoaded = false;
 
-  final List<String> _ageGroups = ["Adult", "Teen"];
+  late final List<String> _ageGroups;
 
   @override
   void initState() {
     super.initState();
+    // Initialize localized age groups after frame is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        _ageGroups = [
+          AppLocalizations.of(context)?.adult ?? "Adult",
+          AppLocalizations.of(context)?.teen ?? "Teen",
+        ];
+      });
+    });
     final now = DateTime.now();
     final currentMonth = now.month;
 
@@ -81,7 +91,9 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
     // If no user, show a friendly message (optional fallback)
     if (user == null) {
       return Scaffold(
-        appBar: AppBar(title: Text("My Assignments — $parishName")),
+        appBar: AppBar(title: Text(
+          AppLocalizations.of(context)?.myAssignments ?? "My Assignments",
+        )),
         body: const Center(
           child: Text("Please log in to view your assignments."),
         ),
@@ -94,9 +106,9 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
       appBar: AppBar(
         centerTitle: true,
         title: FittedBox(
-          fit: BoxFit.scaleDown, // Prevents overflow on small screens
+          fit: BoxFit.scaleDown,
           child: Text(
-            "Assignments — $parishName",
+            "${AppLocalizations.of(context)?.assignments ?? 'Assignments'} — $parishName",
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: style.monthFontSize.sp, // Matches the style from your Bible screen
@@ -167,7 +179,7 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
     if (sundaysByMonthYear.isEmpty) {
       return Center(
         child: Text(
-          "No assignments in this quarter.",
+          AppLocalizations.of(context)?.noAssignmentsInQuarter ?? "No assignments in this quarter.",
           style: TextStyle(
             fontSize: 18.sp, 
             color: Colors.grey,
@@ -202,7 +214,7 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "${AppConstants.monthNames[month - 1]} $year",
+                "${_getMonthName(month, context)} $year",
                 style: TextStyle(
                   fontSize: 18.sp,
                   fontWeight: FontWeight.bold,
@@ -295,5 +307,23 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       children: monthWidgets,
     );
+  }
+
+  String _getMonthName(int m, BuildContext context) {
+    final loc = AppLocalizations.of(context);
+    return [
+      loc?.january ?? 'January',
+      loc?.february ?? 'February',
+      loc?.march ?? 'March',
+      loc?.april ?? 'April',
+      loc?.may ?? 'May',
+      loc?.june ?? 'June',
+      loc?.july ?? 'July',
+      loc?.august ?? 'August',
+      loc?.september ?? 'September',
+      loc?.october ?? 'October',
+      loc?.november ?? 'November',
+      loc?.december ?? 'December'
+    ][m - 1];
   }
 }
