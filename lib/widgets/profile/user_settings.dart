@@ -5,12 +5,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../UI/app_bar.dart';
 import '../../backend_data/service/analytics/analytics_service.dart';
 import '../../backend_data/service/firestore/assignment_dates_provider.dart';
 import '../../backend_data/service/firestore/firestore_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../../main.dart';
-import '../../utils/media_query.dart';
+import '../../utils/rate_app.dart';
 import '../../utils/store_links.dart';
 import '../bible_app/bible.dart';
 import 'user_feedback.dart';
@@ -28,16 +29,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.initState();
   }
 
-  Future<void> _rateApp() async {
-    final url = Uri.parse(StoreLinks.review);
-    if (await canLaunchUrl(url)) {
-      await launchUrl(
-        url, 
-        mode: LaunchMode.externalApplication,
-      );
-    }
-  }
-
   Future<void> _requestFeature() async {
     await AnalyticsService.logButtonClick('profile_feedback');
     Navigator.push(
@@ -48,10 +39,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final style = CalendarDayStyle.fromContainer(context, 50);
     
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      appBar: AppAppBar(
+        title: AppLocalizations.of(context)?.settings ?? "Settings",
+        showBack: true,
+      ),
+      /*/backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
         centerTitle: true,
         title: FittedBox(
@@ -69,7 +63,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           iconSize: style.monthFontSize.sp, // Consistent sizing
           onPressed: () => Navigator.pop(context),
         ),
-      ),
+      ),*/
       body: ListView(
         padding: EdgeInsets.all(16.sp),
         children: [
@@ -82,8 +76,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           ListTile(
             leading: const Icon(Icons.star_rate, color: Colors.amber),
-            title: Text(AppLocalizations.of(context)?.rateAppOnGooglePlay ?? "Rate App on Google Play"),
-            onTap: _rateApp,
+            title: Text(AppLocalizations.of(context)?.rateAppInStore ?? "Rate App in store"),
+            onTap: rateApp,
           ),
           ListTile(
             leading: const Icon(Icons.lightbulb_outline),

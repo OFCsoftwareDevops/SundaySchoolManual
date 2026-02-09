@@ -9,7 +9,7 @@
   "noTeenLesson": "Kò sí ẹ̀kọ́ fún àwọn ọ̀dọ́",
   "noAdultLesson": "Kò sí ẹ̀kọ́ fún àgbàlagbà",
 
-  "sundaySchoolManual": "Ìwé Ilé-Ẹ̀kọ́ Ọjọ́ Sunday",
+  "sundaySchoolManual": "RCCG - Ìwé Ilé-Ẹ̀kọ́ Ọjọ́ Sunday",
   "accessWeeklyLessonsOffline": "Wọlé sí àwọn ẹ̀kọ́ Bíbélì ọ̀sẹ̀ fún ọ̀dọ́ àti àgbàlagbà nígbàkúgbà, ní ibikíbi — àní láìsí ayélujára pàápàá!",
   "builtForRccg": "Ti a ṣe fún Ẹ̀gbẹ́ Kristẹni Onírẹ̀lẹ̀ ti Ọlọ́run!",
   "getStarted": "Bẹ̀rẹ̀",
@@ -65,7 +65,7 @@
   "deletionCancelledSnack": "Ìparẹ́ àkọọlẹ ti fagilẹ! Káàbọ̀ padà 🎉",
 
   "feedback": "Ìdáhún",
-  "rateAppOnGooglePlay": "Ìdánilójú app lórí Google Play",
+  "rateAppInStore": "Ṣe àyẹ̀wò app yìí lórí Store",
   "suggestAFeature": "Ìmọ̀ràn nǹkan kan",
   "preferences": "Àwọn ìfẹ́",
 
@@ -117,8 +117,9 @@
   "biblePassage": "ÀTẸ̀GÙN BÍBÉLÌ:",
   "guestUserLabel": "Olùmúlò àlùba",
   "loading": "Ń lo ìṣẹ",
-  "answerWeeklyAssignment": "Dahùn iṣẹ́ ìdánilẹ́kọ̀ọ́ ọ̀sẹ̀",
+  "answerWeeklyAssignment": "Idánilẹ́kọ̀ọ́ ọ̀sẹ̀",
   "loginForAssignment": "Wọlé láti dahùn iṣẹ́ ìdánilẹ́kọ̀ọ́",
+  "signinToSubmit": "Wọlé láti ránṣẹ́",
 
   "monday": "Ọjọ́ Aje",
   "tuesday": "Ọjọ́ Ìsẹ̀gun",
@@ -427,7 +428,7 @@
   "@feedback": {
     "description": "Àkọlé apá ìdáhún"
   },
-  "@rateAppOnGooglePlay": {
+  "@rateAppInStore": {
     "description": "Àkúlé ní imẹ̀nu láti ìdánilójú app"
   },
   "@suggestAFeature": {
@@ -936,7 +937,6 @@
   "teachers": "Àwọn oníkòó",
   "appSuggestions": "Àwọn ìpinnu app",
   "adminTools": "Àwọn ọ̀rọ̀ aláṣẹ",
-  "colorPalette": "Palette àwọ",
   "inviteYourFriends": "Ṣe asopọ àwọn ọ̀rẹ́ rẹ",
   "signOut": "Jáde",
   "guestUser": "Oniborí àfojúkọ",

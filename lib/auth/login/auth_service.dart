@@ -8,6 +8,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../backend_data/service/hive/hive_service.dart';
+
 enum AdminType { none, group, church, global }
 
 class AdminStatus {
@@ -147,6 +149,9 @@ class AuthService extends ChangeNotifier {
 
       // 4. Always refresh claims and load full admin status
       await _loadAdminStatus(user);
+      
+      // 5. Cache basic profile info in Hive
+      await _cacheUserProfileBasics(user);
 
     } catch (e) {
       if (kDebugMode) {
@@ -228,6 +233,40 @@ class AuthService extends ChangeNotifier {
     _isScheduledForDeletion = true;
     _deletionScheduledAt = DateTime.now(); // approx
     notifyListeners();
+  }
+
+  Future<void> _cacheUserProfileBasics(User user) async {
+    final uid = user.uid;
+    String? photoUrl = user.photoURL;
+
+    if (photoUrl != null && photoUrl.contains('googleusercontent.com')) {
+      photoUrl = photoUrl.replaceAllMapped(
+        RegExp(r'(=s\d+-c|\?sz=\d+)'),
+        (_) => '=s512-c',
+      );
+
+      // Safety fallback
+      if (!photoUrl.contains('s512-c')) {
+        photoUrl += photoUrl.contains('?') ? '&sz=512' : '?sz=512';
+      }
+    }
+
+    await HiveBoxes.userBox.put(UserCacheKeys.photo(uid), photoUrl);
+    await HiveBoxes.userBox.put(UserCacheKeys.displayName(uid), user.displayName);
+    await HiveBoxes.userBox.put(UserCacheKeys.email(uid), user.email);
+    await HiveBoxes.userBox.put(UserCacheKeys.uidCheck(uid), uid);
+
+    debugPrint("Cached profile for user: $uid");
+    /*/ Only write if something changed (avoid unnecessary writes)
+    final existingUid = HiveBoxes.userBox.get(UserCacheKeys.uidCheck(uid)) as String?;
+    if (existingUid != user.uid) {
+      await HiveBoxes.userBox.put(UserCacheKeys.photo(uid), photoUrl);
+      await HiveBoxes.userBox.put(UserCacheKeys.displayName(uid), user.displayName);
+      await HiveBoxes.userBox.put(UserCacheKeys.email(uid), user.email);
+      await HiveBoxes.userBox.put(UserCacheKeys.uidCheck(uid), uid);
+
+      debugPrint("Cached user profile basics to Hive for uid: ${user.uid}");
+    }*/
   }
 
   Future<void> _loadChurchFromPrefs() async {

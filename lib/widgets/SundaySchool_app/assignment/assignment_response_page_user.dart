@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../../../UI/app_bar.dart';
 import '../../../UI/app_buttons.dart';
 import '../../../UI/app_colors.dart';
 import '../../../UI/app_linear_progress_bar.dart';
@@ -17,7 +18,7 @@ import '../../../backend_data/service/firestore/firestore_service.dart';
 import '../../../backend_data/service/firestore/submitted_dates_provider.dart';
 import '../../../backend_data/database/lesson_data.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../utils/media_query.dart';
+import '../../helpers/main_screen.dart';
 import '../../helpers/snackbar.dart';
 
 class AssignmentResponsePage extends StatefulWidget {
@@ -322,13 +323,18 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
   @override
   Widget build(BuildContext context) {
     final dateFormatted = DateFormat('MMMM d, yyyy').format(widget.date);
-    final style = CalendarDayStyle.fromContainer(context, 50);
 
     final total = _loadedResponse?.totalScore ?? _scores.fold(0, (a, b) => a! + b);
     final possible = _savedResponses.length;
+    final user = FirebaseAuth.instance.currentUser;
+    final bool isAnonymous = user == null || user.isAnonymous;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppAppBar(
+        title: AppLocalizations.of(context)?.myAssignment ?? "My Assignment",
+        showBack: true,
+      ),
+      /*appBar: AppBar(
         centerTitle: true,
         title: FittedBox(
           fit: BoxFit.scaleDown, // Scales down text if it would overflow
@@ -345,7 +351,7 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
           iconSize: style.monthFontSize.sp, // Consistent sizing
           onPressed: () => Navigator.pop(context),
         ),
-      ),
+      ),*/
       body: _isLoading
           ? const Center(child: LinearProgressBar())
           : Container(
@@ -357,36 +363,39 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Assignment text
-                  Card(
-                    child: Padding(
-                      padding: EdgeInsets.all(20.sp),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            AppLocalizations.of(context)?.thisWeeksAssignment ?? "This Week's Assignment",
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20.sp,
+                  SizedBox(
+                    width: double.infinity,
+                    child: Card(
+                      child: Padding(
+                        padding: EdgeInsets.all(20.sp),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              AppLocalizations.of(context)?.thisWeeksAssignment ?? "This Week's Assignment",
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20.sp,
+                              ),
                             ),
-                          ),
-                          SizedBox(height: 10.sp),
-                          Text(
-                            _currentQuestion,
-                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              fontSize: 15.sp,
-                              height: 1.5,
+                            SizedBox(height: 10.sp),
+                            Text(
+                              _currentQuestion,
+                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                fontSize: 15.sp,
+                                height: 1.5,
+                              ),
                             ),
-                          ),
-                          SizedBox(height: 12.sp),
-                          Text(
-                            AppLocalizations.of(context)?.dueDateFormatted(dateFormatted) ?? "Due: $dateFormatted",
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontStyle: FontStyle.italic,
-                              fontSize: 13.sp,
+                            SizedBox(height: 12.sp),
+                            Text(
+                              AppLocalizations.of(context)?.dueDateFormatted(dateFormatted) ?? "Due: $dateFormatted",
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                fontStyle: FontStyle.italic,
+                                fontSize: 13.sp,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -578,17 +587,36 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
                               context: context,
                               text: _isGradedByAdmin 
                                 ? AppLocalizations.of(context)?.assignmentGraded ?? "Graded — cannot edit" 
-                                : (_isSubmitted && !_isEditing ? AppLocalizations.of(context)?.editResponses ?? "Edit Responses" : AppLocalizations.of(context)?.submit ?? "Submit"),
+                                : isAnonymous
+                                  ? AppLocalizations.of(context)?.signinToSubmit ?? "Sign in to Submit"
+                                  : (_isSubmitted && !_isEditing ? AppLocalizations.of(context)?.editResponses ?? "Edit Responses" : AppLocalizations.of(context)?.submit ?? "Submit"),
                               icon: Icon(_isGradedByAdmin 
-                                ? Icons.verified 
-                                : (_isSubmitted && !_isEditing ? Icons.edit : Icons.save_rounded),
+                                ? Icons.verified
+                                : isAnonymous
+                                  ? Icons.lock_outline
+                                  : (_isSubmitted && !_isEditing ? Icons.edit : Icons.save_rounded),
                               ),
                               topColor: _isGradedByAdmin 
-                                ? const Color.fromARGB(255, 76, 112, 175) 
-                                : (_isSubmitted && !_isEditing ? const Color.fromARGB(255, 62, 134, 71) : Colors.deepPurple),
+                                ? AppColors.primaryContainer
+                                : isAnonymous
+                                  ? AppColors.primary
+                                  : (_isSubmitted && !_isEditing ? AppColors.success : AppColors.primary),
                               onPressed: _isGradedByAdmin
                                 ? null // Fully disabled
                                 : () async {
+
+                                    // 🔐 Anonymous user → redirect
+                                    if (user == null || user.isAnonymous) {
+                                      await FirebaseAuth.instance.signOut();
+                                      Navigator.pushAndRemoveUntil(
+                                        context,
+                                        MaterialPageRoute(builder: (_) => MainScreen()),
+                                        (route) => false,
+                                      );
+                                      return;
+                                    }
+
+                                    // ✅ Logged-in user → normal behavior
                                     if (_isSubmitted && !_isEditing) {
                                       await AnalyticsService.logButtonClick('unlock_for_editing');
                                       // Unlock for editing

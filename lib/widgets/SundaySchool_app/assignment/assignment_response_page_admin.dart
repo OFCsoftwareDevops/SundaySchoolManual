@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import '../../../UI/app_bar.dart';
 import '../../../UI/app_buttons.dart';
 import '../../../UI/app_colors.dart';
 import '../../../auth/login/auth_service.dart';
@@ -121,19 +122,25 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
     final String type = widget.isTeen ? "teen" : "adult";
     final String dateStr = "${widget.date.year}-${widget.date.month.toString().padLeft(2, '0')}-${widget.date.day.toString().padLeft(2, '0')}";
 
-    final style = CalendarDayStyle.fromContainer(context, 50);
-
     // If no church, show message
     if ((!isGlobalAdmin || !isGroupAdmin) && churchId == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(AppLocalizations.of(context)?.teenOrAdultResponses ?? "Responses")),
+        appBar: AppAppBar(
+          title: AppLocalizations.of(context)?.teenOrAdultResponses ?? "Responses",
+          showBack: true,
+        ),
+        //appBar: AppBar(title: Text(AppLocalizations.of(context)?.teenOrAdultResponses ?? "Responses")),
         body: Center(child: Text(AppLocalizations.of(context)?.globalAdminsOnlyNoChurch ?? "Global admins only — no church selected.")),
       );
     }
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
-      appBar: AppBar(
+      //backgroundColor: Theme.of(context).colorScheme.background,
+      appBar: AppAppBar(
+        title: "${widget.isTeen ? AppLocalizations.of(context)?.teen ?? 'Teen' : AppLocalizations.of(context)?.adult ?? 'Adult'} ${AppLocalizations.of(context)?.teenOrAdultResponses ?? "Responses"}",
+        showBack: true,
+      ),
+      /*appBar: AppBar(
         centerTitle: true,
         title: FittedBox(
           fit: BoxFit.scaleDown, // Scales down text if it would overflow
@@ -150,7 +157,7 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
           iconSize: style.monthFontSize.sp, // Consistent sizing
           onPressed: () => Navigator.pop(context),
         ),
-      ),
+      ),*/
 
       body: _loading
           ? const Center(child: LinearProgressIndicator())

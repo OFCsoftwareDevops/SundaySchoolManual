@@ -4,10 +4,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import '../../UI/app_bar.dart';
 import '../../UI/app_segment_sliding.dart';
 import '../../../../auth/login/auth_service.dart';
 import '../../l10n/app_localizations.dart';
-import '../../utils/media_query.dart';
 
 class LeaderboardPage extends StatefulWidget {
   const LeaderboardPage({super.key});
@@ -46,12 +46,13 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     final auth = context.read<AuthService>();
     final churchId = auth.churchId;
     final isAdmin = auth.isGlobalAdmin || (auth.hasChurch && auth.adminStatus.isChurchAdmin);
-    final colorScheme = Theme.of(context).colorScheme;
-
-    final style = CalendarDayStyle.fromContainer(context, 50);
 
     return Scaffold(
-      backgroundColor: colorScheme.background,
+      appBar: AppAppBar(
+        title: AppLocalizations.of(context)?.leaderboard ?? "Leaderboard",
+        showBack: true,
+      ),
+      /*/backgroundColor: colorScheme.background,
       appBar: AppBar(
         centerTitle: true,
         title: FittedBox(
@@ -69,7 +70,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           iconSize: style.monthFontSize.sp, // Consistent sizing
           onPressed: () => Navigator.pop(context),
         ),
-      ),
+      ),*/
       body: Column(
         children: [
           // Top: Adult / Teen toggle

@@ -27,7 +27,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get noAdultLesson => 'Aucune leçon pour les adultes';
 
   @override
-  String get sundaySchoolManual => 'Manuel d\'École du Dimanche';
+  String get sundaySchoolManual => 'RCCG - Manuel d\'École du Dimanche';
 
   @override
   String get accessWeeklyLessonsOffline => 'Accédez à vos leçons bibliques hebdomadaires pour adolescents et adultes n\'importe quand, n\'importe où — même hors ligne !';
@@ -184,7 +184,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get feedback => 'Commentaires';
 
   @override
-  String get rateAppOnGooglePlay => 'Évaluer l\'application sur Google Play';
+  String get rateAppInStore => 'Évaluer l’application sur l’App Store';
 
   @override
   String get suggestAFeature => 'Suggérer une fonctionnalité';
@@ -322,10 +322,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get loading => 'Chargement';
 
   @override
-  String get answerWeeklyAssignment => 'Répondre au devoir hebdomadaire';
+  String get answerWeeklyAssignment => 'Devoir hebdomadaire';
 
   @override
   String get loginForAssignment => 'Connectez-vous pour répondre au devoir';
+
+  @override
+  String get signinToSubmit => 'Connectez-vous pour soumettre';
 
   @override
   String get monday => 'Lundi';
@@ -388,7 +391,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get switchedToGeneral => 'Basculé vers les leçons générales (mondiales)';
 
   @override
-  String get shareLesson => 'Partager la leçon';
+  String get shareLesson => 'Partager leçon';
 
   @override
   String get readingStreak => 'Série de lecture';

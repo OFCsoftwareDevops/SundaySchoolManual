@@ -84,6 +84,94 @@ class _VerseActionSheetState extends State<VerseActionSheet> {
   }
 
   Future<void> _toggleBookmark() async {
+    final user = FirebaseAuth.instance.currentUser!;
+    final service = SavedItemsService();
+    final userId = user.uid;
+    final isAnonymous = user.isAnonymous;
+
+    // Same refId logic as before
+    final sorted = List<int>.from(widget.verses)..sort();
+    final refId = '${widget.bookName.toLowerCase().replaceAll(' ', '_')}_${widget.chapter}_${sorted.join('-')}';
+    final reference = sorted.length == 1
+        ? "${widget.bookName} ${widget.chapter}:${sorted.first}"
+        : "${widget.bookName} ${widget.chapter}:${sorted.first}–${sorted.last}";
+
+    final fullText = sorted.map((v) => "$v ${widget.versesText[v]}").join("\n");
+
+    try {
+      if (_isBookmarked) {
+        // ── REMOVE ────────────────────────────────────────
+        // Optimistic remove from cache
+        final current = service.getCachedItems(userId, 'bookmarks');
+        final updated = current.where((b) => b['refId'] != refId).toList();
+        await service.cacheItems(userId, 'bookmarks', updated);
+
+        // Only real users delete from Firestore
+        if (!isAnonymous) {
+          await service.removeBookmark(userId, refId);
+        }
+
+        setState(() => _isBookmarked = false);
+        showTopToast(
+          context,
+          AppLocalizations.of(context)?.bookmarkRemoved ?? "Bookmark removed",
+        );
+      } else {
+        // ── ADD ───────────────────────────────────────────
+        final now = DateTime.now().toUtc();
+
+        final newItem = <String, dynamic>{
+          'type': 'scripture',
+          'refId': refId,
+          'title': reference,
+          'text': fullText,
+          'createdAt': now.toIso8601String(), // Hive-safe
+        };
+
+        if (isAnonymous) {
+          // Anonymous: local only + fake ID
+          final fakeId = 'local_${now.millisecondsSinceEpoch}';
+          newItem['id'] = fakeId;
+
+          final current = service.getCachedItems(userId, 'bookmarks');
+          final updated = [newItem, ...current];
+          await service.cacheItems(userId, 'bookmarks', updated);
+        } else {
+          // Real user: Firestore + cache
+          final docId = await service.addBookmark(
+            userId,
+            refId: refId,
+            title: reference,
+            text: fullText,
+          );
+
+          newItem['id'] = docId;
+
+          final current = service.getCachedItems(userId, 'bookmarks');
+          final updated = [newItem, ...current];
+          await service.cacheItems(userId, 'bookmarks', updated);
+        }
+
+        setState(() => _isBookmarked = true);
+        showTopToast(
+          context,
+          "${AppLocalizations.of(context)?.bookmarked ?? "Bookmarked"} ⭐",
+          duration: const Duration(seconds: 2),
+        );
+      }
+    } catch (e, stack) {
+      debugPrint("Bookmark toggle failed: $e\n$stack");
+      showTopToast(
+        context,
+        AppLocalizations.of(context)?.operationFailed ?? "Operation failed",
+        backgroundColor: AppColors.error,
+        textColor: AppColors.onError,
+        duration: const Duration(seconds: 5),
+      );
+    }
+  }
+
+  /*Future<void> _toggleBookmark() async {
     final user = FirebaseAuth.instance.currentUser;
     final auth = Provider.of<AuthService>(context, listen: false);
 
@@ -139,7 +227,7 @@ class _VerseActionSheetState extends State<VerseActionSheet> {
         duration: const Duration(seconds: 5),
       );
     }
-  }
+  }*/
 
   Future<void> _applyHighlight(Color color) async {
     final manager = Provider.of<HighlightManager>(context, listen: false);

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../UI/app_bar.dart';
 import '../../../UI/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../utils/media_query.dart';
@@ -149,9 +150,13 @@ class SubscriptionScreen extends ConsumerWidget {
     // Watch premium from Firestore StreamProvider
     final asyncPremium = ref.watch(isPremiumProvider);
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
-      appBar: AppBar(
+    return Scaffold(      
+      appBar: AppAppBar(
+        title: "Church Settings",
+        showBack: true,
+      ),
+      //backgroundColor: Theme.of(context).colorScheme.background,
+      /*appBar: AppBar(
         centerTitle: true,
         title: FittedBox(
           fit: BoxFit.scaleDown, // Scales down text if it would overflow
@@ -168,7 +173,7 @@ class SubscriptionScreen extends ConsumerWidget {
           iconSize: style.monthFontSize.sp, // Consistent sizing
           onPressed: () => Navigator.pop(context),
         ),
-      ),
+      ),*/
       body: ListView(
         padding: EdgeInsets.all(16.sp),
         children: [

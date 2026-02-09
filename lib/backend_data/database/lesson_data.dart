@@ -1,6 +1,28 @@
 // lib/backend_data/lesson_data.dart
 
-class LessonDay {
+import 'package:hive/hive.dart';
+
+part 'lesson_data.g.dart';
+
+@HiveType(typeId: 0)
+class LessonDay extends HiveObject {
+  @HiveField(0)
+  final DateTime date;
+
+  @HiveField(1)
+  final SectionNotes? teenNotes;
+
+  @HiveField(2)
+  final SectionNotes? adultNotes;
+
+  LessonDay({
+    required this.date,
+    this.teenNotes,
+    this.adultNotes,
+  });
+}
+
+/*class LessonDay {
   final DateTime date;
   final SectionNotes? teenNotes;
   final SectionNotes? adultNotes;
@@ -18,6 +40,23 @@ class SectionNotes {
   final List<ContentBlock> blocks;
 
   const SectionNotes({
+    required this.topic,
+    required this.biblePassage,
+    required this.blocks,
+  });*/
+
+@HiveType(typeId: 1)
+class SectionNotes extends HiveObject {
+  @HiveField(0)
+  final String topic;
+
+  @HiveField(1)
+  final String biblePassage;
+
+  @HiveField(2)
+  final List<ContentBlock> blocks;
+
+  SectionNotes({
     required this.topic,
     required this.biblePassage,
     required this.blocks,
@@ -52,7 +91,7 @@ class SectionNotes {
   bool get isEmpty => topic.trim().isEmpty && blocks.isEmpty;
 }
 
-class ContentBlock {
+/*class ContentBlock {
   final String type;
   final String? text;
   final List<String>? items;
@@ -73,7 +112,28 @@ class ContentBlock {
   factory ContentBlock.bulletList(List<String> items) => ContentBlock(type: "bullet_list", items: items);
   factory ContentBlock.quote(String text) => ContentBlock(type: "quote", text: text);
   factory ContentBlock.prayer(String text) => ContentBlock(type: "prayer", text: text);
-  factory ContentBlock.video(String url) => ContentBlock(type: "video", videoUrl: url);
+  factory ContentBlock.video(String url) => ContentBlock(type: "video", videoUrl: url);*/
+
+@HiveType(typeId: 2)
+class ContentBlock extends HiveObject {
+  @HiveField(0)
+  final String type;
+
+  @HiveField(1)
+  final String? text;
+
+  @HiveField(2)
+  final List<String>? items;
+
+  @HiveField(3)
+  final String? videoUrl;
+
+  ContentBlock({
+    required this.type,
+    this.text,
+    this.items,
+    this.videoUrl,
+  });
 
   // Fixed toMap()
   Map<String, dynamic> toMap() {

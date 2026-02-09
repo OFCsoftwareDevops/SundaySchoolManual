@@ -1,5 +1,6 @@
 // lib/core/theme/app_theme.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
@@ -32,15 +33,18 @@ class AppTheme {
 
     scaffoldBackgroundColor: AppColors.background,
 
-    appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.primary,
-      foregroundColor: AppColors.onPrimary,
-      elevation: 1.5,
+    appBarTheme: AppBarTheme(
+      backgroundColor: AppColors.background.withOpacity(0),
+      foregroundColor: AppColors.primary,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      //shadowColor: AppColors.background,
+      surfaceTintColor: Colors.transparent,
       titleTextStyle: TextStyle(
         fontFamily: 'Inter',
-        fontWeight: FontWeight.w600,
-        fontSize: 20,
-        color: AppColors.onPrimary,
+        fontWeight: FontWeight.bold,
+        fontSize: 18.sp,
+        color: AppColors.onBackground,
       ),
     ),
 
@@ -83,19 +87,19 @@ class AppTheme {
     scaffoldBackgroundColor: AppColors.darkBackground,
 
     appBarTheme: AppBarTheme(
-      backgroundColor: AppColors.darkSurfaceHigh.withOpacity(0.9),
-      foregroundColor: AppColors.onPrimary,
-      elevation: 1.5,
-      scrolledUnderElevation: 4,
-      shadowColor: Colors.black54,
+      backgroundColor: AppColors.darkBackground.withOpacity(0),
+      foregroundColor: AppColors.darkOnBackground,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      //shadowColor: Colors.black54,
       surfaceTintColor: Colors.transparent,
       titleTextStyle: TextStyle(
         fontFamily: 'Inter',
-        fontWeight: FontWeight.w600,
-        fontSize: 20,
-        color: AppColors.onPrimary,
+        fontWeight: FontWeight.bold,
+        fontSize: 18.sp,
+        color: AppColors.darkOnBackground,
       ),
-      iconTheme: IconThemeData(color: AppColors.onPrimary),
+      iconTheme: IconThemeData(color: AppColors.darkOnBackground),
     ),
 
     cardTheme: CardThemeData(

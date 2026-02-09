@@ -27,7 +27,7 @@ class AppLocalizationsYo extends AppLocalizations {
   String get noAdultLesson => 'Kò sí ẹ̀kọ́ fún àgbàlagbà';
 
   @override
-  String get sundaySchoolManual => 'Ìwé Ilé-Ẹ̀kọ́ Ọjọ́ Sunday';
+  String get sundaySchoolManual => 'RCCG - Ìwé Ilé-Ẹ̀kọ́ Ọjọ́ Sunday';
 
   @override
   String get accessWeeklyLessonsOffline => 'Wọlé sí àwọn ẹ̀kọ́ Bíbélì ọ̀sẹ̀ fún ọ̀dọ́ àti àgbàlagbà nígbàkúgbà, ní ibikíbi — àní láìsí ayélujára pàápàá!';
@@ -131,7 +131,7 @@ class AppLocalizationsYo extends AppLocalizations {
   String get adminTools => 'Àwọn ọ̀rọ̀ aláṣẹ';
 
   @override
-  String get colorPalette => 'Palette àwọ';
+  String get colorPalette => 'Àwọn elu ìlọ̀';
 
   @override
   String get parish => 'Ìjọ ìsìn';
@@ -184,7 +184,7 @@ class AppLocalizationsYo extends AppLocalizations {
   String get feedback => 'Ìdáhún';
 
   @override
-  String get rateAppOnGooglePlay => 'Ìdánilójú app lórí Google Play';
+  String get rateAppInStore => 'Ṣe àyẹ̀wò app yìí lórí Store';
 
   @override
   String get suggestAFeature => 'Ìmọ̀ràn nǹkan kan';
@@ -322,10 +322,13 @@ class AppLocalizationsYo extends AppLocalizations {
   String get loading => 'Ń lo ìṣẹ';
 
   @override
-  String get answerWeeklyAssignment => 'Dahùn iṣẹ́ ìdánilẹ́kọ̀ọ́ ọ̀sẹ̀';
+  String get answerWeeklyAssignment => 'Idánilẹ́kọ̀ọ́ ọ̀sẹ̀';
 
   @override
   String get loginForAssignment => 'Wọlé láti dahùn iṣẹ́ ìdánilẹ́kọ̀ọ́';
+
+  @override
+  String get signinToSubmit => 'Wọlé láti ránṣẹ́';
 
   @override
   String get monday => 'Ọjọ́ Aje';

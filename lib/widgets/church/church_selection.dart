@@ -1,4 +1,5 @@
 // lib/widgets/church_onboarding_screen.dart
+// APP BAR NOT EDITED HERE
 
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';

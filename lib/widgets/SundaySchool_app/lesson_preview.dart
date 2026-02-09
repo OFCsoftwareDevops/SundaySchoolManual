@@ -5,6 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import '../../UI/app_bar.dart';
 import '../../UI/app_buttons.dart';
 import '../../UI/app_colors.dart';
 import '../../backend_data/database/lesson_data.dart';
@@ -55,35 +56,45 @@ class BeautifulLessonPage extends StatelessWidget {
         return SafeArea(
           child: Padding(
             padding: EdgeInsets.symmetric(vertical: 12.sp, horizontal: 24.sp),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  AppLocalizations.of(context)?.shareLesson ?? "Share Lesson",
-                  style: TextStyle(
-                    fontSize: 20.sp, 
-                    fontWeight: FontWeight.bold,
-                  ),
+            child: IntrinsicWidth(
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 16.sp,                   // small horizontal breathing room
+                  //vertical: 12.sp,                    // a bit more vertical space feels natural
                 ),
-                SizedBox(height: 6.sp),
-                ListTile(
-                  leading: const Icon(Icons.picture_as_pdf, color: AppColors.primaryContainer),
-                  title: Text(AppLocalizations.of(context)?.shareAsLessonPdf ?? "Share as PDF"),
-                  onTap: () async {
-                    Navigator.pop(context); // Close bottom sheet
-                    await lessonShare.shareAsPdf();
-                  },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      AppLocalizations.of(context)?.shareLesson ?? "Share Lesson",
+                      style: TextStyle(
+                        fontSize: 20.sp, 
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: 6.sp),
+                    ListTile(
+                      leading: const Icon(Icons.picture_as_pdf, color: AppColors.primaryContainer),
+                      title: Text(AppLocalizations.of(context)?.shareAsLessonPdf ?? "Share as PDF"),
+                      onTap: () async {
+                        Navigator.pop(context); // Close bottom sheet
+                        await lessonShare.shareAsPdf();
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.link, color: AppColors.secondary),
+                      title: Text(AppLocalizations.of(context)?.shareLink ?? "Share Link"),
+                      onTap: () async {
+                        Navigator.pop(context);
+                        await lessonShare.shareAsLink();
+                      },
+                    ),
+                    SizedBox(height: 6.sp),
+                  ],
                 ),
-                ListTile(
-                  leading: const Icon(Icons.link, color: AppColors.secondary),
-                  title: Text(AppLocalizations.of(context)?.shareLink ?? "Share Link"),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    await lessonShare.shareAsLink();
-                  },
-                ),
-                SizedBox(height: 6.sp),
-              ],
+              ),
             ),
           ),
         );
@@ -549,8 +560,49 @@ class BeautifulLessonPage extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
-      appBar: AppBar(
+      appBar: AppAppBar(
+        title: title,
+        showBack: true,
+        actions: [
+          // Smart Save Lesson Button
+          _SmartSaveLessonButton(
+            lessonDate: lessonDate,
+            title: title,
+            isTeen: isTeen,
+            preview: data.blocks.isNotEmpty ? (data.blocks.first.text ?? '') : '',
+          ),
+        ],
+        /*actions: [
+          Padding(
+            padding: EdgeInsets.only(right: 10.sp),
+            child: Center(
+              child: manager.isLoading
+                ? const CircularProgressIndicator()
+                : DropdownButton<String>(
+                  value: manager.currentVersion,
+                  dropdownColor: theme.colorScheme.onSecondaryContainer,
+                  icon: Icon(
+                    Icons.keyboard_arrow_down, 
+                    color: theme.colorScheme.onSecondaryContainer,
+                    size: style.monthFontSize.sp,
+                  ),
+                  //underline: const SizedBox(),
+                  style: TextStyle(
+                    fontSize: style.monthFontSize.sp * 0.5,
+                    color: theme.colorScheme.onSecondaryContainer,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  items: manager.availableVersions
+                    .map((v) => DropdownMenuItem(value: v['code'], child: Text(v['name']!)))
+                    .toList(),
+                  onChanged: (v) => v != null ? manager.changeVersion(v) : null,
+                ),
+            ),
+          ),
+        ],*/
+      ),
+      //backgroundColor: Theme.of(context).colorScheme.background,
+      /*appBar: AppBar(
         centerTitle: true,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios),
@@ -573,7 +625,7 @@ class BeautifulLessonPage extends StatelessWidget {
             preview: data.blocks.isNotEmpty ? (data.blocks.first.text ?? '') : '',
           ),
         ],
-      ),
+      ),*/
 
       floatingActionButton: SizedBox(
         width: 160.sp,
@@ -647,16 +699,26 @@ class BeautifulLessonPage extends StatelessWidget {
               Center(
                 child: AssignmentWidgetButton(
                   context: context,
-                  text: user != null && !user.isAnonymous
-                      ? AppLocalizations.of(context)?.answerWeeklyAssignment ?? "Answer Weekly Assignment"
-                      : AppLocalizations.of(context)?.loginForAssignment ?? "Login For Assignment",
+                  text: AppLocalizations.of(context)?.answerWeeklyAssignment ?? "Weekly Assignment",
+                  /*text: user != null && !user.isAnonymous
+                      ? AppLocalizations.of(context)?.answerWeeklyAssignment ?? "Weekly Assignment"
+                      : AppLocalizations.of(context)?.loginForAssignment ?? "Login For Assignment",*/
                   icon: Icon(
                     user != null && !user.isAnonymous ? Icons.edit_note_rounded : Icons.login,
                   ),
                   topColor: AppColors.primaryContainer,
                   onPressed: () async {
                     await AnalyticsService.logButtonClick('assignment_attempt_from_lesson_preview');
-                    if (user != null && !user.isAnonymous) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AssignmentResponsePage(
+                          date: lessonDate,
+                          isTeen: title.contains("Teen") || title.contains("teen"),
+                        ),
+                      ),
+                    );
+                    /*if (user != null && !user.isAnonymous) {
                       // Normal logged-in user → go to assignment
                       Navigator.push(
                         context,
@@ -674,7 +736,7 @@ class BeautifulLessonPage extends StatelessWidget {
                           MaterialPageRoute(builder: (_) => MainScreen()),
                           (route) => false,
                         );
-                    }
+                    }*/
                   },
                 ),
               ),
@@ -743,6 +805,85 @@ class _SmartSaveLessonButtonState extends State<_SmartSaveLessonButton> {
   }
 
   Future<void> _toggleSave() async {
+    final user = FirebaseAuth.instance.currentUser!;
+    final service = SavedItemsService();
+    final userId = user.uid;
+    final isAnonymous = user.isAnonymous;
+
+    final lessonId = '${widget.lessonDate.year}-${widget.lessonDate.month.toString().padLeft(2, '0')}-${widget.lessonDate.day.toString().padLeft(2, '0')}';
+    final lessonType = widget.isTeen ? 'teen' : 'adult';
+
+    try {
+      if (_isSaved) {
+        // ── REMOVE ────────────────────────────────────────
+        // Optimistic remove from cache (both real + anonymous)
+        final current = service.getCachedItems(userId, 'saved_lessons');
+        final updated = current.where((item) => item['lessonId'] != lessonId).toList();
+        await service.cacheItems(userId, 'saved_lessons', updated);
+
+        // Only real users delete from Firestore
+        if (!isAnonymous) {
+          await service.removeSavedLesson(userId, lessonId);
+        }
+
+        setState(() => _isSaved = false);
+        showTopToast(
+          context,
+          AppLocalizations.of(context)?.lessonRemovedFromSaved ?? 'Lesson removed from saved',
+        );
+      } else {
+        // ── ADD ───────────────────────────────────────────
+        final now = DateTime.now().toUtc();
+
+        final newItem = <String, dynamic>{
+          'lessonId': lessonId,
+          'lessonType': lessonType,
+          'title': widget.title,
+          'preview': widget.preview,
+          'savedAt': now.toIso8601String(), // Hive-safe
+        };
+
+        if (isAnonymous) {
+          // Anonymous: local only + fake ID
+          final fakeId = 'local_${now.millisecondsSinceEpoch}';
+          newItem['id'] = fakeId;
+
+          final current = service.getCachedItems(userId, 'saved_lessons');
+          final updated = [newItem, ...current];
+          await service.cacheItems(userId, 'saved_lessons', updated);
+        } else {
+          // Real user: Firestore + cache
+          final docRef = await service.saveLesson(
+            userId,
+            lessonId: lessonId,
+            lessonType: lessonType,
+            title: widget.title,
+            preview: widget.preview,
+          );
+
+          newItem['id'] = docRef;
+
+          final current = service.getCachedItems(userId, 'saved_lessons');
+          final updated = [newItem, ...current];
+          await service.cacheItems(userId, 'saved_lessons', updated);
+        }
+
+        setState(() => _isSaved = true);
+        showTopToast(
+          context,
+          AppLocalizations.of(context)?.lessonSaved ?? 'Lesson saved! 📚',
+        );
+      }
+    } catch (e, stack) {
+      debugPrint("Lesson toggle failed: $e\n$stack");
+      showTopToast(
+        context,
+        AppLocalizations.of(context)?.operationFailed ?? 'Operation failed: $e',
+      );
+    }
+  }
+
+  /*Future<void> _toggleSave() async {
     final user = FirebaseAuth.instance.currentUser;
     final auth = context.read<AuthService>();
 
@@ -789,10 +930,13 @@ class _SmartSaveLessonButtonState extends State<_SmartSaveLessonButton> {
         AppLocalizations.of(context)?.operationFailed ?? 'Operation failed: $e',
       );
     }
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return IconButton(
       tooltip: _isSaved ? AppLocalizations.of(context)?.removedFromSavedLessons ?? 'Remove from saved lessons' : AppLocalizations.of(context)?.saveThisLesson ?? 'Save this lesson',
       onPressed: _isChecking ? null : _toggleSave,
@@ -802,14 +946,14 @@ class _SmartSaveLessonButtonState extends State<_SmartSaveLessonButton> {
               height: style.monthFontSize.sp, 
               child: CircularProgressIndicator(
                 strokeWidth: 2.sp,
-                color: AppColors.onPrimary,
+                color: colorScheme.onSecondaryContainer,
               ),
             )
           : Icon(
             _isSaved ? Icons.bookmark : Icons.bookmark_add,
             color: _isSaved 
                 ? AppColors.success 
-                : AppColors.onPrimary,
+                : colorScheme.onSecondaryContainer,
             size: style.monthFontSize.sp,
           ),
     );

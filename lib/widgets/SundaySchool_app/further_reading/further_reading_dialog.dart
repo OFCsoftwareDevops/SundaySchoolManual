@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../UI/app_colors.dart';
+import '../../../UI/app_sound.dart';
 import '../../../auth/login/auth_service.dart';
 import '../../../backend_data/service/analytics/analytics_service.dart';
 import '../../../backend_data/service/firestore/saved_items_service.dart';
@@ -44,10 +45,10 @@ void showFurtherReadingDialog({
   final raw = manager.getVerseText(ref) ?? "Verse temporarily unavailable";
 
   final lines = raw
-      .split('\n')
-      .map((l) => l.trim())
-      .where((l) => l.isNotEmpty)
-      .toList();
+    .split('\n')
+    .map((l) => l.trim())
+    .where((l) => l.isNotEmpty)
+    .toList();
 
   final highlightMgr = context.read<HighlightManager>();
   final bookKey = ref.split(' ').first.toLowerCase().replaceAll(' ', '');
@@ -117,16 +118,19 @@ void showFurtherReadingDialog({
               topColor: AppColors.success,
               seconds: readingSeconds, // time to wait before enabling
               onPressed: () async {
-                await AnalyticsService.logButtonClick('further_reading_completed!');
-                final currentUser = FirebaseAuth.instance.currentUser;
+                await SoundService.playSuccess();
 
-                if (currentUser != null) {
+                await AnalyticsService.logButtonClick('further_reading_completed!');
+                final user = FirebaseAuth.instance.currentUser;
+                await StreakService().updateReadingStreak(user!.uid);
+
+                /*if (currentUser == null) {
                   try {
-                    await StreakService().updateReadingStreak(currentUser.uid);
+                    await StreakService().updateReadingStreak(currentUser!.uid);
                   } catch (e) {
                     // ignore streak update errors for now
                   }
-                }
+                }*/
 
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (_) => MainScreen()),
@@ -194,6 +198,127 @@ class SmartSaveReadingButtonState extends State<SmartSaveReadingButton> {
 
   Future<void> _toggleSave() async {
     final user = FirebaseAuth.instance.currentUser;
+    final service = SavedItemsService();
+    final userId = user?.uid;
+    final isAnonymous = user?.isAnonymous;
+
+    /*try {
+  if (_isSaved) {
+    // You must have stored the readingId somewhere after adding it last time
+    // Example: in widget state, or a provider, or local variable
+    final readingId = _savedReadingId;  // ← replace with how you actually store/retrieve it
+
+    if (readingId == null) {
+      showTopToast(context, 'Cannot remove: no saved ID found');
+      return;
+    }
+
+    await service.removeFurtherReading(userId!, readingId);
+
+    setState(() {
+      _isSaved = false;
+      _savedReadingId = null;  // clear it
+    });
+
+    showTopToast(context, 'Reading removed');
+  } else {
+    String? newId;
+
+    if (isAnonymous!) {
+      final now = DateTime.now().toUtc();
+      final fakeId = 'local_${now.millisecondsSinceEpoch}';
+
+      final newItem = <String, dynamic>{
+        'id': fakeId,
+        'title': widget.ref,
+        'reading': widget.todayReading,
+        'savedAt': now.toIso8601String(),
+      };
+
+      final current = service.getCachedItems(userId!, 'further_readings');
+      await service.cacheFurtherReadings(userId!, [newItem, ...current]);
+
+      newId = fakeId;
+    } else {
+      newId = await service.addFurtherReading(
+        userId: userId!,
+        title: widget.ref,
+        reading: widget.todayReading,
+      );
+    }
+
+    setState(() {
+      _isSaved = true;
+      _savedReadingId = newId;  // ← store it here for next removal
+    });
+
+    showTopToast(context, 'Reading saved! 📖');
+  }
+} catch (e, stack) {
+  debugPrint("Toggle save failed: $e\n$stack");
+  showTopToast(context, 'Operation failed: $e');
+}*/
+
+    try {
+        if (_isSaved) {
+          // ── REMOVE ────────────────────────────────────────
+          final current = service.getCachedItems(userId!, 'further_readings');
+          final updated = current.where((item) => item['title'] != widget.ref).toList();
+          await service.cacheItems(userId, 'further_readings', updated);
+
+          if (isAnonymous!) {
+            await service.removeFurtherReading(userId, widget.ref);
+          }
+
+          setState(() => _isSaved = false);
+          showTopToast(context, 'Reading removed');
+        } else {
+          // ── ADD ───────────────────────────────────────────
+          final now = DateTime.now().toUtc();
+
+          final newItem = <String, dynamic>{
+            'title': widget.ref,
+            'reading': widget.todayReading,
+            'savedAt': now.toIso8601String(),
+          };
+
+          if (isAnonymous!) {
+            // Anonymous: only local cache + fake ID
+            final fakeId = 'local_${now.millisecondsSinceEpoch}';
+            newItem['id'] = fakeId;
+
+            final current = service.getCachedItems(userId!, 'further_readings');
+            final updated = [newItem, ...current];
+            await service.cacheItems(userId, 'further_readings', updated);
+          } else {
+            // Real user: Firestore + cache
+            final docRef = await service.addFurtherReading(
+              userId,
+              title: widget.ref,
+              reading: widget.todayReading,
+            );
+
+            newItem['id'] = docRef;
+
+            final current = service.getCachedItems(userId!, 'further_readings');
+            final updated = [newItem, ...current];
+            await service.cacheItems(userId, 'further_readings', updated);
+          }
+
+          setState(() => _isSaved = true);
+          showTopToast(
+            context, 
+            'Reading saved! 📖',
+          );
+        }
+      } catch (e, stack) {
+        debugPrint("Toggle save failed: $e\n$stack");
+        showTopToast(context, 'Operation failed: $e');
+      }
+    }
+
+  /*Future<void> _toggleSave() async {
+    final user = FirebaseAuth.instance.currentUser;
     final auth = context.read<AuthService>();
 
     if (user == null || auth.churchId == null) {
@@ -235,7 +360,7 @@ class SmartSaveReadingButtonState extends State<SmartSaveReadingButton> {
         'Operation failed: $e',
       );
     }
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -245,18 +370,18 @@ class SmartSaveReadingButtonState extends State<SmartSaveReadingButton> {
       tooltip: _isSaved ? 'Remove from saved readings' : 'Save this reading',
       onPressed: _isChecking ? null : _toggleSave,
       icon: _isChecking
-          ? SizedBox(
-              width: 24.sp,
-              height: 24.sp,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Color.fromARGB(255, 100, 13, 74),
-              ),
-            )
-          : Icon(
-              _isSaved ? Icons.bookmark : Icons.bookmark_add,
-              color: _isSaved ? AppColors.success : theme.colorScheme.onBackground,
-            ),
+        ? SizedBox(
+          width: 24.sp,
+          height: 24.sp,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: Color.fromARGB(255, 100, 13, 74),
+          ),
+        )
+      : Icon(
+          _isSaved ? Icons.bookmark : Icons.bookmark_add,
+          color: _isSaved ? AppColors.success : theme.colorScheme.onBackground,
+        ),
     );
   }
 }

@@ -4,20 +4,19 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:http/http.dart';
 import 'package:provider/provider.dart';
+import '../../UI/app_bar.dart';
 import '../../UI/app_buttons.dart';
 import '../../UI/app_colors.dart';
+import '../../backend_data/service/hive/hive_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../../auth/login/auth_service.dart';
 import '../../backend_data/service/analytics/analytics_service.dart';
 import '../../backend_data/service/firestore/current_church_service.dart';
-import '../../utils/media_query.dart';
 import '../../utils/share_app.dart';
 import '../SundaySchool_app/assignment/assignment_home_admin.dart';
 import '../SundaySchool_app/assignment/assignment_home_user.dart';
 import '../church/church_admin_tools_screen.dart';
-import '../church/church_dashboard.dart';
 import '../helpers/color_palette_page.dart';
 import 'user_feedback.dart';
 import 'user_leaderboard.dart';
@@ -31,7 +30,8 @@ class UserProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    final displayName = user?.displayName ?? (AppLocalizations.of(context)?.guestUser ?? "Guest User");
+    final loc = AppLocalizations.of(context);
+    /*final displayName = user?.displayName ?? (AppLocalizations.of(context)?.guestUser ?? "Guest User");
     final email = user?.email ?? (AppLocalizations.of(context)?.guestMode ?? "guest mode");
 
     // Inside your build method, replace:
@@ -52,15 +52,94 @@ class UserProfileScreen extends StatelessWidget {
       } else {
         photoUrl = url; // fallback for non-Google providers
       }
+    }*/
+
+    // Fallback to Firebase if cache missing (and user is logged in)
+    String? photoUrl;
+    String displayName = loc?.guestUser ?? "Guest User";
+    String email = loc?.guestMode ?? "Guest Mode";
+
+    if (user != null) {
+      final uid = user.uid;
+
+      // Read user-specific cached values
+      photoUrl = HiveBoxes.userBox.get(UserCacheKeys.photo(uid)) as String?;
+      displayName = HiveBoxes.userBox.get(UserCacheKeys.displayName(uid)) as String? 
+          ?? user.displayName 
+          ?? displayName;
+
+      email = HiveBoxes.userBox.get(UserCacheKeys.email(uid)) as String? 
+          ?? user.email 
+          ?? email;
+      
+      final cachedUid = HiveBoxes.userBox.get(UserCacheKeys.uidCheck(uid)) as String?;
+      if (cachedUid != uid) {
+        debugPrint("Profile cache mismatch for uid $uid — falling back");
+        photoUrl = null;
+        displayName = user.displayName ?? displayName;
+        email = user.email ?? email;
+      }
+    }
+
+    // If we have a fresh Firebase user and cache is outdated → update Hive in background
+    /*if (user != null && user.uid == HiveBoxes.userBox.get('uid')) {
+      if (photoUrl == null && user.photoURL != null) {
+        // Optional: trigger background refresh if needed
+        // But usually not necessary since we save on login
+      }
+    }*/
+
+    // Use CachedNetworkImage instead of plain NetworkImage
+    Widget profileImage;
+    if (photoUrl != null && photoUrl.isNotEmpty) {
+      profileImage = CachedNetworkImage(
+        imageUrl: photoUrl,
+        imageBuilder: (context, imageProvider) => CircleAvatar(
+          radius: 55.sp,
+          backgroundImage: imageProvider,
+        ),
+        placeholder: (context, url) => CircleAvatar(
+          radius: 55.sp,
+          backgroundColor: AppColors.secondaryContainer,
+          child: const CircularProgressIndicator(),
+        ),
+        errorWidget: (context, url, error) => CircleAvatar(
+          radius: 55.sp,
+          backgroundColor: AppColors.secondaryContainer,
+          backgroundImage: const AssetImage('assets/images/anonymous_user.png'),
+        ),
+        fit: BoxFit.cover,
+      );
+    } else {
+      profileImage = CircleAvatar(
+        radius: 55.sp,
+        backgroundColor: AppColors.secondaryContainer,
+        backgroundImage: const AssetImage('assets/images/anonymous_user.png'),
+      );
     }
 
     final auth = context.read<AuthService>();
-    final style = CalendarDayStyle.fromContainer(context, 50);
-    final theme = Theme.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      appBar: AppAppBar(
+        title: AppLocalizations.of(context)?.navAccount ?? "Profile",
+        showBack: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () async {
+              await AnalyticsService.logButtonClick('settings');
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
+            },
+          ),
+          SizedBox(width: 8.sp),
+        ],
+      ),
+      /*backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
         centerTitle: true,
         title: Text(
@@ -83,7 +162,7 @@ class UserProfileScreen extends StatelessWidget {
           ),
           SizedBox(width: 8.sp),
         ],
-      ),
+      ),*/
       body: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(0),
@@ -99,19 +178,21 @@ class UserProfileScreen extends StatelessWidget {
                     Center(
                       child: Stack(
                         children: [
-                          CircleAvatar(
+                          profileImage,
+                          /*CircleAvatar(
                             radius: 55.sp,
                             backgroundColor: AppColors.secondaryContainer,
                             backgroundImage: photoUrl != null 
                               ? NetworkImage(photoUrl) 
                               : const AssetImage('assets/images/anonymous_user.png') as ImageProvider,
-                          ),
+                          ),*/
                         ],
                       ),
                     ),
                     SizedBox(height: 10.sp),
                     // Name
                     Text(
+                      //displayName,
                       user?.isAnonymous == true ? "Anonymous" : displayName,
                       style: TextStyle(
                         fontSize: 20.sp,
@@ -122,6 +203,7 @@ class UserProfileScreen extends StatelessWidget {
                     SizedBox(height: 3.sp),
                     // Email / Mode
                     Text(
+                      //email,
                       user?.isAnonymous == true ? "Guest Mode" : email,
                       style: TextStyle(
                         fontSize: 12.sp,

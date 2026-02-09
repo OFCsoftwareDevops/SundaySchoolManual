@@ -9,7 +9,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart' as provider;
 import 'package:rccg_sunday_school/l10n/fallback_localizations.dart';
@@ -25,6 +24,7 @@ import 'auth/login/auth_service.dart';
 import 'auth/login/login_page.dart';
 import 'backend_data/service/firestore/assignment_dates_provider.dart';
 import 'backend_data/service/firestore/firestore_service.dart';
+import 'backend_data/service/hive/hive_service.dart';
 import 'backend_data/service/notification/background_task.dart';
 import 'backend_data/service/notification/notification_service.dart';
 import 'backend_data/service/firestore/submitted_dates_provider.dart';
@@ -47,8 +47,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   debugPrint('STEP 1');
 
-  await Hive.initFlutter();
-  await Hive.openBox('settings');
+  await HiveHelper.init();
   debugPrint('STEP 2');
 
   await Firebase.initializeApp(
@@ -251,7 +250,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver{
     setState(() => preloadProgress = 1);
 
     // Step 2: preload returns submitted-date sets (adult/teen)
-    final preloadResult = await context.read<FirestoreService>().preload();
+    final preloadResult = await context.read<FirestoreService>().preload(context, loadAll: false);
     setState(() => preloadProgress = 2);
 
     final service = context.read<FirestoreService>();

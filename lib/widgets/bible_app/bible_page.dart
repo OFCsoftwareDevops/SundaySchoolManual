@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import '../../UI/app_bar.dart';
 import '../../UI/app_buttons.dart';
 import '../../utils/device_check.dart';
 import '../../utils/media_query.dart';
@@ -67,7 +68,39 @@ class BiblePage extends StatelessWidget {
         }
 
         return Scaffold(
-          appBar: AppBar(
+          appBar: AppAppBar(
+            title: AppLocalizations.of(context)?.navBible ?? "Holy Bible",
+            showBack: false,
+            actions: [
+              Padding(
+                padding: EdgeInsets.only(right: 10.sp),
+                child: Center(
+                  child: manager.isLoading
+                    ? const CircularProgressIndicator()
+                    : DropdownButton<String>(
+                      value: manager.currentVersion,
+                      dropdownColor: theme.colorScheme.onSecondaryContainer,
+                      icon: Icon(
+                        Icons.keyboard_arrow_down, 
+                        color: theme.colorScheme.onSecondaryContainer,
+                        size: style.monthFontSize.sp,
+                      ),
+                      //underline: const SizedBox(),
+                      style: TextStyle(
+                        fontSize: style.monthFontSize.sp * 0.5,
+                        color: theme.colorScheme.onSecondaryContainer,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      items: manager.availableVersions
+                        .map((v) => DropdownMenuItem(value: v['code'], child: Text(v['name']!)))
+                        .toList(),
+                      onChanged: (v) => v != null ? manager.changeVersion(v) : null,
+                    ),
+                ),
+              ),
+            ],
+          ),
+          /*appBar: AppBar(
             title: Text(
               AppLocalizations.of(context)?.navBible ?? "Holy Bible",
               style: theme.appBarTheme.titleTextStyle?.copyWith(
@@ -103,7 +136,7 @@ class BiblePage extends StatelessWidget {
                 ),
               ),
             ],
-          ),
+          ),*/
           body: ListView(
             padding: EdgeInsets.fromLTRB(16.sp, 0, 16.sp, 16.sp),
             children: [
@@ -233,7 +266,50 @@ class BookReader extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppAppBar(
+        title: BibleVersionManager.getTranslatedBookName(book['name'] as String, AppLocalizations.of(context)),
+        showBack: true,
+        onBack: () {
+          LastPositionManager.save(screen: 'bible_page');
+          Navigator.pop(context);
+        },
+        actions: [
+          Padding(
+            padding: EdgeInsets.only(right: 12.sp),
+            child: Center(
+              child: Consumer<BibleVersionManager>(
+                builder: (context, manager, child) {
+                  return manager.isLoading
+                      ? const CircularProgressIndicator()
+                      : DropdownButton<String>(
+                          value: manager.currentVersion,
+                          dropdownColor: theme.colorScheme.onSecondaryContainer,
+                          icon: Icon(
+                            Icons.keyboard_arrow_down, 
+                            size: style.monthFontSize.sp,
+                            color: theme.colorScheme.onSecondaryContainer,
+                          ),
+                          //underline: const SizedBox(),
+                          style: TextStyle(
+                            color: theme.colorScheme.onSecondaryContainer,
+                            fontWeight: FontWeight.bold,
+                            fontSize: style.monthFontSize.sp  * 0.5,
+                          ),
+                          items: manager.availableVersions
+                              .map((v) => DropdownMenuItem(
+                                    value: v['code'],
+                                    child: Text(v['name']!),
+                                  ))
+                              .toList(),
+                          onChanged: (v) => v != null ? manager.changeVersion(v) : null,
+                        );
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+      /*appBar: AppBar(
         centerTitle: true,
         title: FittedBox(
           fit: BoxFit.scaleDown,  // Or fitWidth to fill width
@@ -288,7 +364,7 @@ class BookReader extends StatelessWidget {
             ),
           ),
         ],
-      ),
+      ),*/
 
       body: GridView.builder(
         padding: EdgeInsets.symmetric(
@@ -429,8 +505,70 @@ class _ChapterReaderState extends State<ChapterReader> {
         final highlightManager = Provider.of<HighlightManager>(context);
 
         return Scaffold(
-          backgroundColor: Theme.of(context).colorScheme.background,
-          appBar: AppBar(
+          appBar: AppAppBar(
+            title: "${BibleVersionManager.getTranslatedBookName(widget.bookName, AppLocalizations.of(context))} ${widget.chapterNum}",
+            showBack: true,
+            onBack: () {
+              // Save position BEFORE popping
+              LastPositionManager.save(
+                screen: 'book_grid',
+                bookName: widget.bookName,
+                chapter: widget.chapterNum,
+              );
+              Navigator.pop(context);
+            },
+            actions: [
+              if (_selectedVerses.isNotEmpty)
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  iconSize: fontstyle.monthFontSize.sp,
+                  onPressed: () => setState(() => _selectedVerses.clear()),
+                ),
+              // ← VERSION SWITCHER (this was missing)
+              Padding(
+                padding: EdgeInsets.only(right: 12.sp),
+                child: Center(
+                  child: Consumer<BibleVersionManager>(
+                    builder: (context, manager, child) {
+                      return manager.isLoading
+                          ? SizedBox(
+                              width: 24.sp,
+                              height: 24.sp,
+                              child: CircularProgressIndicator(),
+                            )
+                          : DropdownButton<String>(
+                              value: manager.currentVersion,
+                              dropdownColor: colorScheme.onSecondaryContainer,
+                              icon: Icon(
+                                Icons.keyboard_arrow_down,
+                                color: theme.colorScheme.onSecondaryContainer,
+                                size: fontstyle.monthFontSize.sp,
+                              ),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.onSecondaryContainer,
+                                fontSize: fontstyle.monthFontSize.sp * 0.5,
+                              ),
+                              items: manager.availableVersions
+                                  .map((v) => DropdownMenuItem(
+                                        value: v['code'],
+                                        child: Text(v['name']!),
+                                      ))
+                                  .toList(),
+                              onChanged: (newVersion) {
+                                if (newVersion != null) {
+                                  manager.changeVersion(newVersion);
+                                }
+                              },
+                            );
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+          //backgroundColor: Theme.of(context).colorScheme.background,
+          /*appBar: AppBar(
             centerTitle: true,
             title: FittedBox(
               fit: BoxFit.scaleDown,  // Or fitWidth to fill width
@@ -502,7 +640,7 @@ class _ChapterReaderState extends State<ChapterReader> {
                 ),
               ),
             ],
-          ),
+          ),*/
           body: Stack(
             children: [
               ListView.builder(

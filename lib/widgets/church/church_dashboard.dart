@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:provider/provider.dart';
 import '../../../UI/app_colors.dart';
 import '../../../backend_data/service/analytics/analytics_service.dart';
 import '../../../backend_data/service/firestore/current_church_service.dart';
-import '../../../auth/login/auth_service.dart';
+import '../../UI/app_bar.dart';
 import 'church_kpi.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
@@ -13,10 +12,13 @@ class AdminDashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final auth = context.read<AuthService>();
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
+      appBar: AppAppBar(
+        title: "Admin Dashboard",
+        showBack: true,
+      ),
+      /*/backgroundColor: theme.colorScheme.background,
       appBar: AppBar(
         centerTitle: true,
         title: Text(
@@ -26,7 +28,7 @@ class AdminDashboardScreen extends StatelessWidget {
             fontSize: 18.sp,
           ),
         ),
-      ),
+      ),*/
       body: RefreshIndicator(
         onRefresh: () async {
           await AnalyticsService.logButtonClick('admin_dashboard_refresh');

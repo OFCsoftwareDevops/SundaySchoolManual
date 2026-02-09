@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import '../../../UI/app_bar.dart';
 import '../../../UI/app_segment_sliding.dart';
 import '../../../auth/login/auth_service.dart';
 import '../../../backend_data/database/constants.dart';
@@ -65,7 +66,6 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
     final auth = context.read<AuthService>();
     final user = FirebaseAuth.instance.currentUser;
     final parishName = auth.parishName ?? "Your Church";
-    final style = CalendarDayStyle.fromContainer(context, 50);
 
     if (!_ensuredSubmittedDatesLoaded && user != null) {
       _ensuredSubmittedDatesLoaded = true;
@@ -91,9 +91,13 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
     // If no user, show a friendly message (optional fallback)
     if (user == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(
+        appBar: AppAppBar(
+          title: AppLocalizations.of(context)?.myAssignments ?? "My Assignments",
+          showBack: true,
+        ),
+        /*appBar: AppBar(title: Text(
           AppLocalizations.of(context)?.myAssignments ?? "My Assignments",
-        )),
+        )),*/
         body: const Center(
           child: Text("Please log in to view your assignments."),
         ),
@@ -102,8 +106,12 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
 
     // No loading state needed — data is preloaded!
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
-      appBar: AppBar(
+      appBar: AppAppBar(
+        title: "${AppLocalizations.of(context)?.assignments ?? 'Assignments'} — $parishName",
+        showBack: true,
+      ),
+      //backgroundColor: Theme.of(context).colorScheme.background,
+      /*appBar: AppBar(
         centerTitle: true,
         title: FittedBox(
           fit: BoxFit.scaleDown,
@@ -120,7 +128,7 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
           iconSize: style.monthFontSize.sp, // Consistent with your Bible app bar
           onPressed: () => Navigator.pop(context),
         ),
-      ),
+      ),*/
       body: Column(
         children: [
           Padding(

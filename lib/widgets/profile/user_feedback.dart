@@ -2,11 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../UI/app_bar.dart';
 import '../../UI/app_buttons.dart';
 import '../../UI/app_colors.dart';
 import '../../l10n/app_localizations.dart';
 import '../../backend_data/service/analytics/analytics_service.dart';
-import '../../utils/media_query.dart';
+import '../../utils/rate_app.dart';
 import '../helpers/snackbar.dart';
 
 class FeedbackScreen extends StatefulWidget {
@@ -75,10 +76,13 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final style = CalendarDayStyle.fromContainer(context, 50);
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppAppBar(
+        title: AppLocalizations.of(context)?.yourSuggestions ?? "Your Suggestions",
+        showBack: true,
+      ),
+      /*appBar: AppBar(
         centerTitle: true,
         title: FittedBox(
           fit: BoxFit.scaleDown,  // Or fitWidth to fill width
@@ -94,7 +98,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
             Navigator.pop(context);
           },
         ),
-      ),
+      ),*/
       body: SingleChildScrollView(
         padding: EdgeInsets.all(20.sp),
         child: Column(
@@ -144,6 +148,24 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
             ),
             SizedBox(height: 10.sp),
             Divider(height: 20.sp),
+            Center(
+              child: InkWell(
+                onTap: rateApp,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.star_rate, color: Colors.amber),
+                    SizedBox(width: 8.sp),
+                    Text(
+                      AppLocalizations.of(context)?.rateAppInStore
+                        ?? "Rate App in store",
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            SizedBox(height: 10.sp),
             Center(
               child: Text(
                 AppLocalizations.of(context)?.rateAppSettings ?? 'Hii... To rate the app, please go to Settings ...',

@@ -2,11 +2,11 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../UI/app_bar.dart';
 import '../UI/app_buttons.dart';
 import '../UI/app_colors.dart';
 import '../auth/login/auth_service.dart';
@@ -31,6 +31,7 @@ class HomeState extends State<Home> {
   DateTime selectedDate = DateTime.now();
   LessonDay? lesson;
   late final FirestoreService _service;
+  bool _dotsDirty = false;
 
   // Simple admin check
   final String adminEmail = "olaoluwa.ogunseye@gmail.com";
@@ -52,6 +53,7 @@ class HomeState extends State<Home> {
     _service = FirestoreService(churchId: churchId);
     _loadLesson();
     _loadFurtherReadings();
+    _refreshVisibleDates();
     // ←←← ADD THIS: Foreground FCM Handler (Safe & Clean)
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       // Only show if notification exists (some messages are data-only)
@@ -92,6 +94,35 @@ class HomeState extends State<Home> {
     });
   }
 
+  Set<DateTime> visibleLessonDates = {};
+  Set<DateTime> visibleReadingDates = {};
+
+  Future<void> _refreshVisibleDates() async {
+    final allLessonDates = await _service.getAllLessonDates();
+    final readingMap = await _service.getFurtherReadingsWithText(context);
+
+    final now = DateTime.now();
+    final currentSunday = _service.getCurrentWeekSunday(now);
+    final prefetchEnd = _service.getPrefetchEnd(currentSunday);
+
+    final newLessons = allLessonDates.where((d) {
+      final nd = DateTime(d.year, d.month, d.day);
+      return _service.isInPrefetchWindow(nd) || _service.getCachedLessonDates().contains(nd);
+    }).toSet();
+
+    final newReadings = readingMap.keys.where((d) {
+      final nd = DateTime(d.year, d.month, d.day);
+      return _service.isInPrefetchWindow(nd) || readingMap.containsKey(nd);
+    }).toSet();
+
+    if (mounted) {
+      setState(() {
+        visibleLessonDates = newLessons;
+        visibleReadingDates = newReadings;
+      });
+    }
+  }
+
   // Helper method — must be inside the class
   DateTime _getNextSunday() {
     final now = DateTime.now();
@@ -103,7 +134,10 @@ class HomeState extends State<Home> {
     try {
       final l = await _service.loadLesson(context, selectedDate);
       if (mounted) {
-        setState(() => lesson = l);
+        setState(() {
+          lesson = l;
+        });
+        await _refreshVisibleDates();
       }
     } catch (e) {
       // Offline or error → keep last known data (Firestore cache works!)
@@ -118,6 +152,7 @@ class HomeState extends State<Home> {
     final map = await _service.getFurtherReadingsWithText(context);
     if (mounted) {
       setState(() => furtherReadingMap = map);
+      await _refreshVisibleDates();
     }
   }
 
@@ -136,64 +171,9 @@ class HomeState extends State<Home> {
   Widget build(BuildContext context) {
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
-      appBar: AppBar(
-        centerTitle: true,
-        title: Consumer<AuthService>(
-          builder: (context, auth, child) {
-            final name = auth.churchFullName;
-            final isGeneral = name == null;
-
-            return GestureDetector(
-              onLongPress: () async {
-                await auth.clearChurch();
-                if (mounted) {
-                  showTopToast(
-                    context,
-                    AppLocalizations.of(context)?.switchedToGeneral ?? "Switched to General (Global) lessons",
-                    backgroundColor: Theme.of(context).colorScheme.onBackground,
-                    textColor: Theme.of(context).colorScheme.background,
-                    duration: const Duration(seconds: 2),
-                  );
-                  // Rebuild with general lessons
-                  setState(() {
-                    _service = FirestoreService(churchId: null);
-                  });
-                  _loadLesson();
-                  _loadFurtherReadings();
-                }
-              },
-              child: Text(
-                isGeneral ? (AppLocalizations.of(context)?.rccgSundaySchoolGeneral ?? "RCCG Sunday School (General)") : name,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.onPrimary,
-                  fontSize: 20.sp,
-                ),
-              ),
-            );
-          },
-        ),
-        elevation: 1.sp,
-        /*actions: [
-          // Language Menu
-          PopupMenuButton<Locale>(
-            icon: const Icon(Icons.language/*, color: AppColors.onPrimary*/),
-            onSelected: (locale) async {
-              // Log language change
-              await AnalyticsService.logButtonClick('language_change_${locale.languageCode}');
-
-              // Apply the selected locale
-              MyApp.setLocale(context, locale);
-            },
-            itemBuilder: (_) => [
-              const PopupMenuItem(value: Locale('en'), child: Text("English")),
-              const PopupMenuItem(value: Locale('fr'), child: Text("Français")),
-              const PopupMenuItem(value: Locale('yo'), child: Text("Èdè Yorùbá")),
-            ],
-          ),
-          SizedBox(width: 8.sp),
-        ],*/
+      appBar: AppAppBar(
+        title: AppLocalizations.of(context)?.sundaySchoolManual ?? "RCCG - Sunday School Manual",
+        showBack: false,
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -229,61 +209,66 @@ class HomeState extends State<Home> {
             // CALENDAR WITH BOTH LESSONS + FURTHER READINGS MARKERS
             Padding(
               padding: EdgeInsets.fromLTRB(20.sp, 10.sp, 20.sp, 10.sp),
-              child: Column(
-                children: [
-                  StreamBuilder<QuerySnapshot>(
-                    stream: _service.lessonsStream(context),
-                    builder: (context, lessonSnapshot) {
-                      // 1. Green dots — your original code, untouched
-                      Set<DateTime> datesWithLessons = {};
-                      if (lessonSnapshot.hasData) {
-                        for (final doc in lessonSnapshot.data!.docs) {
-                          final parts = doc.id.split('-');
-                          if (parts.length == 3) {
-                            try {
-                              final date = DateTime(
-                                int.parse(parts[0]),
-                                int.parse(parts[1]),
-                                int.parse(parts[2]),
-                              );
-                              datesWithLessons.add(DateTime(date.year, date.month, date.day));
-                            } catch (_) {}
-                          }
-                        }
-                      }
-                  
-                      // 2. Purple dots + today’s reading — from your existing method
-                      return FutureBuilder<Map<DateTime, String>>(
-                        future: _service.getFurtherReadingsWithText(context),
-                        builder: (context, readingSnapshot) {                
-                          return Column(
-                            mainAxisSize: MainAxisSize.max,
-                            children: [
-                              MonthCalendar(
-                                selectedDate: selectedDate,
-                                datesWithLessons: datesWithLessons,
-                                datesWithFurtherReadings: furtherReadingMap.keys.toSet(), // purple dots
-                                onDateSelected: (date) {
-                                  setState(() => selectedDate = date);
-                                  _loadLesson();
-                                },
-                              ),
-                              SizedBox(height: 10.sp),
-                              // Beautiful Further Reading row — only shows when there is a reading
-                              _readingRow(
-                                context: context,
-                                todayReading: todayFurtherReading,
-                              ),
-                            ],
-                          );
-                        },
+              child: FutureBuilder<Set<DateTime>>(
+                future: _service.getAllLessonDates(),
+                builder: (context, lessonDatesSnap) {
+                  final allLessonDates = lessonDatesSnap.data ?? {};
+
+                  /*final now = DateTime.now();
+                  final currentSunday = _service.getCurrentWeekSunday(now);  // make public if needed
+                  final prefetchEnd = _service.getPrefetchEnd(currentSunday);
+
+                  // Only include dates inside the prefetch window that exist
+                  final visibleLessonDates = allLessonDates.where((d) {
+                    final nd = DateTime(d.year, d.month, d.day);
+                    return !nd.isBefore(currentSunday) && !nd.isAfter(prefetchEnd);
+                  }).toSet();
+
+                  // Optional: add cached past dates
+                  final cachedLessonDates = _service.getCachedLessonDates();  // add this method (below)
+                  visibleLessonDates.addAll(cachedLessonDates);*/
+
+                  return FutureBuilder<Map<DateTime, String>>(
+                    future: _service.getFurtherReadingsWithText(context),
+                    builder: (context, readingSnap) {
+                      final readingMap = readingSnap.data ?? {};
+
+                      final now = DateTime.now();
+                      final currentSunday = _service.getCurrentWeekSunday(now);
+                      final prefetchEnd = _service.getPrefetchEnd(currentSunday);
+
+                      // Readings: only what's currently in the map (prefetch + cached past)
+                      // No future beyond what's loaded
+                      //final visibleReadingDates = readingMap.keys.toSet();
+                      final visibleReadingDates = readingMap.keys.where((d) {
+                        final nd = DateTime(d.year, d.month, d.day);
+                        return !nd.isBefore(currentSunday) && !nd.isAfter(prefetchEnd);
+                      }).toSet();
+
+                      return Column(
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          MonthCalendar(
+                            selectedDate: selectedDate,
+                            datesWithLessons: visibleLessonDates,              // restricted!
+                            datesWithFurtherReadings: visibleReadingDates,     // restricted!
+                            onDateSelected: (date) {
+                              setState(() => selectedDate = date);
+                              _loadLesson();
+                            },
+                          ),
+                          SizedBox(height: 10.sp),
+                          _readingRow(
+                            context: context,
+                            todayReading: todayFurtherReading,
+                          ),
+                        ],
                       );
                     },
-                  ),
-                ],
+                  );
+                },
               ),
             ),
-
             // EVERYTHING BELOW THIS SCROLLS (but calendar stays fixed)
             Expanded(
               child: SingleChildScrollView(

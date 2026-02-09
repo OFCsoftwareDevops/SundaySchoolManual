@@ -6,12 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart' show WatchContext, ReadContext;
+import '../../UI/app_bar.dart';
 import '../../UI/app_buttons.dart';
 import '../../UI/app_colors.dart';
 import '../../auth/login/auth_service.dart';
 import '../../backend_data/service/ads/premium_provider.dart';
 import '../../backend_data/service/ads/premium_subscription_screen.dart';
 import '../../backend_data/service/ads/subscribe_button.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/media_query.dart';
 
 class AdminToolsScreen extends StatefulWidget {
@@ -182,16 +184,19 @@ class AdminToolsScreenState extends State<AdminToolsScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthService>();
-    final themestyle = CalendarDayStyle.fromContainer(context, 50);
 
     // Extra safety: only global admins should see this
     if (!auth.isGlobalAdmin && !auth.isChurchAdmin) {
       return Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.background,
+        appBar: AppAppBar(
+          title: AppLocalizations.of(context)?.accessRestricted ?? "Access Restricted",
+          showBack: true,
+        ),
+        /*/backgroundColor: Theme.of(context).colorScheme.background,
         appBar: AppBar(
           centerTitle: true,
-          title: const Text("Access Restricted"),
-        ),
+          title: const Text("accessRestricted Access Restricted"),
+        ),*/
         body: Center(
           child: Padding(
             padding: EdgeInsets.all(24.sp),
@@ -228,8 +233,12 @@ class AdminToolsScreenState extends State<AdminToolsScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
-      appBar: AppBar(
+      appBar: AppAppBar(
+        title: "Global Admin Tools",
+        showBack: true,
+      ),
+      //backgroundColor: Theme.of(context).colorScheme.background,
+      /*appBar: AppBar(
         centerTitle: true,
         title: FittedBox(
           fit: BoxFit.scaleDown, // Scales down text if it would overflow
@@ -246,7 +255,7 @@ class AdminToolsScreenState extends State<AdminToolsScreen> {
           iconSize: themestyle.monthFontSize.sp, // Consistent sizing
           onPressed: () => Navigator.pop(context),
         ),
-      ),
+      ),*/
       body: SingleChildScrollView(
         padding: EdgeInsets.all(15.sp),
         child: Column(

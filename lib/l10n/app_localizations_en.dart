@@ -27,7 +27,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noAdultLesson => 'No Adult Lesson available';
 
   @override
-  String get sundaySchoolManual => 'Sunday School Manual';
+  String get sundaySchoolManual => 'RCCG - Sunday School Manual';
 
   @override
   String get accessWeeklyLessonsOffline => 'Access your weekly Teen and Adult Bible study lessons anytime, anywhere — even offline!';
@@ -184,7 +184,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get feedback => 'Feedback';
 
   @override
-  String get rateAppOnGooglePlay => 'Rate App on Google Play';
+  String get rateAppInStore => 'Rate App in store';
 
   @override
   String get suggestAFeature => 'Suggest a Feature';
@@ -322,10 +322,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loading => 'Loading';
 
   @override
-  String get answerWeeklyAssignment => 'Answer Weekly Assignment';
+  String get answerWeeklyAssignment => 'Weekly Assignment';
 
   @override
   String get loginForAssignment => 'Login For Assignment';
+
+  @override
+  String get signinToSubmit => 'Sign in to Submit';
 
   @override
   String get monday => 'Monday';

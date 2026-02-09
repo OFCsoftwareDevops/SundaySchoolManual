@@ -1,4 +1,4 @@
-// lib/widgets/lesson_form.dart
+/*/ lib/widgets/lesson_form.dart
 
 import 'package:flutter/material.dart';
 import 'lesson_data.dart';
@@ -313,4 +313,4 @@ class _LessonFormState extends State<LessonForm> {
 // Helper extension
 extension StringX on String {
   String toTitleCase() => replaceAll("_", " ").split(" ").map((word) => word.isNotEmpty ? "${word[0].toUpperCase()}${word.substring(1).toLowerCase()}" : "").join(" ");
-}
+}*/

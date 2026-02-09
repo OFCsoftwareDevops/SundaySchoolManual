@@ -136,7 +136,7 @@ abstract class AppLocalizations {
   /// Title for the app or manual section
   ///
   /// In en, this message translates to:
-  /// **'Sunday School Manual'**
+  /// **'RCCG - Sunday School Manual'**
   String get sundaySchoolManual;
 
   /// Promotional subtitle highlighting offline access to lessons
@@ -442,8 +442,8 @@ abstract class AppLocalizations {
   /// Menu item to rate app
   ///
   /// In en, this message translates to:
-  /// **'Rate App on Google Play'**
-  String get rateAppOnGooglePlay;
+  /// **'Rate App in store'**
+  String get rateAppInStore;
 
   /// Menu item to suggest features
   ///
@@ -718,7 +718,7 @@ abstract class AppLocalizations {
   /// Button or label to start answering the weekly assignment
   ///
   /// In en, this message translates to:
-  /// **'Answer Weekly Assignment'**
+  /// **'Weekly Assignment'**
   String get answerWeeklyAssignment;
 
   /// Prompt shown when user needs to log in to access/submit assignment
@@ -726,6 +726,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Login For Assignment'**
   String get loginForAssignment;
+
+  /// Prompt shown when user needs to sign in to submit assignment
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to Submit'**
+  String get signinToSubmit;
 
   /// Day of week: Monday
   ///

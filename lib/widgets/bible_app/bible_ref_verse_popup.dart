@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import '../../UI/app_colors.dart';
+import '../../UI/app_sound.dart';
 import '../../backend_data/service/analytics/analytics_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/device_check.dart';
@@ -184,6 +185,8 @@ class _VersePopupState extends State<VersePopup> {
                         padding: EdgeInsets.zero,
                         constraints: BoxConstraints(),
                         onPressed: () async {
+                          //await SoundService.playClick();
+                          
                           await AnalyticsService.logButtonClick('further_reading_canceled!');
 
                           Navigator.of(context).pop();

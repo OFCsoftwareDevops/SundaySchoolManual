@@ -17,7 +17,7 @@ class MonthCalendar extends StatefulWidget {
     required this.onDateSelected,
     required this.selectedDate,
     this.datesWithLessons,
-    this.datesWithFurtherReadings,
+    this.datesWithFurtherReadings, 
   });
 
   @override
@@ -38,9 +38,36 @@ class _MonthCalendarState extends State<MonthCalendar> {
     });
   }
 
+  bool _hasIndicatorsInMonth(DateTime month) {
+    final monthStart = DateTime(month.year, month.month, 1);
+    final monthEnd = DateTime(month.year, month.month + 1, 0);
+
+    // Check if any lesson or reading date falls in this month
+    final lessonsInMonth = widget.datesWithLessons?.any((d) =>
+      d.year == month.year && d.month == month.month) ?? false;
+
+    final readingsInMonth = widget.datesWithFurtherReadings?.any((d) =>
+      d.year == month.year && d.month == month.month) ?? false;
+
+    return lessonsInMonth || readingsInMonth;
+  }
+
   void _changeMonth(int offset) {
+    final targetMonth = DateTime(currentMonth.year, currentMonth.month + offset);
+    
+    if (!_hasIndicatorsInMonth(targetMonth)) {
+      // Optional: show hint
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No content available in this month yet'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return; // Block the change
+    }
+
     setState(() {
-      currentMonth = DateTime(currentMonth.year, currentMonth.month + offset);
+      currentMonth = targetMonth;
     });
   }
 
@@ -48,6 +75,14 @@ class _MonthCalendarState extends State<MonthCalendar> {
   Widget build(BuildContext context) {
     // Create a dynamic style for the calendar
     final style = CalendarDayStyle.fromContainer(context, 50); // 50 is example day cell size
+
+    final canGoLeft = _hasIndicatorsInMonth(
+      DateTime(currentMonth.year, currentMonth.month - 1)
+    );
+    
+    final canGoRight = _hasIndicatorsInMonth(
+      DateTime(currentMonth.year, currentMonth.month + 1)
+    );
 
     return Card(
       margin: const EdgeInsets.all(0),
@@ -62,18 +97,26 @@ class _MonthCalendarState extends State<MonthCalendar> {
               children: [
                 IconButton(
                   onPressed: () => _changeMonth(-1), 
-                  icon: Icon(Icons.chevron_left, size: style.iconSize.sp),
+                  icon: Icon(
+                    Icons.chevron_left, 
+                    size: style.iconSize.sp,
+                  ),
                 ),
                 Text(
                   "${_monthName(currentMonth.month, context)} ${currentMonth.year}",
                   style: TextStyle(
                     fontSize: style.monthFontSize.sp, 
                     fontWeight: FontWeight.bold,
+                    color: canGoLeft ? null : Colors.grey,
                   ),
                 ),
                 IconButton(
                   onPressed: () => _changeMonth(1), 
-                  icon: Icon(Icons.chevron_right, size: style.iconSize.sp),
+                  icon: Icon(
+                    Icons.chevron_right, 
+                    size: style.iconSize.sp,
+                    color: canGoRight ? null : Colors.grey,
+                  ),
                 ),
               ],
             ),

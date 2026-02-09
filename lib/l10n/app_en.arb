@@ -9,7 +9,7 @@
   "noTeenLesson": "No Teen Lesson available",
   "noAdultLesson": "No Adult Lesson available",
 
-  "sundaySchoolManual": "Sunday School Manual",
+  "sundaySchoolManual": "RCCG - Sunday School Manual",
   "accessWeeklyLessonsOffline": "Access your weekly Teen and Adult Bible study lessons anytime, anywhere — even offline!",
   "builtForRccg": "Built for the Redeemed Christian Church of God!",
   "getStarted": "Get Started",
@@ -65,7 +65,7 @@
   "deletionCancelledSnack": "Account deletion cancelled! Welcome back 🎉",
 
   "feedback": "Feedback",
-  "rateAppOnGooglePlay": "Rate App on Google Play",
+  "rateAppInStore": "Rate App in store",
   "suggestAFeature": "Suggest a Feature",
   "preferences": "Preferences",
 
@@ -117,8 +117,9 @@
   "biblePassage": "BIBLE PASSAGE:",
   "guestUserLabel": "Guest User",
   "loading": "Loading",
-  "answerWeeklyAssignment": "Answer Weekly Assignment",
+  "answerWeeklyAssignment": "Weekly Assignment",
   "loginForAssignment": "Login For Assignment",
+  "signinToSubmit": "Sign in to Submit",
 
 
   "monday": "Monday",
@@ -464,7 +465,7 @@
   "@feedback": {
     "description": "Feedback section header"
   },
-  "@rateAppOnGooglePlay": {
+  "@rateAppInStore": {
     "description": "Menu item to rate app"
   },
   "@suggestAFeature": {
@@ -604,6 +605,9 @@
   },
   "@loginForAssignment": {
     "description": "Prompt shown when user needs to log in to access/submit assignment"
+  },
+  "@signinToSubmit": {
+    "description": "Prompt shown when user needs to sign in to submit assignment"
   },
   "@monday": {
     "description": "Day of week: Monday"
@@ -1042,7 +1046,6 @@
   "teachers": "Teachers",
   "appSuggestions": "App Suggestions",
   "adminTools": "Admin Tools",
-  "colorPalette": "Color Palette",
   "inviteYourFriends": "Invite Your Friends",
   "signOut": "Sign Out",
   "guestUser": "Guest User",

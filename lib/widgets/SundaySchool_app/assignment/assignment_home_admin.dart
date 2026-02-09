@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import '../../../UI/app_bar.dart';
 import '../../../UI/app_colors.dart';
 import '../../../UI/app_segment_sliding.dart';
 import '../../../auth/login/auth_service.dart';
@@ -89,8 +90,25 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
 
     if (datesProvider.isLoading) {
       return Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.background,
-        appBar: AppBar(
+        //backgroundColor: Theme.of(context).colorScheme.background,
+        appBar: AppAppBar(
+          title: "${AppLocalizations.of(context)?.adminTools ?? 'Admin'} — $parishName",
+          showBack: true,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              iconSize: style.monthFontSize.sp,
+              tooltip: AppLocalizations.of(context)?.refreshAssignments ?? "Refresh assignments",
+              onPressed: () {
+                final service = FirestoreService(churchId: auth.churchId);
+                datesProvider.refresh(context, service);
+                _submissionCache.clear();
+                setState(() {});
+              },
+            ),
+          ],
+        ),
+        /*appBar: AppBar(
           centerTitle: true,
           title: FittedBox(
             fit: BoxFit.scaleDown,
@@ -120,14 +138,31 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
               },
             ),
           ],
-        ),
+        ),*/
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
-      appBar: AppBar(
+      appBar: AppAppBar(
+        title: "${AppLocalizations.of(context)?.adminTools ?? 'Admin'} — $parishName",
+        showBack: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            iconSize: style.monthFontSize.sp, // Same size as in Bible app bar
+            tooltip: AppLocalizations.of(context)?.refreshAssignments ?? "Refresh assignments",
+            onPressed: () {
+              final service = FirestoreService(churchId: auth.churchId);
+              datesProvider.refresh(context, service);
+              _submissionCache.clear();
+              setState(() {});
+            },
+          ),
+        ],
+      ),
+      //backgroundColor: Theme.of(context).colorScheme.background,
+      /*appBar: AppBar(
         centerTitle: true,
         title: FittedBox(
           fit: BoxFit.scaleDown, // Prevents overflow on small screens
@@ -157,7 +192,7 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
             },
           ),
         ],
-      ),
+      ),*/
       body: Column(
         children: [
           Padding(

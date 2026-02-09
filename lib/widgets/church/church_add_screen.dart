@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../UI/app_bar.dart';
 import '../../UI/app_buttons.dart';
 import '../../l10n/app_localizations.dart';
 import '../helpers/snackbar.dart';
@@ -164,11 +165,15 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppAppBar(
+        title: AppLocalizations.of(context)?.createYourChurch ?? "Create Your Church",
+        showBack: true,
+      ),
+      /*appBar: AppBar(
         title: Text(AppLocalizations.of(context)?.createYourChurch ?? "Create Your Church"),
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         foregroundColor: Theme.of(context).appBarTheme.foregroundColor,
-      ),
+      ),*/
       body: SingleChildScrollView(
         padding: EdgeInsets.all(20.sp),
         child: Column(

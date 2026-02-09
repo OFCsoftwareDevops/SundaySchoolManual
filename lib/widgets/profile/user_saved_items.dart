@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../UI/app_bar.dart';
 import '../../UI/app_colors.dart';
 import '../../auth/login/auth_service.dart';
 import '../../backend_data/service/firestore/saved_items_service.dart';
 import '../../backend_data/service/firestore/firestore_service.dart';
 import '../../l10n/app_localizations.dart';
-import '../../utils/media_query.dart';
 import '../SundaySchool_app/lesson_preview.dart';
 import '../SundaySchool_app/further_reading/further_reading_dialog.dart';
 import '../helpers/snackbar.dart';
@@ -40,11 +40,9 @@ class _SavedItemsPageState extends State<SavedItemsPage>
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    final authService = context.read<AuthService>();
+    final theme = Theme.of(context);
 
-    final style = CalendarDayStyle.fromContainer(context, 50);
-
-    // If not logged in or no church, show a message
+    /*/ If not logged in or no church, show a message
     if (user == null || user.isAnonymous || !authService.hasChurch) {
       return Scaffold(
         backgroundColor: Theme.of(context).colorScheme.background,
@@ -90,12 +88,10 @@ class _SavedItemsPageState extends State<SavedItemsPage>
           ),
         ),
       );
-    }
+    }*/
+    final userId = user!.uid;
 
-    final churchId = authService.churchId;
-    final userId = user.uid;
-
-    if (churchId == null) {
+    /*if (churchId == null) {
       return Scaffold(
         backgroundColor: Theme.of(context).colorScheme.background,
         appBar: AppBar(
@@ -120,10 +116,46 @@ class _SavedItemsPageState extends State<SavedItemsPage>
           child: Text(AppLocalizations.of(context)?.noChurchSelected ?? 'No church selected'),
         ),
       );
-    }
+    }*/
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      appBar: AppAppBar(
+        title: AppLocalizations.of(context)?.savedItemsTitle ?? "Saved Items",
+        showBack: true,
+        bottom: TabBar(
+          controller: _tabController,
+          indicator: BoxDecoration(
+            color: theme.colorScheme.onSecondaryContainer, // selected background
+          ),
+          indicatorColor: theme.colorScheme.onSecondaryContainer,
+          labelColor: theme.colorScheme.secondaryContainer,
+          unselectedLabelColor: theme.colorScheme.onSecondaryContainer,
+          labelStyle: TextStyle(
+            fontSize: 13.sp,        // Clear, readable tab labels
+            fontWeight: FontWeight.w600,
+          ),
+          unselectedLabelStyle: TextStyle(
+            fontSize: 13.sp,
+          ),
+          indicatorSize: TabBarIndicatorSize.tab, // Optional: makes indicator match full tab width
+          indicatorWeight: 2.0,                    // Slightly thicker for emphasis
+          tabs: [
+            Tab(
+              icon: Icon(Icons.bookmark, size: 18.sp),
+              text: AppLocalizations.of(context)?.bookmarks ?? 'Bookmarks',
+            ),
+            Tab(
+              icon: Icon(Icons.school, size: 18.sp),
+              text: AppLocalizations.of(context)?.lessons ?? 'Lessons',
+            ),
+            Tab(
+              icon: Icon(Icons.library_books, size: 18.sp),
+              text: AppLocalizations.of(context)?.readings ?? 'Readings',
+            ),
+          ],
+        ),
+      ),
+      /*/backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
         centerTitle: true,
         title: FittedBox(
@@ -170,22 +202,19 @@ class _SavedItemsPageState extends State<SavedItemsPage>
             ),
           ],
         ),
-      ),
+      ),*/
       body: TabBarView(
         controller: _tabController,
         children: [
           _BookmarksTab(
-            churchId: churchId,
             userId: userId,
             service: _service,
           ),
           _SavedLessonsTab(
-            churchId: churchId,
             userId: userId,
             service: _service,
           ),
           _FurtherReadingsTab(
-            churchId: churchId,
             userId: userId,
             service: _service,
           ),
@@ -197,12 +226,10 @@ class _SavedItemsPageState extends State<SavedItemsPage>
 
 // ──────────────── BOOKMARKS TAB ──────────────────
 class _BookmarksTab extends StatelessWidget {
-  final String churchId;
   final String userId;
   final SavedItemsService service;
 
   const _BookmarksTab({
-    required this.churchId,
     required this.userId,
     required this.service,
   });
@@ -373,12 +400,10 @@ class _BookmarkCard extends StatelessWidget {
 
 // ──────────────── SAVED LESSONS TAB ──────────────────
 class _SavedLessonsTab extends StatelessWidget {
-  final String churchId;
   final String userId;
   final SavedItemsService service;
 
   const _SavedLessonsTab({
-    required this.churchId,
     required this.userId,
     required this.service,
   });
@@ -443,7 +468,7 @@ class _SavedLessonsTab extends StatelessWidget {
 
                 final auth = context.read<AuthService>();
                 final fs = FirestoreService(churchId: auth.churchId);
-                final lessonDay = await fs.loadLesson(context, date!);
+                final lessonDay = await fs.loadLesson(context, date);
                 if (lessonDay == null) {
                   showTopToast(
                     context,
@@ -573,12 +598,10 @@ class _LessonCard extends StatelessWidget {
 
 // ──────────────── FURTHER READINGS TAB ──────────────────
 class _FurtherReadingsTab extends StatelessWidget {
-  final String churchId;
   final String userId;
   final SavedItemsService service;
 
   const _FurtherReadingsTab({
-    required this.churchId,
     required this.userId,
     required this.service,
   });

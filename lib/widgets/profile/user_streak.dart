@@ -2,9 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../UI/app_bar.dart';
 import '../../UI/app_colors.dart';
 import '../../l10n/app_localizations.dart';
-import '../../utils/media_query.dart';
 
 class StreakPage extends StatelessWidget {
   const StreakPage({super.key});
@@ -14,11 +14,17 @@ class StreakPage extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
     final uid = user?.uid;
 
-    final style = CalendarDayStyle.fromContainer(context, 50);
-
     if (uid == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(AppLocalizations.of(context)?.readingStreak ?? 'Reading Streak')),
+        appBar: AppAppBar(
+          title: AppLocalizations.of(context)?.readingStreak ?? 'Reading Streak',
+          showBack: true,
+        ),
+        /*appBar: AppBar(
+          title: Text(
+            AppLocalizations.of(context)?.readingStreak ?? 'Reading Streak',
+          ),
+        ),*/
         body: Center(child: Text(AppLocalizations.of(context)?.pleaseSignInStreak ?? 'Please sign in to view your streak.')),
       );
     }
@@ -26,7 +32,11 @@ class StreakPage extends StatelessWidget {
     final docRef = FirebaseFirestore.instance.collection('users').doc(uid);
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      appBar: AppAppBar(
+        title: AppLocalizations.of(context)?.readingStreak ?? "Reading Streak",
+        showBack: true,
+      ),
+      /*/backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
         centerTitle: true,
         title: FittedBox(
@@ -44,7 +54,7 @@ class StreakPage extends StatelessWidget {
           iconSize: style.monthFontSize.sp, // Consistent sizing
           onPressed: () => Navigator.pop(context),
         ),
-      ),
+      ),*/
       body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         stream: docRef.snapshots(),
         builder: (context, snapshot) {

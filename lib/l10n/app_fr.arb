@@ -9,7 +9,7 @@
   "noTeenLesson": "Aucune leçon pour les adolescents",
   "noAdultLesson": "Aucune leçon pour les adultes",
 
-  "sundaySchoolManual": "Manuel d'École du Dimanche",
+  "sundaySchoolManual": "RCCG - Manuel d'École du Dimanche",
   "accessWeeklyLessonsOffline": "Accédez à vos leçons bibliques hebdomadaires pour adolescents et adultes n'importe quand, n'importe où — même hors ligne !",
   "builtForRccg": "Conçu pour l'Église Chrétienne Rachetée de Dieu !",
   "getStarted": "Commencer",
@@ -65,7 +65,7 @@
   "deletionCancelledSnack": "Suppression du compte annulée ! Bienvenue à nouveau 🎉" ,
 
   "feedback": "Commentaires",
-  "rateAppOnGooglePlay": "Évaluer l'application sur Google Play",
+  "rateAppInStore": "Évaluer l’application sur l’App Store",
   "suggestAFeature": "Suggérer une fonctionnalité",
   "preferences": "Préférences",
 
@@ -117,8 +117,9 @@
   "biblePassage": "PASSAGE BIBLIQUE:",
   "guestUserLabel": "Utilisateur invité",
   "loading": "Chargement",
-  "answerWeeklyAssignment": "Répondre au devoir hebdomadaire",
+  "answerWeeklyAssignment": "Devoir hebdomadaire",
   "loginForAssignment": "Connectez-vous pour répondre au devoir",
+  "signinToSubmit": "Connectez-vous pour soumettre",
 
   "monday": "Lundi",
   "tuesday": "Mardi",
@@ -142,7 +143,7 @@
   "december": "Décembre",
 
   "switchedToGeneral": "Basculé vers les leçons générales (mondiales)",
-  "shareLesson": "Partager la leçon",
+  "shareLesson": "Partager leçon",
   "readingStreak": "Série de lecture",
   "memoryVerse": "Verset mémorisé:",
   "todaysReading": "Lecture du jour:",
@@ -427,7 +428,7 @@
   "@feedback": {
     "description": "En-tête de la section de commentaires"
   },
-  "@rateAppOnGooglePlay": {
+  "@rateAppInStore": {
     "description": "Élément de menu pour évaluer l'application"
   },
   "@suggestAFeature": {
@@ -936,7 +937,6 @@
   "teachers": "Professeurs",
   "appSuggestions": "Suggestions d'application",
   "adminTools": "Outils d'administration",
-  "colorPalette": "Palette de couleurs",
   "inviteYourFriends": "Inviter vos amis",
   "signOut": "Se déconnecter",
   "guestUser": "Utilisateur invité",

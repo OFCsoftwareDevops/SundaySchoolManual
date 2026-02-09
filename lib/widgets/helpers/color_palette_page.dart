@@ -1,6 +1,7 @@
 // lib/widgets/profile/color_palette_page.dart
 
 import 'package:flutter/material.dart';
+import '../../UI/app_bar.dart';
 import '../../UI/app_colors.dart';
 import '../../l10n/app_localizations.dart';
 import 'snackbar.dart';
@@ -11,10 +12,14 @@ class ColorPalettePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppAppBar(
+        title: AppLocalizations.of(context)?.colorPalette ?? "Color Palette",
+        showBack: true,
+      ),
+      /*appBar: AppBar(
         title: const Text("Color Palette"),
         backgroundColor: AppColors.primary,
-      ),
+      ),*/
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
