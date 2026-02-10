@@ -40,7 +40,7 @@ class AppAppBar extends StatelessWidget implements PreferredSizeWidget {
       leading: showBack
         ? IconButton(
             icon: const Icon(Icons.arrow_back),
-            color: resolvedActionColor,
+            //color: resolvedActionColor,
             iconSize: style.monthFontSize.sp,
             onPressed: onBack ?? () => Navigator.pop(context),
           )

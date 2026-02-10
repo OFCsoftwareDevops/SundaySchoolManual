@@ -41,82 +41,7 @@ class _SavedItemsPageState extends State<SavedItemsPage>
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     final theme = Theme.of(context);
-
-    /*/ If not logged in or no church, show a message
-    if (user == null || user.isAnonymous || !authService.hasChurch) {
-      return Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.background,
-        appBar: AppBar(
-          centerTitle: true,
-          title: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              AppLocalizations.of(context)?.savedItemsTitle ?? "Saved Items",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: style.monthFontSize.sp,
-              ),
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            iconSize: style.monthFontSize.sp,
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
-        body: Center(
-          child: Padding(
-            padding: EdgeInsets.all(24.sp),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.bookmark, size: 64.sp, color: Colors.grey),
-                SizedBox(height: 16.sp),
-                Text(
-                  AppLocalizations.of(context)?.signInToSaveFavorites ?? 'Sign in to save your favorites',
-                  style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 8.sp),
-                Text(
-                  AppLocalizations.of(context)?.bookmarksSyncMessage ?? 'Bookmarks, lessons, and readings will sync across your devices.',
-                  style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }*/
     final userId = user!.uid;
-
-    /*if (churchId == null) {
-      return Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.background,
-        appBar: AppBar(
-          centerTitle: true,
-          title: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              AppLocalizations.of(context)?.savedItemsTitle ?? "Saved Items",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: style.monthFontSize.sp,
-              ),
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            iconSize: style.monthFontSize.sp,
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
-        body: Center(
-          child: Text(AppLocalizations.of(context)?.noChurchSelected ?? 'No church selected'),
-        ),
-      );
-    }*/
 
     return Scaffold(
       appBar: AppAppBar(
@@ -125,11 +50,11 @@ class _SavedItemsPageState extends State<SavedItemsPage>
         bottom: TabBar(
           controller: _tabController,
           indicator: BoxDecoration(
-            color: theme.colorScheme.onSecondaryContainer, // selected background
+            color: theme.colorScheme.secondary, // selected background
           ),
           indicatorColor: theme.colorScheme.onSecondaryContainer,
-          labelColor: theme.colorScheme.secondaryContainer,
-          unselectedLabelColor: theme.colorScheme.onSecondaryContainer,
+          labelColor: theme.colorScheme.background,
+          unselectedLabelColor: theme.colorScheme.secondary,
           labelStyle: TextStyle(
             fontSize: 13.sp,        // Clear, readable tab labels
             fontWeight: FontWeight.w600,
@@ -155,54 +80,7 @@ class _SavedItemsPageState extends State<SavedItemsPage>
           ],
         ),
       ),
-      /*/backgroundColor: Theme.of(context).colorScheme.background,
-      appBar: AppBar(
-        centerTitle: true,
-        title: FittedBox(
-          fit: BoxFit.scaleDown, // Scales down text if it would overflow
-          child: Text(
-            AppLocalizations.of(context)?.savedItemsTitle ?? "Saved Items",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: style.monthFontSize.sp, // Matches your other screen's style
-            ),
-          ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          iconSize: style.monthFontSize.sp, // Consistent sizing
-          onPressed: () => Navigator.pop(context),
-        ),
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: Colors.white,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
-          labelStyle: TextStyle(
-            fontSize: 13.sp,        // Clear, readable tab labels
-            fontWeight: FontWeight.w600,
-          ),
-          unselectedLabelStyle: TextStyle(
-            fontSize: 13.sp,
-          ),
-          indicatorSize: TabBarIndicatorSize.tab, // Optional: makes indicator match full tab width
-          indicatorWeight: 2.0,                    // Slightly thicker for emphasis
-          tabs: [
-            Tab(
-              icon: Icon(Icons.bookmark, size: 18.sp),
-              text: AppLocalizations.of(context)?.bookmarks ?? 'Bookmarks',
-            ),
-            Tab(
-              icon: Icon(Icons.school, size: 18.sp),
-              text: AppLocalizations.of(context)?.lessons ?? 'Lessons',
-            ),
-            Tab(
-              icon: Icon(Icons.library_books, size: 18.sp),
-              text: AppLocalizations.of(context)?.readings ?? 'Readings',
-            ),
-          ],
-        ),
-      ),*/
+
       body: TabBarView(
         controller: _tabController,
         children: [

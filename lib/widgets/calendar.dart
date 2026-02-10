@@ -39,8 +39,6 @@ class _MonthCalendarState extends State<MonthCalendar> {
   }
 
   bool _hasIndicatorsInMonth(DateTime month) {
-    final monthStart = DateTime(month.year, month.month, 1);
-    final monthEnd = DateTime(month.year, month.month + 1, 0);
 
     // Check if any lesson or reading date falls in this month
     final lessonsInMonth = widget.datesWithLessons?.any((d) =>

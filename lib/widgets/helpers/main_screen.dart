@@ -1,6 +1,7 @@
 // NEW: Main screen with bottom navigation bar + banner ad (fixed layout)
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import '../../auth/login/auth_service.dart';
@@ -48,9 +49,17 @@ class MainScreenState extends State<MainScreen> {
     ];
   }
 
-  // Helper to pop to root of current tab
-  void _popToRootOfCurrentTab() {
-    _navigatorKeys[selectedIndex].currentState?.popUntil((route) => route.isFirst);
+  // Pop to root of a specific tab
+  void _popToRoot(int index) {
+    if (selectedIndex != index) {
+      setState(() => selectedIndex = index);
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _navigatorKeys[index]
+          .currentState
+          ?.popUntil((route) => route.isFirst);
+    });
   }
 
   // Resume last Bible position when switching to Bible tab
@@ -141,6 +150,8 @@ class MainScreenState extends State<MainScreen> {
   }
 
   Widget _buildBottomNavBar(BuildContext context) {
+    final loc = AppLocalizations.of(context);
+    
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
@@ -165,34 +176,70 @@ class MainScreenState extends State<MainScreen> {
         backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         onTap: (index) async {
+          if (index != selectedIndex) {
+            setState(() => selectedIndex = index);
+          }
           // Analytics
           switch (index) {
-            case 0: await AnalyticsService.logButtonClick('home_tab'); break;
-            case 1: await AnalyticsService.logButtonClick('bible_tab'); break;
-            case 2: await AnalyticsService.logButtonClick('profile_tab'); break;
-          }
-
-          if (index == selectedIndex) {
-            // Same tab → pop to root
-            _popToRootOfCurrentTab();
-          } else {
-            setState(() => selectedIndex = index);
-            // Reset stack on tab switch (except Bible to preserve resume)
-            if (index != 1) {
-              _navigatorKeys[index].currentState?.popUntil((route) => route.isFirst);
-            }
-          }
-
-          // Resume Bible position only when switching TO Bible tab
-          if (index == 1) {
-            await _resumeBiblePosition();
+            case 0: 
+              await AnalyticsService.logButtonClick('home_tab'); 
+              break;
+            case 1: 
+              await AnalyticsService.logButtonClick('bible_tab');
+              await _resumeBiblePosition();
+              break;
+            case 2: 
+              await AnalyticsService.logButtonClick('profile_tab'); 
+              break;
           }
         },
         items: [
-          BottomNavigationBarItem(icon: const Icon(Icons.home), label: AppLocalizations.of(context)?.navHome ?? "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.book), label: AppLocalizations.of(context)?.navBible ?? "Bible"),
-          BottomNavigationBarItem(icon: Icon(Icons.verified_user), label: AppLocalizations.of(context)?.navAccount ?? "Account"),
+          _navItem(
+            context: context,
+            icon: Icons.home,
+            label: loc?.navHome ?? "Home",
+            index: 0,
+            analyticsKey: 'home_tab',
+          ),
+          _navItem(
+            context: context,
+            icon: Icons.book,
+            label: loc?.navBible ?? "Bible",
+            index: 1,
+            analyticsKey: 'bible_tab',
+          ),
+          _navItem(
+            context: context,
+            icon: Icons.verified_user,
+            label: loc?.navAccount ?? "Account",
+            index: 2,
+            analyticsKey: 'profile_tab',
+          ),
         ],
+      ),
+    );
+  }
+
+  BottomNavigationBarItem _navItem({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required int index,
+    required String analyticsKey,
+  }) {
+    return BottomNavigationBarItem(
+      label: label,
+      icon: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onLongPress: () {
+          HapticFeedback.mediumImpact();
+          AnalyticsService.logButtonClick('${analyticsKey}_long_press_reset');
+          _popToRoot(index);
+        },
+        child: SizedBox(
+          width: double.infinity,
+          child: Icon(icon),
+        ),
       ),
     );
   }

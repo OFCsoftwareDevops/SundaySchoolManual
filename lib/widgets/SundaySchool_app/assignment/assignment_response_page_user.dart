@@ -334,24 +334,6 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
         title: AppLocalizations.of(context)?.myAssignment ?? "My Assignment",
         showBack: true,
       ),
-      /*appBar: AppBar(
-        centerTitle: true,
-        title: FittedBox(
-          fit: BoxFit.scaleDown, // Scales down text if it would overflow
-          child: Text(
-            "My Assignment",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: style.monthFontSize.sp, // Matches your other screen's style
-            ),
-          ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          iconSize: style.monthFontSize.sp, // Consistent sizing
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),*/
       body: _isLoading
           ? const Center(child: LinearProgressBar())
           : Container(

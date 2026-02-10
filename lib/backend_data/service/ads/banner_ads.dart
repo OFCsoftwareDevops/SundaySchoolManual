@@ -31,8 +31,8 @@ class _BannerAdWidgetState extends ConsumerState<BannerAdWidget> {
 
   void _loadAd() {
     final adUnitId = Platform.isAndroid
-        ? 'ca-app-pub-3940256099942544/6300978111'
-        : 'ca-app-pub-3940256099942544/2934735716';
+        ? 'ca-app-pub-9863376634060421/6609219843' // Real ads ID
+        : 'ca-app-pub-3940256099942544/2934735716'; // Test ads ID
 
     _bannerAd = BannerAd(
       adUnitId: adUnitId,

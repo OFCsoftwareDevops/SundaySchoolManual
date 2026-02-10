@@ -250,7 +250,8 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver{
     setState(() => preloadProgress = 1);
 
     // Step 2: preload returns submitted-date sets (adult/teen)
-    final preloadResult = await context.read<FirestoreService>().preload(context, loadAll: false);
+    //final preloadResult = await context.read<FirestoreService>().preload(context, loadAll: false);
+    await context.read<FirestoreService>().preload(context, loadAll: false);
     setState(() => preloadProgress = 2);
 
     final service = context.read<FirestoreService>();

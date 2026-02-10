@@ -100,43 +100,6 @@ class BiblePage extends StatelessWidget {
               ),
             ],
           ),
-          /*appBar: AppBar(
-            title: Text(
-              AppLocalizations.of(context)?.navBible ?? "Holy Bible",
-              style: theme.appBarTheme.titleTextStyle?.copyWith(
-                fontSize: style.monthFontSize.sp,
-                fontWeight: FontWeight.bold),
-            ),
-            centerTitle: true,
-            actions: [
-              Padding(
-                padding: EdgeInsets.only(right: 10.sp),
-                child: Center(
-                  child: manager.isLoading
-                    ? const CircularProgressIndicator()
-                    : DropdownButton<String>(
-                      value: manager.currentVersion,
-                      dropdownColor: theme.colorScheme.onSecondaryContainer,
-                      icon: Icon(
-                        Icons.keyboard_arrow_down, 
-                        color: theme.colorScheme.onPrimary,
-                        size: style.monthFontSize.sp,
-                      ),
-                      //underline: const SizedBox(),
-                      style: TextStyle(
-                        color: theme.colorScheme.onPrimary, 
-                        fontSize: style.monthFontSize.sp * 0.5,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      items: manager.availableVersions
-                        .map((v) => DropdownMenuItem(value: v['code'], child: Text(v['name']!)))
-                        .toList(),
-                      onChanged: (v) => v != null ? manager.changeVersion(v) : null,
-                    ),
-                ),
-              ),
-            ],
-          ),*/
           body: ListView(
             padding: EdgeInsets.fromLTRB(16.sp, 0, 16.sp, 16.sp),
             children: [
@@ -309,62 +272,6 @@ class BookReader extends StatelessWidget {
           ),
         ],
       ),
-      /*appBar: AppBar(
-        centerTitle: true,
-        title: FittedBox(
-          fit: BoxFit.scaleDown,  // Or fitWidth to fill width
-          child: Text(
-            BibleVersionManager.getTranslatedBookName(book['name'] as String, AppLocalizations.of(context)),
-            style: TextStyle(fontSize: style.monthFontSize.sp)  // Your desired base size
-          ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          iconSize: style.monthFontSize.sp,
-          onPressed: () {
-            // Save position BEFORE popping
-            LastPositionManager.save(
-              screen: 'bible_page', // back to main Bible grid
-            );
-            Navigator.pop(context);
-          },
-        ),
-        actions: [
-          Padding(
-            padding: EdgeInsets.only(right: 12.sp),
-            child: Center(
-              child: Consumer<BibleVersionManager>(
-                builder: (context, manager, child) {
-                  return manager.isLoading
-                      ? const CircularProgressIndicator()
-                      : DropdownButton<String>(
-                          value: manager.currentVersion,
-                          dropdownColor: theme.colorScheme.onSecondaryContainer,
-                          icon: Icon(
-                            Icons.keyboard_arrow_down, 
-                            color: theme.colorScheme.onPrimary,
-                            size: style.monthFontSize.sp,
-                          ),
-                          //underline: const SizedBox(),
-                          style: TextStyle(
-                            color: theme.colorScheme.onPrimary, 
-                            fontWeight: FontWeight.bold,
-                            fontSize: style.monthFontSize.sp  * 0.5,
-                          ),
-                          items: manager.availableVersions
-                              .map((v) => DropdownMenuItem(
-                                    value: v['code'],
-                                    child: Text(v['name']!),
-                                  ))
-                              .toList(),
-                          onChanged: (v) => v != null ? manager.changeVersion(v) : null,
-                        );
-                },
-              ),
-            ),
-          ),
-        ],
-      ),*/
 
       body: GridView.builder(
         padding: EdgeInsets.symmetric(
@@ -567,80 +474,6 @@ class _ChapterReaderState extends State<ChapterReader> {
               ),
             ],
           ),
-          //backgroundColor: Theme.of(context).colorScheme.background,
-          /*appBar: AppBar(
-            centerTitle: true,
-            title: FittedBox(
-              fit: BoxFit.scaleDown,  // Or fitWidth to fill width
-              child: Text(
-                "${BibleVersionManager.getTranslatedBookName(widget.bookName, AppLocalizations.of(context))} ${widget.chapterNum}",
-                style: TextStyle(
-                  fontSize: fontstyle.monthFontSize.sp)  // Your desired base size
-              ),
-            ),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              iconSize: fontstyle.monthFontSize.sp,
-              onPressed: () {
-                // Save position BEFORE popping
-                LastPositionManager.save(
-                  screen: 'book_grid',
-                  bookName: widget.bookName,
-                  chapter: widget.chapterNum,
-                );
-                Navigator.pop(context);
-              },
-            ),
-            actions: [
-              if (_selectedVerses.isNotEmpty)
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  iconSize: fontstyle.monthFontSize.sp,
-                  onPressed: () => setState(() => _selectedVerses.clear()),
-                ),
-              // ← VERSION SWITCHER (this was missing)
-              Padding(
-                padding: EdgeInsets.only(right: 12.sp),
-                child: Center(
-                  child: Consumer<BibleVersionManager>(
-                    builder: (context, manager, child) {
-                      return manager.isLoading
-                          ? SizedBox(
-                              width: 24.sp,
-                              height: 24.sp,
-                              child: CircularProgressIndicator(),
-                            )
-                          : DropdownButton<String>(
-                              value: manager.currentVersion,
-                              dropdownColor: colorScheme.onSecondaryContainer,
-                              icon: Icon(
-                                Icons.keyboard_arrow_down, 
-                                color: colorScheme.onPrimary,
-                                size: fontstyle.monthFontSize.sp,
-                              ),
-                              style: TextStyle(
-                                color: colorScheme.onPrimary, 
-                                fontWeight: FontWeight.bold,
-                                fontSize: fontstyle.monthFontSize.sp * 0.5,
-                              ),
-                              items: manager.availableVersions
-                                  .map((v) => DropdownMenuItem(
-                                        value: v['code'],
-                                        child: Text(v['name']!),
-                                      ))
-                                  .toList(),
-                              onChanged: (newVersion) {
-                                if (newVersion != null) {
-                                  manager.changeVersion(newVersion);
-                                }
-                              },
-                            );
-                    },
-                  ),
-                ),
-              ),
-            ],
-          ),*/
           body: Stack(
             children: [
               ListView.builder(

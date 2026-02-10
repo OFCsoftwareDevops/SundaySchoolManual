@@ -124,14 +124,6 @@ void showFurtherReadingDialog({
                 final user = FirebaseAuth.instance.currentUser;
                 await StreakService().updateReadingStreak(user!.uid);
 
-                /*if (currentUser == null) {
-                  try {
-                    await StreakService().updateReadingStreak(currentUser!.uid);
-                  } catch (e) {
-                    // ignore streak update errors for now
-                  }
-                }*/
-
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (_) => MainScreen()),
                 ); // close the dialog

@@ -18,7 +18,6 @@ import '../bible_app/bible_actions/highlight_manager.dart';
 import '../bible_app/bible_ref_verse_popup.dart';
 import '../helpers/snackbar.dart';
 import 'lesson_share.dart';
-import '../helpers/main_screen.dart';
 import 'assignment/assignment_response_page_user.dart';
 import 'lesson_bible_ref_parser.dart';
 import '../../auth/login/auth_service.dart';
@@ -551,7 +550,6 @@ class BeautifulLessonPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = CalendarDayStyle.fromContainer(context, 50);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
@@ -572,60 +570,8 @@ class BeautifulLessonPage extends StatelessWidget {
             preview: data.blocks.isNotEmpty ? (data.blocks.first.text ?? '') : '',
           ),
         ],
-        /*actions: [
-          Padding(
-            padding: EdgeInsets.only(right: 10.sp),
-            child: Center(
-              child: manager.isLoading
-                ? const CircularProgressIndicator()
-                : DropdownButton<String>(
-                  value: manager.currentVersion,
-                  dropdownColor: theme.colorScheme.onSecondaryContainer,
-                  icon: Icon(
-                    Icons.keyboard_arrow_down, 
-                    color: theme.colorScheme.onSecondaryContainer,
-                    size: style.monthFontSize.sp,
-                  ),
-                  //underline: const SizedBox(),
-                  style: TextStyle(
-                    fontSize: style.monthFontSize.sp * 0.5,
-                    color: theme.colorScheme.onSecondaryContainer,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  items: manager.availableVersions
-                    .map((v) => DropdownMenuItem(value: v['code'], child: Text(v['name']!)))
-                    .toList(),
-                  onChanged: (v) => v != null ? manager.changeVersion(v) : null,
-                ),
-            ),
-          ),
-        ],*/
+
       ),
-      //backgroundColor: Theme.of(context).colorScheme.background,
-      /*appBar: AppBar(
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios),
-          iconSize: style.monthFontSize.sp, 
-          color: theme.colorScheme.onPrimary,
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          title, 
-          style: theme.appBarTheme.titleTextStyle?.copyWith(
-            fontSize: style.monthFontSize.sp,
-            fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          // Smart Save Lesson Button
-          _SmartSaveLessonButton(
-            lessonDate: lessonDate,
-            title: title,
-            isTeen: isTeen,
-            preview: data.blocks.isNotEmpty ? (data.blocks.first.text ?? '') : '',
-          ),
-        ],
-      ),*/
 
       floatingActionButton: SizedBox(
         width: 160.sp,
@@ -700,13 +646,10 @@ class BeautifulLessonPage extends StatelessWidget {
                 child: AssignmentWidgetButton(
                   context: context,
                   text: AppLocalizations.of(context)?.answerWeeklyAssignment ?? "Weekly Assignment",
-                  /*text: user != null && !user.isAnonymous
-                      ? AppLocalizations.of(context)?.answerWeeklyAssignment ?? "Weekly Assignment"
-                      : AppLocalizations.of(context)?.loginForAssignment ?? "Login For Assignment",*/
                   icon: Icon(
                     user != null && !user.isAnonymous ? Icons.edit_note_rounded : Icons.login,
                   ),
-                  topColor: AppColors.primaryContainer,
+                  topColor: !user!.isAnonymous ? AppColors.primaryContainer : AppColors.grey600,
                   onPressed: () async {
                     await AnalyticsService.logButtonClick('assignment_attempt_from_lesson_preview');
                     Navigator.push(
@@ -718,25 +661,6 @@ class BeautifulLessonPage extends StatelessWidget {
                         ),
                       ),
                     );
-                    /*if (user != null && !user.isAnonymous) {
-                      // Normal logged-in user → go to assignment
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => AssignmentResponsePage(
-                            date: lessonDate,
-                            isTeen: title.contains("Teen") || title.contains("teen"),
-                          ),
-                        ),
-                      );
-                    } else {
-                      await FirebaseAuth.instance.signOut();
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(builder: (_) => MainScreen()),
-                          (route) => false,
-                        );
-                    }*/
                   },
                 ),
               ),
@@ -882,55 +806,6 @@ class _SmartSaveLessonButtonState extends State<_SmartSaveLessonButton> {
       );
     }
   }
-
-  /*Future<void> _toggleSave() async {
-    final user = FirebaseAuth.instance.currentUser;
-    final auth = context.read<AuthService>();
-
-    if (user == null || auth.churchId == null) {
-      showTopToast(
-        context,
-        AppLocalizations.of(context)?.saveLessonPrompt ?? 'Sign in and join a church to save lessons',
-      );
-      return;
-    }
-
-    final service = SavedItemsService();
-    final lessonId = '${widget.lessonDate.year}-${widget.lessonDate.month}-${widget.lessonDate.day}';
-    final lessonType = widget.isTeen ? 'teen' : 'adult';
-
-    try {
-      if (_isSaved) {
-        // REMOVE
-        await service.removeSavedLessonById(user.uid, lessonId);
-        setState(() => _isSaved = false);
-        showTopToast(
-          context,
-          AppLocalizations.of(context)?.lessonRemovedFromSaved ?? 'Lesson removed from saved',
-        );
-      } else {
-        // ADD
-        await service.saveLessonFromDate(
-          user.uid,
-          lessonId: lessonId,
-          lessonType: lessonType,
-          title: widget.title,
-          preview: widget.preview,
-          // note: null,   ← you can add note support later if wanted
-        );
-        setState(() => _isSaved = true);
-        showTopToast(
-          context,
-          AppLocalizations.of(context)?.lessonSaved ?? 'Lesson saved! 📚',
-        );
-      }
-    } catch (e) {
-      showTopToast(
-        context,
-        AppLocalizations.of(context)?.operationFailed ?? 'Operation failed: $e',
-      );
-    }
-  }*/
 
   @override
   Widget build(BuildContext context) {
