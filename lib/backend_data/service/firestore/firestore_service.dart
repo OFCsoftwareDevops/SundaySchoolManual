@@ -574,6 +574,7 @@ class FirestoreService {
     required String userEmail,
     required String churchId,
     required List<String> responses,
+    
   }) async {
     final dateStr = formatDateId(date);
     //final batch = FirebaseFirestore.instance.batch();
