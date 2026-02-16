@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:rccg_sunday_school/UI/app_colors.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../../UI/app_sound.dart';
 import '../../../utils/device_check.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../helpers/snackbar.dart';
@@ -35,7 +36,6 @@ class VerseActionSheet extends StatefulWidget {
 }
 
 class _VerseActionSheetState extends State<VerseActionSheet> {
-  //bool _showColorPicker = false;
   bool _isBookmarked = false;
   bool _isCheckingBookmark = true;
 
@@ -170,64 +170,6 @@ class _VerseActionSheetState extends State<VerseActionSheet> {
       );
     }
   }
-
-  /*Future<void> _toggleBookmark() async {
-    final user = FirebaseAuth.instance.currentUser;
-    final auth = Provider.of<AuthService>(context, listen: false);
-
-    if (user == null || auth.churchId == null) {
-      showTopToast(
-        context,
-        AppLocalizations.of(context)?.signInAndJoinToBookmarks ?? "Sign in and join a church to save bookmarks",
-      );
-      return;
-    }
-
-    final service = SavedItemsService();
-    // Same refId logic
-    final sorted = List<int>.from(widget.verses)..sort();
-    final refId = '${widget.bookName.toLowerCase().replaceAll(' ', '_')}_${widget.chapter}_${sorted.join('-')}';
-    final reference = sorted.length == 1
-        ? "${widget.bookName} ${widget.chapter}:${sorted.first}"
-        : "${widget.bookName} ${widget.chapter}:${sorted.first}–${sorted.last}";
-
-    final fullText = sorted.map((v) => "$v ${widget.versesText[v]}").join("\n");
-
-    try {
-      if (_isBookmarked) {
-        // REMOVE
-        await service.removeBookmarkByRefId(user.uid, refId);
-        setState(() => _isBookmarked = false);
-        showTopToast(
-          context,
-          AppLocalizations.of(context)?.bookmarkRemoved ?? "Bookmark removed",
-        );
-      } else {
-        // ADD
-        await service.addBookmark(
-          user.uid,
-          refId: refId,
-          title: reference,
-          text: fullText,
-          // note: null,   ← you can also let user add note later
-        );
-        setState(() => _isBookmarked = true);
-        showTopToast(
-          context,
-          "${AppLocalizations.of(context)?.bookmarked ?? "Bookmarked"} ⭐",
-          duration: const Duration(seconds: 2),
-        );
-      }
-    } catch (e) {
-      showTopToast(
-        context,
-        AppLocalizations.of(context)?.operationFailed ?? "Operation failed",
-        backgroundColor: AppColors.error,
-        textColor: AppColors.onError,
-        duration: const Duration(seconds: 5),
-      );
-    }
-  }*/
 
   Future<void> _applyHighlight(Color color) async {
     final manager = Provider.of<HighlightManager>(context, listen: false);
@@ -434,6 +376,7 @@ class _Action extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(16.sp),
       onTap: onTap,
+      enableFeedback: AppSounds.soundEnabled,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

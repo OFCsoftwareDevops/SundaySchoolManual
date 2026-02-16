@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import '../../../widgets/profile/user_choice.dart';
 import '../../database/lesson_data.dart';
 import '../hive/hive_service.dart';
 
@@ -12,22 +12,9 @@ class FirestoreService {
   /// Pass the current church ID when creating the service
   FirestoreService({this.churchId});
 
-  String _getCurrentLang(BuildContext? context) {
-    if (context == null) {
-      // During preload: use saved language from Hive (or English)
-      final box = Hive.box('settings');
-      final saved = box.get('preferred_language') as String?;
-      return ['en', 'fr', 'yo'].contains(saved) ? saved! : 'en';
-    }
-
-    // Normal usage → use real context language
-    final code = Localizations.localeOf(context).languageCode;
-    // Fallback to English if language is not supported
-    return ['en', 'fr', 'yo'].contains(code) ? code : 'en';
-  }
-
+  // ── LOAD ──
   CollectionReference _globalSubcollection(BuildContext context, String name) {
-    final lang = _getCurrentLang(context);
+    final lang = getCurrentLang(context);
     return FirebaseFirestore.instance
         .collection('global_content')
         .doc(lang)
@@ -84,51 +71,64 @@ class FirestoreService {
   /// FOR PRELOAD ALL (called in main.dart) ──────────────────────────────────────────
   Future<void> preload(BuildContext context, {bool loadAll = false}) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return; // No user → skip
-
-    final userId = user.uid;
-
-    if (loadAll) {
-      // Fallback to original full load
-      await Future.wait([
-        getAllLessonDates(),
-        getAllAssignmentDates(),
-        getFurtherReadingsWithText(context), // Now supports full via no specificSundays
-        getloadUserResponses(null, userId, "adult"),
-        getloadUserResponses(null, userId, "teen"),
-      ]);
+    if (user == null) {
+      if (kDebugMode) {
+        debugPrint("Preload skipped: no user");
+      }
       return;
     }
 
-    // Dynamic: Prefetch current week + next 2 weeks
-    final now = DateTime.now();
-    final currentSunday = getCurrentWeekSunday(now);
-    final prefetchEnd = getPrefetchEnd(currentSunday);
-    final lessonDates = await getAllLessonDates();
-    final assignmentDates = await getAllAssignmentDates();
-
-    // Lessons & Assignments: Loop over ~21 days, fetch if available
-    for (DateTime d = currentSunday; !d.isAfter(prefetchEnd); d = d.add(const Duration(days: 1))) {
-      final normalizedD = DateTime(d.year, d.month, d.day);
-      if (lessonDates.contains(normalizedD)) {
-        await loadLesson(context, normalizedD); // Will cache if fetched
+    if (churchId == null || churchId!.isEmpty) {
+      if (kDebugMode) {
+        debugPrint("Preload skipped: no church selected yet");
       }
-      if (assignmentDates.contains(normalizedD)) {
-        await loadAssignment(context, normalizedD);
-      }
+      return;
     }
 
-    // Further Readings: Only the 3 Sundays
-    final prefetchSundays = _getPrefetchSundays(now);
-    for (final sunday in prefetchSundays) {
-      await _loadFurtherReadingWeek(context, sunday);
-    }
+    final userId = user.uid;
+    final ageGroup = getCurrentAgeGroup();       // only current group
+    final type = ageGroupToFirestoreField(ageGroup); // 'teen' or 'adult'
 
-    // User responses: Keep full preload (sparse, user-specific)
-    await Future.wait([
-      getloadUserResponses(null, userId, "adult"),
-      getloadUserResponses(null, userId, "teen"),
-    ]);
+    try {
+      // Always fetch/cache dates first (lessons + assignments)
+      await getAllLessonDates();       // ← caches automatically
+      await getAllAssignmentDates();   // ← caches automatically
+
+      if (loadAll) {
+        // Full load mode (all dates, no window limit)
+        await Future.wait([
+          getFurtherReadingsWithText(context),
+          getloadUserResponses(null, userId, type),
+        ]);
+        // For lessons/assignments: use prefetch but override canFetchDate to true for all
+        await prefetchAllPastAndNearFuture(context);
+        return;
+      }
+
+      // Normal: Past + near future
+      await prefetchAllPastAndNearFuture(context);
+
+      // Further readings (your existing)
+      final prefetchSundays = _getPrefetchSundays(DateTime.now());
+      for (final sunday in prefetchSundays) {
+        await _loadFurtherReadingWeek(context, sunday);
+      }
+
+      // User responses (background to avoid blocking)
+      Future.microtask(() async {
+        try {
+          await Future.wait([
+            getloadUserResponses(null, userId, type),
+            //getloadUserResponses(null, userId, "teen"),
+          ]);
+        } catch (e) {
+          debugPrint("User responses preload failed: $e");
+        }
+      });
+
+    } catch (e) {
+      debugPrint("Preload error (continuing): $e");
+    }
   }
 
   // ←←←←← PUBLIC STREAM (this is what home.dart will use)
@@ -142,99 +142,74 @@ class FirestoreService {
   String formatDateId(DateTime date) =>
     "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
 
+  int _safeInt(Map<String, dynamic>? data, String key) {
+    return (data?[key] as int?) ?? 0;
+  }
+  /// Returns the summary document reference for a given date + type
+  DocumentReference _getSummaryRef(DateTime date, String type) {
+    final dateStr = formatDateId(date);
+    return submissionSummariesCollection.doc('${type}_$dateStr');
+  }
+
   // ──────────────────────────────────────────────
   //  New prefetch logic — called once per app start
   // ──────────────────────────────────────────────
-
-  /*// Returns true if we already have at least one cached lesson
-  bool _hasAnyCachedLessons() {
-    return HiveBoxes.lessons.keys.any(
-      (key) => key is String && key.startsWith('lesson_'),
-    );
-  }
-
-  /// Returns list of dates in range [start, end] that exist in Firestore
-  /// but are NOT yet cached locally
-  Future<List<DateTime>> _getMissingDatesInRange({
-    required DateTime start,
-    required DateTime end,
-  }) async {
-    final allKnown = await getAllLessonDates();
-
-    final cachedIds = HiveBoxes.lessons.keys
-        .whereType<String>()
-        .where((k) => k.startsWith('lesson_'))
-        .map((k) => k.replaceFirst('lesson_', ''))
-        .toSet();
-
-    return allKnown.where((d) {
-      if (d.isBefore(start) || d.isAfter(end)) return false;
-      final id = formatDateId(d);
-      return !cachedIds.contains(id);
-    }).toList();
-  }*/
-
   /// Quietly prefetch (load & cache) the given dates
   Future<void> _prefetchDates(BuildContext context, List<DateTime> dates) async {
-    if (dates.isEmpty) return;
 
     // Load in parallel, but don't crash whole app if one fails
     await Future.wait(
-      dates.map((date) => loadLesson(context, date)),
+      dates.map((date) => loadLesson(context, date).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          if (kDebugMode) {
+            debugPrint("Prefetch timeout for lesson ${formatDateId(date)}");
+          }
+          return null;
+        },
+      )),
       eagerError: false,
     );
   }
 
   /// Main entry point — call this once when app starts
-  Future<void> prefetchAllPastAndNearFuture(BuildContext context) async {
-    //final now = DateTime.now();
-    //final currentSunday = getCurrentWeekSunday(now);
-    //final prefetchEnd = getPrefetchEnd(currentSunday);
+  Future<void> prefetchAllPastAndNearFuture(BuildContext context, {bool ignoreWindow = false}) async {
 
     // Always prefetch missing lessons in allowed range (past + near future)
     final allKnownLessons = await getAllLessonDates();
+    final ageGroup = getCurrentAgeGroup();        // only current group
+    final type = ageGroupToFirestoreField(ageGroup); // 'teen' or 'adult'
+
     final missingLessons = allKnownLessons.where((d) {
       final nd = DateTime(d.year, d.month, d.day);
-      if (!canFetchDate(nd)) return false;
+      if (!ignoreWindow && !canFetchDate(nd)) return false;
+      final lang = getCurrentLang(context);
       final id = formatDateId(nd);
-      return !HiveBoxes.lessons.containsKey('lesson_$id');
+      final lessonCacheKey = 'lesson_${lang}_${type}_$id';
+      final isMissing = !HiveBoxes.lessons.containsKey(lessonCacheKey);
+      if (isMissing) debugPrint("Missing in window: $id");
+      return isMissing;
     }).toList();
 
     if (missingLessons.isNotEmpty) {
       await _prefetchDates(context, missingLessons);
+    } else {
     }
 
     // Same for assignments (if you use them)
     final allKnownAssignments = await getAllAssignmentDates();
     final missingAssignments = allKnownAssignments.where((d) {
       final nd = DateTime(d.year, d.month, d.day);
-      if (!canFetchDate(nd)) return false;
+      if (!ignoreWindow && !canFetchDate(nd)) return false;
+      final lang = getCurrentLang(context);
       final id = formatDateId(nd);
-      return !HiveBoxes.assignments.containsKey('assignment_$id');
+      final assignmentCacheKey = 'assignment_${lang}_${type}_$id';
+      return !HiveBoxes.assignments.containsKey(assignmentCacheKey);
     }).toList();
 
     if (missingAssignments.isNotEmpty) {
       await Future.wait(missingAssignments.map((d) => loadAssignment(context, d)));
     }
-
-    /*if (_hasAnyCachedLessons()) {
-      // Normal open: only prefetch newly allowed future weeks
-      final missing = await _getMissingDatesInRange(
-        start: currentSunday,
-        end: prefetchEnd,
-      );
-      await _prefetchDates(context, missing);
-    } else {
-      // First time ever: load ALL past + current + next 2 weeks
-      final allKnown = await getAllLessonDates();
-
-      final toLoad = allKnown.where((d) {
-        final nd = DateTime(d.year, d.month, d.day);
-        return canFetchDate(nd); // ← must allow ALL past dates
-      }).toList();
-
-      await _prefetchDates(context, toLoad);
-    }*/
 
     // Also refresh further readings (they follow similar weekly pattern)
     await getFurtherReadingsWithText(context);
@@ -285,12 +260,18 @@ class FirestoreService {
   Set<DateTime> getCachedLessonDates() {
     final keys = HiveBoxes.lessons.keys;
     final dates = <DateTime>{};
+    final ageGroup = getCurrentAgeGroup();
+    final currentType = ageGroupToFirestoreField(ageGroup);
+
     for (final key in keys) {
       if (key is String && key.startsWith('lesson_')) {
-        final id = key.replaceFirst('lesson_', '');
-        final date = _parseDateFromId(id);
-        if (date != null) {
-          dates.add(DateTime(date.year, date.month, date.day));
+        // Only count keys for current group
+        if (key.contains('_${currentType}_')) {
+          final id = key.replaceFirst(RegExp(r'^lesson_[a-z]{2}_'), '');
+          final date = _parseDateFromId(id);
+          if (date != null) {
+            dates.add(DateTime(date.year, date.month, date.day));
+          }
         }
       }
     }
@@ -320,16 +301,23 @@ class FirestoreService {
   }) async {
     final String id = formatDateId(date);
 
+    // Get current selection — this is the key change
+    final ageGroup = getCurrentAgeGroup();
+    final field = ageGroupToFirestoreField(ageGroup); // 'teen' or 'adult'
+
     try {
       DocumentSnapshot doc;
 
-      // 1. Try church-specific first (if church selected)
+      // 1. Try church-specific first
       if (churchId != null && churchId!.isNotEmpty) {
         doc = await churchColl.doc(id).get();
         if (doc.exists) {
-          final data = doc.data();
+          final data = doc.data() as Map<String, dynamic>?;
           if (data != null) {
-            return _parseLessonData(data, date);
+            final groupData = data[field] as Map<String, dynamic>?;
+            if (groupData != null) {
+              return _parseLessonData(groupData, date, ageGroup);
+            }
           }
         }
       }
@@ -338,10 +326,17 @@ class FirestoreService {
       doc = await globalColl(context).doc(id).get();
       if (!doc.exists) return null;
 
-      final data = doc.data();
+      final data = doc.data() as Map<String, dynamic>?;
       if (data == null) return null;
 
-      return _parseLessonData(data, date);
+      final groupData = data[field] as Map<String, dynamic>?;
+      if (groupData == null) {
+        debugPrint("No $field content found for global $id");
+        return null;
+      }
+
+      return _parseLessonData(groupData, date, ageGroup);
+
     } catch (e) {
       if (kDebugMode) {
         debugPrint("Error loading day $id: $e");
@@ -350,50 +345,45 @@ class FirestoreService {
     }
   }
 
-  LessonDay _parseLessonData(Object? rawData, DateTime date) {
-    final Map<String, dynamic> data = 
-        rawData is Map ? Map<String, dynamic>.from(rawData) : <String, dynamic>{};
+  LessonDay _parseLessonData(
+    Map<String, dynamic> groupData,
+    DateTime date,
+    AgeGroup ageGroup,
+  ) {
+    SectionNotes? notes;
 
-    SectionNotes? teenNotes;
-    SectionNotes? adultNotes;
-
-    final teenRaw = data['teen'] ?? data['teenNotes'];
-    if (teenRaw is Map<String, dynamic>) {
-      teenNotes = SectionNotes.fromMap(teenRaw);
+    // The incoming data is already the teen or adult map
+    final raw = groupData['teenNotes'] ?? groupData['adultNotes'] ?? groupData;
+    if (raw is Map<String, dynamic>) {
+      notes = SectionNotes.fromMap(raw);
     }
 
-    final adultRaw = data['adult'] ?? data['adultNotes'];
-    if (adultRaw is Map<String, dynamic>) {
-      adultNotes = SectionNotes.fromMap(adultRaw);
-    }
-
+    // Assign to the correct field in LessonDay
     return LessonDay(
       date: date,
-      teenNotes: teenNotes,
-      adultNotes: adultNotes,
+      teenNotes: ageGroup == AgeGroup.teen ? notes : null,
+      adultNotes: ageGroup == AgeGroup.adult ? notes : null,
     );
   }
 
   // ── LOAD LESSONS & ASSIGNMENTS ──
   Future<LessonDay?> loadLesson(BuildContext context, DateTime date) async {
+    final lang = getCurrentLang(context);
+    final ageGroup = getCurrentAgeGroup();
+    final type = ageGroupToFirestoreField(ageGroup);
     final id = formatDateId(date);
-    final cacheKey = 'lesson_$id';
+    final lessonCacheKey = 'lesson_${lang}_${type}_$id';
     final normalizedDate = DateTime(date.year, date.month, date.day);
 
     // 1. Try cache first
-    final cached = HiveBoxes.lessons.get(cacheKey);
+    var cached = HiveBoxes.lessons.get(lessonCacheKey);
     if (cached != null) return cached;
 
-    // 2. Skip fetch if outside current prefetch window (no on-demand)
     // 2. Skip fetch if not allowed (change to canFetchDate to allow past)
     if (!canFetchDate(normalizedDate)) {
       if (kDebugMode) debugPrint("Skipping lesson fetch for date outside window: $normalizedDate");
       return null; // UI can show "not available"
     }
-    /*if (!isInPrefetchWindow(normalizedDate)) {
-      if (kDebugMode) debugPrint("Skipping lesson fetch for date outside window: $normalizedDate");
-      return null; // UI can show "not available"
-    }*/
 
     // 3. Load from Firestore (your existing logic)
     final lesson = await _loadDay(
@@ -405,19 +395,22 @@ class FirestoreService {
 
     // 4. Cache it
     if (lesson != null) {
-      await HiveBoxes.lessons.put(cacheKey, lesson);
+      await HiveBoxes.lessons.put(lessonCacheKey, lesson);
     }
 
     return lesson;
   }
 
   Future<LessonDay?> loadAssignment(BuildContext context, DateTime date) async {
+    final lang = getCurrentLang(context);
+    final ageGroup = getCurrentAgeGroup();
+    final type = ageGroupToFirestoreField(ageGroup);
     final id = formatDateId(date);
-    final cacheKey = 'assignment_$id';
+    final assignmentCacheKey = 'assignment_${lang}_${type}_$id';
     final normalizedDate = DateTime(date.year, date.month, date.day);
 
     // 1. Try cache first
-    final cached = HiveBoxes.assignments.get(cacheKey);
+    var cached = HiveBoxes.assignments.get(assignmentCacheKey);
     if (cached != null) return cached;
 
     // 2. Skip fetch if outside current prefetch window (no on-demand)
@@ -425,10 +418,6 @@ class FirestoreService {
       if (kDebugMode) debugPrint("Skipping assignment fetch for date outside window: $normalizedDate");
       return null; // UI can show "not available"
     }
-    /*if (!isInPrefetchWindow(normalizedDate)) {
-      if (kDebugMode) debugPrint("Skipping assignment fetch for date outside window: $normalizedDate");
-      return null; // UI can show "not available"
-    }*/
 
     // 3. Load from Firestore (your existing logic)
     final assignment = await _loadDay(
@@ -440,7 +429,7 @@ class FirestoreService {
 
     // 4. Cache it
     if (assignment != null) {
-      await HiveBoxes.assignments.put(cacheKey, assignment);
+      await HiveBoxes.assignments.put(assignmentCacheKey, assignment);
     }
 
     return assignment;
@@ -479,37 +468,88 @@ class FirestoreService {
   }
 
   // ── ALL DATES (for calendar dots) ──
-  Future<Set<DateTime>> getAllLessonDates() async => _getAllDates(churchLessonsCollection);
+  Future<Set<DateTime>> getAllLessonDates([BuildContext? context]) async {  // ← add optional context
+    final Set<DateTime> dates = {};
 
+    // Church-specific (if set)
+    if (churchId != null && churchId!.isNotEmpty) {
+      dates.addAll(await _getAllDates(churchLessonsCollection, 'all_lesson_dates_church'));
+    }
+
+    // Global fallback — always include
+    final lang = getCurrentLang(context);
+    final globalColl = FirebaseFirestore.instance
+        .collection('global_content')
+        .doc(lang)
+        .collection('lessons');
+    dates.addAll(await _getAllDates(globalColl, 'all_lesson_dates_global_$lang'));
+
+    return dates;
+  }
+  
   Future<Set<DateTime>> getAllAssignmentDates([BuildContext? context]) async {
     final Set<DateTime> dates = {};
 
     // Church-specific
     if (churchId != null && churchId!.isNotEmpty) {
-      dates.addAll(await _getAllDates(churchAssignmentsCollection));
+      dates.addAll(await _getAllDates(churchAssignmentsCollection, 'all_assignment_dates_church'));
     }
 
     // Global part — safe fallback when context == null
-    final lang = _getCurrentLang(context); // ← uses Hive during preload
+    final lang = getCurrentLang(context); // ← uses Hive during preload
 
     final globalColl = FirebaseFirestore.instance
         .collection('global_content')
         .doc(lang)
         .collection('assignments');
 
-    dates.addAll(await _getAllDates(globalColl));
+    dates.addAll(await _getAllDates(globalColl, 'all_assignment_dates_church'));
 
     return dates;
   }
 
-  Future<Set<DateTime>> _getAllDates(CollectionReference coll) async {
+  Future<Set<DateTime>> _getAllDates(CollectionReference coll, String cacheKey) async {
+    /*/ Try persistent Hive cache first (works offline)
+    final cachedList = HiveBoxes.dates.get(cacheKey) as List<dynamic>?;
+    if (cachedList != null && cachedList.isNotEmpty) {
+      return cachedList.map((iso) => DateTime.parse(iso as String)).toSet();
+    }*/
+
     try {
+      // Safe Hive access
+      final box = HiveBoxes.dates;
+      if (box == null || !box.isOpen) {
+        debugPrint("Dates box not ready - skipping cache");
+        // proceed to fetch from Firestore
+      } else {
+        final cachedList = box.get(cacheKey) as List<dynamic>?;
+        if (cachedList != null && cachedList.isNotEmpty) {
+          final parsed = <DateTime>{};
+          for (final item in cachedList) {
+            if (item is String) {
+              try {
+                parsed.add(DateTime.parse(item));
+              } catch (_) {}
+            }
+          }
+          if (parsed.isNotEmpty) return parsed;
+        }
+      }
+
+      // Firestore fetch...
       final snap = await coll.get();
       final Set<DateTime> dates = {};
       for (final doc in snap.docs) {
         final date = _parseDateFromId(doc.id);
         if (date != null) dates.add(date);
       }
+
+      // Cache as List<String> (ISO for Hive)
+      if (dates.isNotEmpty) {
+        final isoList = dates.map((d) => d.toIso8601String()).toList();
+        await HiveBoxes.dates.put(cacheKey, isoList);
+      }
+
       return dates;
     } catch (e) {
       if (kDebugMode) {
@@ -536,15 +576,80 @@ class FirestoreService {
     required List<String> responses,
   }) async {
     final dateStr = formatDateId(date);
-    final batch = FirebaseFirestore.instance.batch();
-
+    //final batch = FirebaseFirestore.instance.batch();
 
     final responseRef = responsesCollection
         .doc(type)
         .collection(userId)
         .doc(dateStr);
 
-    batch.set(
+    final summaryRef = _getSummaryRef(date, type);
+
+    await FirebaseFirestore.instance.runTransaction((transaction) async {
+      // Read both documents atomically
+      final responseSnap = await transaction.get(responseRef);
+      final summarySnap = await transaction.get(summaryRef);
+
+      // Determine if this is the first submission
+      /*final responseData = responseSnap.data() as Map<String, dynamic>?;
+      final wasAlreadySubmitted = responseSnap.exists &&
+          responseData?['submittedAt'] != null;*/
+      final wasAlreadySubmitted = responseSnap.exists &&
+          (responseSnap.data() as Map<String, dynamic>?)?['submittedAt'] != null;
+
+      // Prepare response data (always write/update)
+      final responseData = {
+        'userId': userId,
+        'userEmail': userEmail,
+        'churchId': churchId,
+        'type': type,
+        'responses': responses,
+        'submittedAt': FieldValue.serverTimestamp(),
+        'scores': null,
+        'totalScore': null,
+        'feedback': null,
+        'isGraded': false,
+      };
+
+      // On very first write, also set createdAt
+      if (!responseSnap.exists) {
+        responseData['createdAt'] = FieldValue.serverTimestamp();
+      }
+
+      // Write response (merge keeps old fields if needed)
+      transaction.set(responseRef, responseData, SetOptions(merge: true));
+
+      // Handle submission counter
+      int currentTotal = summarySnap.exists ? _safeInt(summarySnap.data() as Map<String, dynamic>?, 'totalSubmissions') : 0;
+      /*int currentTotal = 0;
+      if (summarySnap.exists) {
+        final data = summarySnap.data() as Map<String, dynamic>?;
+        if (data != null) {
+          currentTotal = (data['totalSubmissions'] as int?) ?? 0;
+        }
+      }*/
+
+      if (!wasAlreadySubmitted) {
+        // First submit → increment
+        transaction.set(
+          summaryRef,
+          {
+            'totalSubmissions': currentTotal + 1,
+            'lastActivity': FieldValue.serverTimestamp(),
+            'lastSubmissionAt': FieldValue.serverTimestamp(),
+          },
+          SetOptions(merge: true),
+        );
+      } else {
+        // Edit → only update timestamps
+        transaction.update(summaryRef, {
+          'lastActivity': FieldValue.serverTimestamp(),
+          'lastSubmissionAt': FieldValue.serverTimestamp(),
+        });
+      }
+    });
+
+    /*batch.set(
       responseRef,
       {
         'userId': userId,
@@ -561,7 +666,20 @@ class FirestoreService {
       SetOptions(merge: true),
     );
 
-    await batch.commit();
+    // ── NEW: increment total submissions counter ────────────────────────
+    final summaryRef = _getSummaryRef(date, type);
+
+    batch.set(
+      summaryRef,
+      {
+        'totalSubmissions': FieldValue.increment(1),
+        'lastActivity': FieldValue.serverTimestamp(),
+        'lastSubmissionAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+
+    await batch.commit();*/
   }
 
   Future<AssignmentResponse?> loadUserResponse({
@@ -655,6 +773,19 @@ class FirestoreService {
     required DateTime date,
     required String type,
   }) async {
+    final doc = await _getSummaryRef(date, type).get();
+
+    if (!doc.exists || doc.data() == null) {
+      return 0;
+    }
+
+    final data = doc.data() as Map<String, dynamic>;
+    return data['totalSubmissions'] as int? ?? 0;
+  } 
+  /*Future<int> getSubmissionCount({
+    required DateTime date,
+    required String type,
+  }) async {
     final dateStr = formatDateId(date);
 
     final snap = await _churchSubcollection('assignment_response_indexes')
@@ -663,7 +794,7 @@ class FirestoreService {
         .get();
 
     return snap.size;
-  }  
+  } */ 
 
   Future<void> saveGrading({
     required String userId,
@@ -674,6 +805,73 @@ class FirestoreService {
   }) async {
     final dateStr = formatDateId(date);
 
+    final responseRef = responsesCollection
+        .doc(type)
+        .collection(userId)
+        .doc(dateStr);
+
+    final summaryRef = _getSummaryRef(date, type);
+
+    await FirebaseFirestore.instance.runTransaction((transaction) async {
+      final responseSnap = await transaction.get(responseRef);
+      final summarySnap = await transaction.get(summaryRef);
+
+      // Check if already graded
+      final wasAlreadyGraded = responseSnap.exists &&
+          (responseSnap.data() as Map<String, dynamic>?)?['isGraded'] == true;
+
+      // Always update response fields
+      transaction.set(
+        responseRef,
+        {
+          'scores': scores,
+          'totalScore': scores.fold<int>(0, (a, b) => a + b),
+          'feedback': feedback?.trim().isEmpty == true ? null : feedback,
+          'isGraded': true,
+          'gradedAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+
+      // Handle graded counter
+      int currentGraded = summarySnap.exists ? _safeInt(summarySnap.data() as Map<String, dynamic>?, 'gradedCount') : 0;
+      /*int currentGraded = 0;
+      if (summarySnap.exists) {
+        final data = summarySnap.data() as Map<String, dynamic>?;
+        if (data != null) {
+          currentGraded = (data['gradedCount'] as int?) ?? 0;
+        }
+      }*/
+
+      if (!wasAlreadyGraded) {
+        transaction.set(
+          summaryRef,
+          {
+            'gradedCount': currentGraded + 1,
+            'lastActivity': FieldValue.serverTimestamp(),
+            'lastGradedAt': FieldValue.serverTimestamp(),
+          },
+          SetOptions(merge: true),
+        );
+      } else {
+        // Re-grade → only update timestamps
+        transaction.update(summaryRef, {
+          'lastActivity': FieldValue.serverTimestamp(),
+          'lastGradedAt': FieldValue.serverTimestamp(),
+        });
+      }
+    });
+  }
+  /*Future<void> saveGrading({
+    required String userId,
+    required DateTime date,
+    required String type,
+    required List<int> scores,
+    String? feedback,
+  }) async {
+    final dateStr = formatDateId(date);
+
+    // 1. Update per-user response
     await responsesCollection
         .doc(type)
         .collection(userId)
@@ -684,10 +882,23 @@ class FirestoreService {
         'totalScore': scores.fold<int>(0, (a, b) => a + b),
         'feedback': feedback?.trim().isEmpty == true ? null : feedback,
         'isGraded': true,
+        'gradedAt': FieldValue.serverTimestamp(),
       },
       SetOptions(merge: true),
     );
-  }
+
+    // 2. Atomically increment graded count
+    final summaryRef = _getSummaryRef(date, type);
+
+    await summaryRef.set(
+      {
+        'gradedCount': FieldValue.increment(1),
+        'lastActivity': FieldValue.serverTimestamp(),
+        'lastGradedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }*/
 
   Future<void> resetGrading({
     required String userId,
@@ -696,6 +907,7 @@ class FirestoreService {
   }) async {
     final dateStr = formatDateId(date);
 
+    // 1. Reset per-user fields
     await responsesCollection
         .doc(type)
         .collection(userId)
@@ -705,17 +917,40 @@ class FirestoreService {
       'totalScore': null,
       'feedback': null,
       'isGraded': false,
+      'gradedAt': FieldValue.delete(),
+    });
+
+    // 2. Decrement graded counter (safe even if it would go negative)
+    final summaryRef = _getSummaryRef(date, type);
+
+    await summaryRef.update({
+      'gradedCount': FieldValue.increment(-1),
+      'lastActivity': FieldValue.serverTimestamp(),
     });
   }
 
-  Future<int> getGradedCount({required DateTime date, required String type}) async {
+  Future<int> getGradedCount({
+    required DateTime date,
+    required String type,
+  }) async {
+    final doc = await _getSummaryRef(date, type).get();
+
+    if (!doc.exists || doc.data() == null) {
+      return 0;
+    }
+
+    final data = doc.data() as Map<String, dynamic>;
+    return data['gradedCount'] as int? ?? 0;
+  }
+
+  /*Future<int> getGradedCount({required DateTime date, required String type}) async {
     final snapshot = await responsesCollection
         .doc(type)
         .collection(formatDateId(date))
         .where('isGraded', isEqualTo: true)
         .get();
     return snapshot.docs.length;
-  }
+  }*/
 
   // ── FURTHER READINGS ──
   Future<Map<DateTime, String>> getFurtherReadingsWithTextDefault() async {
@@ -737,22 +972,30 @@ class FirestoreService {
     return result;
   }
 
-  Map<DateTime, String>? _cachedFurtherReadings;
+  final Map<String, Map<DateTime, String>> _cachedFurtherReadingsByGroup = {};  // ← Group-keyed
+  
+  // Add this method (public, call from Home/Settings)
+  void clearInMemoryFurtherReadingsCache() {
+    _cachedFurtherReadingsByGroup.clear();
+  }
 
   Future<void> _loadFurtherReadingWeek(BuildContext context, DateTime sunday) async {
     final id = formatDateId(sunday);
-    final coll = globalFurtherReadingsCollection(context); // Handles null context via _getCurrentLang
+    final coll = globalFurtherReadingsCollection(context); // Handles null context via getCurrentLang
+
+    final ageGroup = getCurrentAgeGroup();
+    final field = ageGroupToFirestoreField(ageGroup);
 
     try {
       final doc = await coll.doc(id).get();
       if (!doc.exists) return;
 
       final data = doc.data() as Map<String, dynamic>? ?? {};
-      final adultMap = data['adult'] as Map<String, dynamic>?;
-      if (adultMap == null) return;
+      final groupMap = data[field] as Map<String, dynamic>?;
+      if (groupMap == null) return;
 
-      final blocks = adultMap['blocks'] as List<dynamic>?;
-      if (blocks == null || blocks.isEmpty) return;
+      final blocks = groupMap['blocks'] as List<dynamic>? ?? [];
+      if (blocks.isEmpty) return;
 
       String? fullText;
       for (final block in blocks) {
@@ -772,7 +1015,7 @@ class FirestoreService {
       final parts = fullText.split(RegExp(r'\s+(?=(?:SUN|MON|TUE|WED|THU|THUR|FRI|SAT):)'));
       const dayOrder = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
-      _cachedFurtherReadings ??= <DateTime, String>{};
+      var groupCache = _cachedFurtherReadingsByGroup[field] ?? <DateTime, String>{};
 
       for (int i = 0; i < parts.length && i < 7; i++) {
         final part = parts[i].trim();
@@ -791,29 +1034,43 @@ class FirestoreService {
         if (offset >= 0) {
           final date = sunday.add(Duration(days: offset));
           final normalizedDate = DateTime(date.year, date.month, date.day);
-          _cachedFurtherReadings![normalizedDate] = verse;
+          if (canFetchDate(normalizedDate)) {
+            groupCache[normalizedDate] = verse;
+          }
         }
       }
 
+      // Save back to the group-specific in-memory cache
+      _cachedFurtherReadingsByGroup[field] = groupCache;
+
       // Save updated map to Hive (your existing logic, adapted)
-      if (_cachedFurtherReadings!.isNotEmpty) {
-        final storableMap = _cachedFurtherReadings!.map((key, value) => MapEntry(key.toIso8601String(), value));
-        await HiveBoxes.furtherReadings.put('all_further_readings', storableMap);
+      if (groupCache.isNotEmpty) {
+        final readingCacheKey = 'further_readings_$field';
+        final storableMap = groupCache.map((key, value) => MapEntry(key.toIso8601String(), value));
+        await HiveBoxes.furtherReadings.put(readingCacheKey, storableMap);
       }
     } catch (e) {
       if (kDebugMode) debugPrint("Error loading further reading week $id: $e");
     }
   }
 
+  // In getFurtherReadingsWithText — add window filter
   Future<Map<DateTime, String>> getFurtherReadingsWithText(BuildContext? context) async {
-    // 1. Try cache first
-    if (_cachedFurtherReadings != null && /*_cachedFurtherReadings!.isNotEmpty*/ _cachedFurtherReadings!.length >= 100) {
-      return _cachedFurtherReadings!;
+    final ageGroup = getCurrentAgeGroup();
+    final field = ageGroupToFirestoreField(ageGroup);
+    final readingCacheKey = 'further_readings_$field';
+
+    // 1. In-memory check (now group-specific)
+    if (_cachedFurtherReadingsByGroup.containsKey(field)) {
+      final groupCache = _cachedFurtherReadingsByGroup[field];
+      if (groupCache != null && groupCache.length >= 100 && groupCache.isNotEmpty) {
+        return groupCache;
+      }
     }
 
     // 2. Persistent Hive cache
-    final cachedMap = HiveBoxes.furtherReadings.get('all_further_readings');
-    if (cachedMap is Map) {
+    final cachedMap = HiveBoxes.furtherReadings.get(readingCacheKey);
+    if (cachedMap is Map && cachedMap.isNotEmpty) {
       final result = <DateTime, String>{};
       cachedMap.forEach((key, value) {
         if (key is String && value is String) {
@@ -824,19 +1081,16 @@ class FirestoreService {
         }
       });
       
-      if (result.length >= 100) {
-        _cachedFurtherReadings = result;
+      if (result.length >= 100 && result.isNotEmpty) {
+        _cachedFurtherReadingsByGroup[field] = result;
         return result;
       }
     }
 
+    // 3. Persistent shared fallback (if needed)
+    final result = <DateTime, String>{};
     try {
       final snapshot = await globalFurtherReadingsCollection(context).get();
-
-      _cachedFurtherReadings ??= <DateTime, String>{};
-
-      //int parsedWeeks = 0;
-      //int parsedDays = 0;
 
       for (final doc in snapshot.docs) {
         DateTime? sunday;
@@ -846,15 +1100,19 @@ class FirestoreService {
           continue;
         }
 
+        // EARLY FILTER: Skip if this Sunday is outside allowed range
+        if (!canFetchDate(sunday)) {
+          continue;
+        }
+
         final data = doc.data() as Map<String, dynamic>? ?? {};
 
-        final adultMap = data['adult'] as Map<String, dynamic>?;
-        if (adultMap == null) continue;
+        final groupMap = data[field] as Map<String, dynamic>?;
+        if (groupMap == null) continue;
 
-        final blocks = adultMap['blocks'] as List<dynamic>? ?? [];
+        final blocks = groupMap['blocks'] as List<dynamic>? ?? [];
         if (blocks.isEmpty) continue;
 
-        // Find the longest block (usually the verse list)
         String? fullText;
         for (final block in blocks) {
           final blockMap = block as Map<String, dynamic>?;
@@ -869,9 +1127,7 @@ class FirestoreService {
 
         if (fullText == null) continue;
 
-        // Split into daily verses
         final parts = fullText.split(RegExp(r'\s+(?=(?:SUN|MON|TUE|WED|THU|THUR|FRI|SAT):)'));
-
         const dayOrder = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
         for (int i = 0; i < parts.length && i < 7; i++) {
@@ -889,136 +1145,31 @@ class FirestoreService {
 
           final offset = dayOrder.indexOf(dayAbbr);
           if (offset >= 0) {
-            final date = sunday!.add(Duration(days: offset));
+            final date = sunday.add(Duration(days: offset));
             final normalized = DateTime(date.year, date.month, date.day);
-            _cachedFurtherReadings![normalized] = verse;
-            //parsedDays++;
+
+            // Extra safety: only add daily date if allowed
+            if (canFetchDate(normalized)) {
+              result[normalized] = verse;
+            }
           }
         }
-        //parsedWeeks++;
       }
 
       // Save to Hive
-      if (_cachedFurtherReadings!.isNotEmpty) {
-        final storableMap = _cachedFurtherReadings!.map((key, value) => MapEntry(key.toIso8601String(), value));
-        await HiveBoxes.furtherReadings.put('all_further_readings', storableMap);
+      if (result.isNotEmpty) {
+        final storableMap = result.map((key, value) => MapEntry(key.toIso8601String(), value));
+        await HiveBoxes.furtherReadings.put(readingCacheKey, storableMap);
       }
 
-      return _cachedFurtherReadings!;
+      return result;
     } catch (e) {
       if (kDebugMode) {
         debugPrint("Error loading further readings: $e");
       }
-      return _cachedFurtherReadings ?? {};
+      return result;
     }
   }
-
-  /*Future<Map<DateTime, String>> getFurtherReadingsWithText(BuildContext? context) async {
-    // 1. Try cache first
-    if (_cachedFurtherReadings != null && _cachedFurtherReadings!.isNotEmpty) {
-      return _cachedFurtherReadings!;
-    }
-
-    // 2. Persistent Hive cache
-    final cachedMap = HiveBoxes.furtherReadings.get('all_further_readings');
-    if (cachedMap is Map) {
-      final result = <DateTime, String>{};
-      cachedMap.forEach((key, value) {
-        if (key is String && value is String) {
-          final date = DateTime.tryParse(key);
-          if (date != null) {
-            result[date] = value;
-          }
-        }
-      });
-      if (result.isNotEmpty) {
-        _cachedFurtherReadings = result;
-        return result;
-      }
-    }
-
-    try {
-      final snapshot = await globalFurtherReadingsCollection(context).get();
-
-      _cachedFurtherReadings ??= <DateTime, String>{};
-
-      int parsedWeeks = 0;
-      int parsedDays = 0;
-
-      for (final doc in snapshot.docs) {
-        DateTime? sunday;
-        try {
-          sunday = DateTime.parse(doc.id);
-        } catch (_) {
-          continue;
-        }
-
-        final data = doc.data() as Map<String, dynamic>? ?? {};
-
-        // Safely extract the 'adult' map
-        final adultMap = data['adult'] as Map<String, dynamic>?;
-        if (adultMap == null) continue;
-
-        // Safely extract the 'blocks' list
-        final blocks = adultMap['blocks'] as List<dynamic>? ?? [];
-        if (blocks.isEmpty) continue;
-
-        String? fullText;
-        for (final block in blocks) {
-          final blockMap = block as Map<String, dynamic>?;
-          if (blockMap == null) continue;
-
-          final text = blockMap['text']?.toString() ?? '';
-          if (text.contains('SUN:')) {
-            fullText = text;
-            break;
-          }
-        }
-
-        if (fullText == null) continue;
-
-        // Split into daily verses
-        final parts = fullText.split(RegExp(r'\s+(?=(?:SUN|MON|TUE|WED|THU|THUR|FRI|SAT):)'));
-
-        const dayOrder = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-
-        for (int i = 0; i < parts.length && i < 7; i++) {
-          final part = parts[i].trim();
-          if (part.length < 4) continue;
-
-          final dayAbbr = part.substring(0, 3).toUpperCase();
-          final verseStart = part.indexOf(':') + 1;
-          if (verseStart <= 0) continue;
-
-          String verse = part.substring(verseStart).trim()
-              .replaceAll(RegExp(r'\.+$'), '')
-              .replaceAll(RegExp(r'\s*\(KJV\)\.?$'), '')
-              .trim();
-
-          final offset = dayOrder.indexOf(dayAbbr);
-          if (offset >= 0) {
-            final date = sunday!.add(Duration(days: offset));
-            final normalized = DateTime(date.year, date.month, date.day);
-            _cachedFurtherReadings![normalized] = verse;
-          }
-        }
-      }
-      // 4. Save to Hive for next time
-      if (_cachedFurtherReadings!.isNotEmpty) {
-        // Convert DateTime keys to ISO strings for storage
-        final storableMap = _cachedFurtherReadings!.map((key, value) => MapEntry(key.toIso8601String(), value));
-        await HiveBoxes.furtherReadings.put('all_further_readings', storableMap);
-      }
-
-      return _cachedFurtherReadings!;
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint("Error loading further readings: $e");
-      }
-      // Return whatever we have in memory or empty
-      return _cachedFurtherReadings ?? {};
-    }
-  }*/
 }
 
 class AssignmentResponse {

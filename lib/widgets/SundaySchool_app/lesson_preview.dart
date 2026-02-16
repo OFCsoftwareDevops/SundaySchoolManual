@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../../UI/app_bar.dart';
 import '../../UI/app_buttons.dart';
 import '../../UI/app_colors.dart';
+import '../../UI/app_sound.dart';
 import '../../backend_data/database/lesson_data.dart';
 import '../../backend_data/service/analytics/analytics_service.dart';
 import '../../l10n/app_localizations.dart';
@@ -59,7 +60,6 @@ class BeautifulLessonPage extends StatelessWidget {
               child: Padding(
                 padding: EdgeInsets.symmetric(
                   horizontal: 16.sp,                   // small horizontal breathing room
-                  //vertical: 12.sp,                    // a bit more vertical space feels natural
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -81,6 +81,7 @@ class BeautifulLessonPage extends StatelessWidget {
                         Navigator.pop(context); // Close bottom sheet
                         await lessonShare.shareAsPdf();
                       },
+                      enableFeedback: AppSounds.soundEnabled,
                     ),
                     ListTile(
                       leading: const Icon(Icons.link, color: AppColors.secondary),
@@ -89,6 +90,7 @@ class BeautifulLessonPage extends StatelessWidget {
                         Navigator.pop(context);
                         await lessonShare.shareAsLink();
                       },
+                      enableFeedback: AppSounds.soundEnabled,
                     ),
                     SizedBox(height: 6.sp),
                   ],
@@ -364,6 +366,10 @@ class BeautifulLessonPage extends StatelessWidget {
                   fontStyle: applyItalicToReferences ? FontStyle.italic : FontStyle.normal,
                 ),
                 recognizer: TapGestureRecognizer()..onTap = () {
+                  if (AppSounds.soundEnabled) {
+                    Feedback.forTap(context); // triggers click sound / haptic
+                  }
+
                   final refStr = ref.toString();
                   final manager = context.read<BibleVersionManager>();
                   final raw = manager.getVerseText(refStr) ?? AppLocalizations.of(context)?.verseTemporarilyUnavailable ?? "Verse temporarily unavailable";
@@ -463,6 +469,10 @@ class BeautifulLessonPage extends StatelessWidget {
               fontStyle: applyItalicToReferences ? FontStyle.italic : FontStyle.normal,
             ),
             recognizer: TapGestureRecognizer()..onTap = () {
+              if (AppSounds.soundEnabled) {
+                Feedback.forTap(context); // triggers click sound / haptic
+              }
+
               final refStr = ref.toString();
               final manager = context.read<BibleVersionManager>();
               final raw = manager.getVerseText(refStr) ?? AppLocalizations.of(context)?.verseTemporarilyUnavailable ?? "Verse temporarily unavailable";
@@ -578,6 +588,7 @@ class BeautifulLessonPage extends StatelessWidget {
         height: 50.sp,
         child: FloatingActionButton.extended(
           onPressed: () => _showShareOptions(context),
+          enableFeedback: AppSounds.soundEnabled,
           backgroundColor: Theme.of(context).colorScheme.onSurface,
           foregroundColor: Theme.of(context).colorScheme.surface,
           icon: Icon(
@@ -704,27 +715,32 @@ class _SmartSaveLessonButtonState extends State<_SmartSaveLessonButton> {
   }
 
   Future<void> _checkIfSaved() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      setState(() => _isChecking = false);
-      return;
-    }
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      final auth = context.read<AuthService>();
 
-    final auth = context.read<AuthService>();
-    if (auth.churchId == null) {
-      setState(() => _isChecking = false);
-      return;
-    }
+      bool saved = false;
 
-    final lessonId = '${widget.lessonDate.year}-${widget.lessonDate.month}-${widget.lessonDate.day}';
+      if (user != null && auth.churchId != null) {
+        final lessonId = '${widget.lessonDate.year}-${widget.lessonDate.month.toString().padLeft(2, '0')}-${widget.lessonDate.day.toString().padLeft(2, '0')}';
 
-    final saved = await SavedItemsService().isLessonSaved(user.uid, lessonId);
+        // Add timeout to prevent hanging forever
+        saved = await SavedItemsService()
+            .isLessonSaved(user.uid, lessonId)
+            .timeout(const Duration(seconds: 5), onTimeout: () => false);
+      }
 
-    if (mounted) {
-      setState(() {
-        _isSaved = saved;
-        _isChecking = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isSaved = saved;
+          _isChecking = false;
+        });
+      }
+    } catch (e) {
+      debugPrint("Check saved failed: $e");
+      if (mounted) {
+        setState(() => _isChecking = false);  // hide spinner on error
+      }
     }
   }
 
@@ -813,22 +829,25 @@ class _SmartSaveLessonButtonState extends State<_SmartSaveLessonButton> {
     final colorScheme = theme.colorScheme;
 
     return IconButton(
-      tooltip: _isSaved ? AppLocalizations.of(context)?.removedFromSavedLessons ?? 'Remove from saved lessons' : AppLocalizations.of(context)?.saveThisLesson ?? 'Save this lesson',
+      tooltip: _isSaved 
+        ? AppLocalizations.of(context)?.removedFromSavedLessons ?? 'Remove from saved lessons' 
+        : AppLocalizations.of(context)?.saveThisLesson ?? 'Save this lesson',
+      enableFeedback: AppSounds.soundEnabled,
       onPressed: _isChecking ? null : _toggleSave,
       icon: _isChecking
-          ? SizedBox(
-              width: style.monthFontSize.sp, 
-              height: style.monthFontSize.sp, 
-              child: CircularProgressIndicator(
-                strokeWidth: 2.sp,
-                color: colorScheme.onSecondaryContainer,
-              ),
-            )
-          : Icon(
+        ? SizedBox(
+            width: style.monthFontSize.sp, 
+            height: style.monthFontSize.sp, 
+            child: CircularProgressIndicator(
+              strokeWidth: 2.sp,
+              color: colorScheme.onSecondaryContainer,
+            ),
+          )
+        : Icon(
             _isSaved ? Icons.bookmark : Icons.bookmark_add,
             color: _isSaved 
-                ? AppColors.success 
-                : colorScheme.onSecondaryContainer,
+              ? AppColors.success 
+              : colorScheme.onSecondaryContainer,
             size: style.monthFontSize.sp,
           ),
     );

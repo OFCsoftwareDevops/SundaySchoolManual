@@ -1,16 +1,21 @@
 
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import '../../../UI/app_bar.dart';
 import '../../../UI/app_colors.dart';
 import '../../../UI/app_segment_sliding.dart';
+import '../../../UI/app_sound.dart';
 import '../../../auth/login/auth_service.dart';
 import '../../../backend_data/database/constants.dart';
 import '../../../backend_data/service/firestore/assignment_dates_provider.dart';
 import '../../../backend_data/service/firestore/firestore_service.dart';
 import '../../../utils/media_query.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../helpers/snackbar.dart';
 import 'assignment_response_page_admin.dart';
 
 
@@ -29,9 +34,11 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
   int _selectedQuarter = 0;
 
   // Cache for submission info to avoid repeated queries
+  StreamSubscription<QuerySnapshot>? _summarySubscription;
+  final Map<String, Map<String, int>> _liveData = {}; // live values override cache
   final Map<String, Map<String, int>> _submissionCache = {};
 
-  late final List<String> _ageGroups;
+  List<String> _ageGroups = ["Adult", "Teen"];
 
   String _formatDateId(DateTime date) =>
     "${date.year}-${date.month.toString().padLeft(2,'0')}-${date.day.toString().padLeft(2,'0')}";
@@ -61,18 +68,109 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
     } else {
       _selectedQuarter = 3; // Q4
     }
+
+    _listenToQuarterSummaries();
+  }
+
+  @override
+  void didUpdateWidget(covariant AdminResponsesGradingPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Re-subscribe if quarter or teen/adult changed
+    _listenToQuarterSummaries();
+  }
+
+  @override
+  void dispose() {
+    _summarySubscription?.cancel();
+    super.dispose();
+  }
+
+  void _listenToQuarterSummaries() {
+    _summarySubscription?.cancel();
+
+    final auth = context.read<AuthService>();
+    if (auth.churchId == null) return;
+
+    final service = FirestoreService(churchId: auth.churchId);
+    final type = _isTeen ? "teen" : "adult";
+
+    // Get all expected summary doc IDs for current quarter
+    final quarterMonths = AppConstants.quarterMonths[_selectedQuarter];
+    final now = DateTime.now();
+    final year = now.year; // simplify (handle cross-year if needed later)
+
+    final sundayIds = <String>[];
+    final allDates = Provider.of<AssignmentDatesProvider>(context, listen: false).dates;
+
+    for (final month in quarterMonths) {
+      final sundays = allDates
+          .where((d) => d.year == year && d.month == month && d.weekday == DateTime.sunday)
+          .toList();
+
+      for (final sunday in sundays) {
+        final dateStr = _formatDateId(sunday);
+        sundayIds.add('${type}_$dateStr');
+      }
+    }
+
+    if (sundayIds.isEmpty) return;
+
+    // Listen to summaries where document ID is in the quarter's list
+    final query = service.submissionSummariesCollection.where(
+      FieldPath.documentId,
+      whereIn: sundayIds.length <= 30 ? sundayIds : sundayIds.sublist(0, 30), // Firestore whereIn limit = 30
+    );
+
+    _summarySubscription = query.snapshots().listen((snapshot) {
+      if (!mounted) return;
+
+      final updated = <String, Map<String, int>>{};
+
+      for (final change in snapshot.docChanges) {
+        final doc = change.doc;
+        final data = doc.data() as Map<String, dynamic>? ?? {};
+        final total = (data['totalSubmissions'] as int?) ?? 0;
+        final graded = (data['gradedCount'] as int?) ?? 0;
+
+        updated[doc.id] = {'total': total, 'graded': graded};
+      }
+
+      setState(() {
+        _liveData.addAll(updated);
+        // Optional: clear old cache entries not in new data
+        _submissionCache.removeWhere((key, _) => !updated.containsKey(key.split('_').last));
+      });
+
+      // ── ADD THE CHECK HERE ────────────────────────────────────────
+      if (snapshot.metadata.hasPendingWrites == false && mounted) { // only remote changes
+        // Optional: show "Updated from grading" toast
+        if (mounted) {
+          showTopToast(
+            context,
+            "Grading updates received — view refreshed",
+            duration: const Duration(seconds: 2),
+          );
+        }
+      }
+    }, onError: (e) {
+      debugPrint("Summary listener error: $e");
+    });
   }
 
   Future<Map<String,int>> _getSubmissionInfo(DateTime date, String type) async {
     final cacheKey = "${_formatDateId(date)}_$type";
 
-    // Return cached if available
+    // 1. Use real-time listener data if available (instant)
+    if (_liveData.containsKey(cacheKey)) {
+      return _liveData[cacheKey]!;
+    }
+
+    // 2. Fall back to existing cache
     if (_submissionCache.containsKey(cacheKey)) {
       return _submissionCache[cacheKey]!;
     }
 
     final service = FirestoreService(churchId: context.read<AuthService>().churchId);
-
     final total = await service.getSubmissionCount(date: date, type: type);
     final graded = await service.getGradedCount(date: date, type: type);
 
@@ -90,7 +188,6 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
 
     if (datesProvider.isLoading) {
       return Scaffold(
-        //backgroundColor: Theme.of(context).colorScheme.background,
         appBar: AppAppBar(
           title: "${AppLocalizations.of(context)?.adminTools ?? 'Admin'} — $parishName",
           showBack: true,
@@ -99,6 +196,7 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
               icon: const Icon(Icons.refresh),
               iconSize: style.monthFontSize.sp,
               tooltip: AppLocalizations.of(context)?.refreshAssignments ?? "Refresh assignments",
+              enableFeedback: AppSounds.soundEnabled,
               onPressed: () {
                 final service = FirestoreService(churchId: auth.churchId);
                 datesProvider.refresh(context, service);
@@ -108,37 +206,6 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
             ),
           ],
         ),
-        /*appBar: AppBar(
-          centerTitle: true,
-          title: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              "${AppLocalizations.of(context)?.adminTools ?? 'Admin'} — $parishName",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: style.monthFontSize.sp, // Matches the style from your Bible screen
-              ),
-            ),
-          ),
-          leading: IconButton( // Optional: explicitly define back button if needed
-            icon: const Icon(Icons.arrow_back),
-            iconSize: style.monthFontSize.sp, // Consistent with your Bible app bar
-            onPressed: () => Navigator.pop(context),
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              iconSize: style.monthFontSize.sp,
-              tooltip: AppLocalizations.of(context)?.refreshAssignments ?? "Refresh assignments",
-              onPressed: () {
-                final service = FirestoreService(churchId: auth.churchId);
-                datesProvider.refresh(context, service);
-                _submissionCache.clear();
-                setState(() {});
-              },
-            ),
-          ],
-        ),*/
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -152,6 +219,7 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
             icon: const Icon(Icons.refresh),
             iconSize: style.monthFontSize.sp, // Same size as in Bible app bar
             tooltip: AppLocalizations.of(context)?.refreshAssignments ?? "Refresh assignments",
+            enableFeedback: AppSounds.soundEnabled,
             onPressed: () {
               final service = FirestoreService(churchId: auth.churchId);
               datesProvider.refresh(context, service);
@@ -161,38 +229,6 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
           ),
         ],
       ),
-      //backgroundColor: Theme.of(context).colorScheme.background,
-      /*appBar: AppBar(
-        centerTitle: true,
-        title: FittedBox(
-          fit: BoxFit.scaleDown, // Prevents overflow on small screens
-          child: Text(
-            "${AppLocalizations.of(context)?.adminTools ?? 'Admin'} — $parishName",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: style.monthFontSize.sp, // Matches the style from your Bible screen
-            ),
-          ),
-        ),
-        leading: IconButton( // Optional: explicitly define back button if needed
-          icon: const Icon(Icons.arrow_back),
-          iconSize: style.monthFontSize.sp, // Consistent with your Bible app bar
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            iconSize: style.monthFontSize.sp, // Same size as in Bible app bar
-            tooltip: AppLocalizations.of(context)?.refreshAssignments ?? "Refresh assignments",
-            onPressed: () {
-              final service = FirestoreService(churchId: auth.churchId);
-              datesProvider.refresh(context, service);
-              _submissionCache.clear();
-              setState(() {});
-            },
-          ),
-        ],
-      ),*/
       body: Column(
         children: [
           Padding(
@@ -200,7 +236,13 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
             child: segmentedControl(
               selectedIndex: _selectedAgeGroup,
               items: _ageGroups.map((e) => SegmentItem(e)).toList(),
-              onChanged: (i) => setState(() => _selectedAgeGroup = i),
+              //onChanged: (i) => setState(() => _selectedAgeGroup = i),
+              onChanged: (i) {
+                setState(() {
+                  _selectedAgeGroup = i;
+                });
+                _listenToQuarterSummaries(); // refresh listener
+              },
             ),
           ),
           Padding(
@@ -208,7 +250,13 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
             child: segmentedControl(
               selectedIndex: _selectedQuarter,
               items: AppConstants.quarterLabels.map((l) => SegmentItem(l)).toList(),
-              onChanged: (i) => setState(() => _selectedQuarter = i),
+              //onChanged: (i) => setState(() => _selectedQuarter = i),
+              onChanged: (i) {
+                setState(() {
+                  _selectedQuarter = i;
+                });
+                _listenToQuarterSummaries(); // refresh listener
+              },
             ),
           ),
           Expanded(
@@ -277,8 +325,82 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
 
                         final label = total == 0 ? (AppLocalizations.of(context)?.empty ?? "Empty!") : "$graded / $total \n ${AppLocalizations.of(context)?.graded ?? 'Graded'}";
 
+                        final bool hasSubmissions = total > 0;
+                        final bool isFullyGraded = hasSubmissions && graded == total;
+
+                        final Color cardColor = isFullyGraded
+                            ? Colors.green.shade100          // fully graded → nice green background
+                            : hasSubmissions
+                                ? const Color.fromARGB(255, 218, 194, 140)     // has submissions but not fully graded → amber
+                                : AppColors.grey200;         // no submissions → grey
+
+                        final Color textAndIconColor = isFullyGraded
+                            ? Colors.green.shade800
+                            : hasSubmissions
+                                ? const Color.fromARGB(255, 69, 46, 15)      // amber text/icon for partial grading
+                                : Colors.grey.shade700;
+
+                        final IconData icon = isFullyGraded
+                            ? Icons.check_circle
+                            : hasSubmissions
+                                ? Icons.hourglass_bottom     // or Icons.warning_amber — indicates "in progress"
+                                : Icons.pending;
+
                         return Material(
-                          color: total > 0 ? Colors.green.shade100 : AppColors.grey200,
+                          color: cardColor,
+                          borderRadius: BorderRadius.circular(16.sp),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(16.sp),
+                            onTap: !hasSubmissions ? null : () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => AssignmentResponseDetailPage(
+                                    date: sunday,
+                                    isTeen: _isTeen,
+                                  ),
+                                ),
+                              );
+                            },
+                            enableFeedback: AppSounds.soundEnabled,
+                            child: SizedBox(
+                              width: 100.sp,
+                              height: 140.sp,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "${sunday.day}",
+                                    style: TextStyle(
+                                      fontSize: 28.sp,
+                                      fontWeight: FontWeight.bold,
+                                      color: textAndIconColor,
+                                    ),
+                                  ),
+                                  SizedBox(height: 5.sp),
+                                  Icon(
+                                    icon,
+                                    size: 20.sp,
+                                    color: textAndIconColor,
+                                  ),
+                                  SizedBox(height: 5.sp),
+                                  Text(
+                                    label,
+                                    style: TextStyle(
+                                      fontSize: 11.sp,
+                                      color: textAndIconColor,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+
+                        /*return Material(
+                          color: total > 0 ? AppColors.divineAccent : AppColors.grey200,
                           borderRadius: BorderRadius.circular(16.sp),
                           child: InkWell(
                             borderRadius: BorderRadius.circular(16.sp),
@@ -293,6 +415,7 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
                                 ),
                               );
                             },
+                            enableFeedback: AppSounds.soundEnabled,
                             child: SizedBox(
                               width: 100.sp,
                               height: 140.sp,
@@ -327,7 +450,7 @@ class _AdminResponsesGradingPageState extends State<AdminResponsesGradingPage> {
                               ),
                             ),
                           ),
-                        );
+                        );*/
                       },
                     );
                   }).toList(),

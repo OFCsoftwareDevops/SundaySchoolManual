@@ -3,7 +3,7 @@ description: "Fully integrated sunday schhol environment for students and teache
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
-version: 1.0.0+13
+version: 1.0.4+18
 
 environment:
   sdk: ">=2.17.0 <4.0.0"
@@ -39,8 +39,8 @@ dependencies:
   flutter_timezone: ^5.0.1
   permission_handler: ^12.0.1
   timezone: ^0.10.1
-  background_fetch: ^1.5.0
-  workmanager: ^0.6.0
+  # background_fetch: ^1.5.0
+  # workmanager: ^0.6.0
   pdf: ^3.11.1
   flutter_screenutil: ^5.9.3
   flutter_rating_bar: ^4.0.1
@@ -54,6 +54,7 @@ dependencies:
   cached_network_image: ^3.4.0
   rxdart: ^0.27.7
   audioplayers: ^5.2.0
+  text_scroll: ^0.2.1
 
 dev_dependencies:
   flutter_test:
@@ -73,6 +74,7 @@ flutter:
     - shorebird.yaml
     - assets/images/rccg_logo.png
     - assets/images/rccg_jhfan_share_image.png
+    - assets/images/rccg_sunday_school_manual_preview.png
     - assets/images/google_logo.png
     - assets/images/apple_logo.png
     - assets/images/anonymous_user.png

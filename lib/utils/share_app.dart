@@ -11,7 +11,7 @@ Future<void> shareApp(BuildContext context) async {
   try {
     // 🖼 Load share image
     final byteData = await rootBundle.load(
-      'assets/images/rccg_logo.png',
+      'assets/images/rccg_sunday_school_manual_preview.png',
     );
 
     final tempDir = await getTemporaryDirectory();
@@ -34,9 +34,19 @@ Future<void> shareApp(BuildContext context) async {
         🎓 Teacher grading
 
         Download here:
+        ${StoreLinks.webPage}
+        ''',
+      /*text: '''
+        Check out the RCCG - Sunday School Manual app!
+
+        📖 Lessons
+        📝 Assignments
+        🎓 Teacher grading
+
+        Download here:
         Android: ${StoreLinks.android}
         iOS: ${StoreLinks.ios}
-        ''',
+        ''',*/
       sharePositionOrigin: origin,
     );
   } catch (e) {

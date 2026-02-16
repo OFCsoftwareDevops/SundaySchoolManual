@@ -122,6 +122,12 @@ class AppLocalizationsYo extends AppLocalizations {
   String get assignments => 'Ìṣẹ̀ àkọ́kọ́';
 
   @override
+  String get soundEffects => 'Àwọn ohun ìró';
+
+  @override
+  String get ageGroup => 'Ẹgbẹ Ọjọ-ori';
+
+  @override
   String get teachers => 'Àwọn oníkòó';
 
   @override
@@ -352,6 +358,42 @@ class AppLocalizationsYo extends AppLocalizations {
   String get sunday => 'Ọjọ́ Àìkú';
 
   @override
+  String get monthShortJan => 'Ṣẹ́r';
+
+  @override
+  String get monthShortFeb => 'Èrèl';
+
+  @override
+  String get monthShortMar => 'Ẹrẹ̀n';
+
+  @override
+  String get monthShortApr => 'Ìgbé';
+
+  @override
+  String get monthShortMay => 'Ẹ̀bìb';
+
+  @override
+  String get monthShortJun => 'Òkúd';
+
+  @override
+  String get monthShortJul => 'Agẹmọ';
+
+  @override
+  String get monthShortAug => 'Ògún';
+
+  @override
+  String get monthShortSep => 'Ọ̀wẹw';
+
+  @override
+  String get monthShortOct => 'Ọ̀wàrà';
+
+  @override
+  String get monthShortNov => 'Bélú';
+
+  @override
+  String get monthShortDec => 'Ọ̀pẹ̀';
+
+  @override
   String get january => 'Ọṣù KìNní';
 
   @override
@@ -476,6 +518,9 @@ class AppLocalizationsYo extends AppLocalizations {
 
   @override
   String get myResponses => 'Àwọn ìdáhún mi:';
+
+  @override
+  String get assignmentGradedToast => 'Iṣẹ́ ìdánilẹ́kọ̀ọ́ rẹ ti jẹ́ wọn dánwò!';
 
   @override
   String get yourSubmittedResponses => 'Àwọn ìdáhún tí o fìsẹ̀';
@@ -1065,7 +1110,7 @@ class AppLocalizationsYo extends AppLocalizations {
   String get progressNextFreeze => 'Ọ̀nà sí tutu tẹ́lẹ̀';
 
   @override
-  String get daysUntilNextFreeze => 'ọjọ́(s) títí òun tutu tẹ́lẹ̀ (òun ọgójú nígbà kọọkan tabi sẹ́tẹ́ ara 1 tutu)';
+  String get daysUntilNextFreeze => 'ọjọ́(s) títí òun tutu tẹ́lẹ̀.';
 
   @override
   String get howFreezesWork => 'Báwo ni àwọn tutu ṣe ìṣẹ̀';

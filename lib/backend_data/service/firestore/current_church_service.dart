@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../UI/app_buttons.dart';
 import '../../../UI/app_colors.dart';
+import '../../../UI/app_sound.dart';
 import '../../../auth/login/auth_service.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../widgets/church/leave_church.dart';
@@ -57,6 +58,7 @@ class _CurrentChurchCardState extends State<CurrentChurchCard> {
 
               setState(() => _expanded = !_expanded);
             },
+            enableFeedback: AppSounds.soundEnabled,
             child: Padding(
               padding: EdgeInsets.all(16.sp),
               child: AnimatedCrossFade(
@@ -128,7 +130,11 @@ class _CurrentChurchCardState extends State<CurrentChurchCard> {
         SizedBox(height: 10.sp),
         _detailRow(AppLocalizations.of(context)?.church ?? "Church", auth.churchName, textTheme, colorScheme),
         _detailRow(AppLocalizations.of(context)?.parish ?? "Parish", auth.parishName, textTheme, colorScheme),
-        _detailRow(AppLocalizations.of(context)?.joinCode ?? "Join Code", auth.accessCode ?? AppLocalizations.of(context)?.notAvailable ?? "Not available", textTheme, colorScheme),
+        _detailRow(
+          AppLocalizations.of(context)?.joinCode ?? "Join Code", 
+          auth.accessCode == 'BYE442' 
+            ? "••••••"
+            : auth.accessCode ?? AppLocalizations.of(context)?.notAvailable ?? "Not available", textTheme, colorScheme),
         _detailRow(AppLocalizations.of(context)?.pastor ?? "Pastor", auth.pastorName ?? AppLocalizations.of(context)?.notAvailable ?? "Not available", textTheme, colorScheme),
         SizedBox(height: 10.sp),
 
@@ -229,7 +235,7 @@ class _CurrentChurchCardState extends State<CurrentChurchCard> {
 
               if (confirm == true) {
                 await auth.requestAccountDeletion();
-                await FirebaseAuth.instance.signOut();
+                await auth.signOutAndGoToLogin(context);
 
                 if (context.mounted) {
                   showTopToast(

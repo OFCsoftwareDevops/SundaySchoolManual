@@ -6,11 +6,11 @@ import 'package:provider/provider.dart';
 import '../../../UI/app_bar.dart';
 import '../../../UI/app_buttons.dart';
 import '../../../UI/app_colors.dart';
+import '../../../UI/app_sound.dart';
 import '../../../auth/login/auth_service.dart';
 import '../../../backend_data/service/firestore/firestore_service.dart';
 import '../../../backend_data/database/lesson_data.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../utils/media_query.dart';
 
 class AssignmentResponseDetailPage extends StatefulWidget {
   final DateTime date;
@@ -34,7 +34,6 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
   Map<String, bool> _userGradedStatus = {}; // userId → feedback
   Map<String, List<int>> userScores = {}; // userId → list of scores
   Map<String, String> userFeedback = {};
-
 
   @override
   void initState() {
@@ -129,35 +128,15 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
           title: AppLocalizations.of(context)?.teenOrAdultResponses ?? "Responses",
           showBack: true,
         ),
-        //appBar: AppBar(title: Text(AppLocalizations.of(context)?.teenOrAdultResponses ?? "Responses")),
         body: Center(child: Text(AppLocalizations.of(context)?.globalAdminsOnlyNoChurch ?? "Global admins only — no church selected.")),
       );
     }
 
     return Scaffold(
-      //backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppAppBar(
         title: "${widget.isTeen ? AppLocalizations.of(context)?.teen ?? 'Teen' : AppLocalizations.of(context)?.adult ?? 'Adult'} ${AppLocalizations.of(context)?.teenOrAdultResponses ?? "Responses"}",
         showBack: true,
       ),
-      /*appBar: AppBar(
-        centerTitle: true,
-        title: FittedBox(
-          fit: BoxFit.scaleDown, // Scales down text if it would overflow
-          child: Text(
-            "${widget.isTeen ? AppLocalizations.of(context)?.teen ?? 'Teen' : AppLocalizations.of(context)?.adult ?? 'Adult'} ${AppLocalizations.of(context)?.teenOrAdultResponses ?? "Responses"}",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: style.monthFontSize.sp, // Matches your other screen's style
-            ),
-          ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          iconSize: style.monthFontSize.sp, // Consistent sizing
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),*/
 
       body: _loading
           ? const Center(child: LinearProgressIndicator())
@@ -313,12 +292,13 @@ class _AssignmentResponseDetailPageState extends State<AssignmentResponseDetailP
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: List.generate(2, (score) {
-                                  return GestureDetector(
+                                  return InkWell(
                                     onTap: () {
                                       setState(() {
                                         scores[i] = score;
                                       });
                                     },
+                                    enableFeedback: AppSounds.soundEnabled,
                                     child: Container(
                                       margin: EdgeInsets.symmetric(horizontal: 4.sp),
                                       width: 40.sp,

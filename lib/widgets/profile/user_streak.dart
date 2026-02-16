@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../UI/app_bar.dart';
 import '../../UI/app_colors.dart';
+import '../../backend_data/database/constants.dart';
 import '../../l10n/app_localizations.dart';
 
 class StreakPage extends StatelessWidget {
@@ -20,11 +21,6 @@ class StreakPage extends StatelessWidget {
           title: AppLocalizations.of(context)?.readingStreak ?? 'Reading Streak',
           showBack: true,
         ),
-        /*appBar: AppBar(
-          title: Text(
-            AppLocalizations.of(context)?.readingStreak ?? 'Reading Streak',
-          ),
-        ),*/
         body: Center(child: Text(AppLocalizations.of(context)?.pleaseSignInStreak ?? 'Please sign in to view your streak.')),
       );
     }
@@ -36,25 +32,6 @@ class StreakPage extends StatelessWidget {
         title: AppLocalizations.of(context)?.readingStreak ?? "Reading Streak",
         showBack: true,
       ),
-      /*/backgroundColor: Theme.of(context).colorScheme.background,
-      appBar: AppBar(
-        centerTitle: true,
-        title: FittedBox(
-          fit: BoxFit.scaleDown, // Scales down text if it would overflow
-          child: Text(
-            AppLocalizations.of(context)?.readingStreak ?? "Reading Streak",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: style.monthFontSize.sp, // Matches your other screen's style
-            ),
-          ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          iconSize: style.monthFontSize.sp, // Consistent sizing
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),*/
       body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         stream: docRef.snapshots(),
         builder: (context, snapshot) {
@@ -78,9 +55,9 @@ class StreakPage extends StatelessWidget {
             last = '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
           }
 
-          final int mod = streak % 7;
-          final int daysToNext = mod == 0 ? 7 : 7 - mod;
-          final double progress = (mod) / 7.0;
+          final int mod = streak % freezeAward;
+          final int daysToNext = mod == 0 ? freezeAward : freezeAward - mod;
+          final double progress = (mod) / freezeAward;
 
           return Padding(
             padding: EdgeInsets.all(16.sp),
@@ -157,27 +134,29 @@ class StreakPage extends StatelessWidget {
 
                 SizedBox(height: 5.sp),
                 Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.sp),
-                    child: Column(
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.battery_charging_full,
+                      size: 24.sp,
+                    ),
+                    title: Text(
+                      AppLocalizations.of(context)?.progressNextFreeze ?? 'Progress to next freeze',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15.sp,
+                      ),
+                    ),
+                    subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          AppLocalizations.of(context)?.progressNextFreeze ?? 'Progress to next freeze', 
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15.sp,
-                            //color: Theme.of(context).colorScheme.onBackground,
-                          ),
-                        ),
-                        SizedBox(height: 5.sp),
+                        SizedBox(height: 8),
                         LinearProgressIndicator(
                           value: progress,
                           backgroundColor: AppColors.grey300,
                         ),
-                        SizedBox(height: 5.sp),
+                        SizedBox(height: 5),
                         Text(
-                          '$daysToNext ${AppLocalizations.of(context)?.daysUntilNextFreeze ?? "day(s) until next freeze (every 7-day streak awards 1 freeze)"}',
+                          '$daysToNext ${AppLocalizations.of(context)?.daysUntilNextFreeze ?? "day(s) until next freeze."}',
                           style: TextStyle(
                             fontSize: 15.sp,
                           ),

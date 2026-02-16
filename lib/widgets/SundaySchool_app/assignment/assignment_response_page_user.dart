@@ -1,6 +1,7 @@
 // lib/screens/assignment_response_page.dart
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,7 @@ import '../../../UI/app_bar.dart';
 import '../../../UI/app_buttons.dart';
 import '../../../UI/app_colors.dart';
 import '../../../UI/app_linear_progress_bar.dart';
+import '../../../UI/app_sound.dart';
 import '../../../auth/login/auth_service.dart';
 import '../../../backend_data/database/assignment_data.dart';
 import '../../../backend_data/service/analytics/analytics_service.dart';
@@ -39,6 +41,7 @@ class AssignmentResponsePage extends StatefulWidget {
 
 class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
   final List<TextEditingController> _controllers = [];
+  StreamSubscription<DocumentSnapshot>? _responseSubscription;
   bool _isLoading = true;
   bool _isSubmitted = false;
   bool _isEditing = false;
@@ -52,13 +55,21 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
   AssignmentResponse? _loadedResponse;
 
   late final FirestoreService _service;
+  late bool _isPreviewChurch;
 
   @override
   void initState() {
     super.initState();
-    final currentChurchId = context.read<AuthService>().churchId;
+
+    final auth = context.read<AuthService>();
+    _isPreviewChurch = auth.isDefaultChurch;
+  
+    final currentChurchId = auth.churchId ?? '';
     _service = FirestoreService(churchId: currentChurchId);
+
     _loadAssignmentAndResponses();
+
+    _setupResponseListener();
   }
 
   String extractSingleQuestionFromSection(Map<String, dynamic>? sectionMap) {
@@ -228,6 +239,76 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
       debugPrint(">>> Question: $_currentQuestion");
       debugPrint(">>> Number of answer boxes: ${_controllers.length}");
     }
+  }
+
+  void _setupResponseListener() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final type = widget.isTeen ? "teen" : "adult";
+    final dateStr = "${widget.date.year}-${widget.date.month.toString().padLeft(2, '0')}-${widget.date.day.toString().padLeft(2, '0')}";
+
+    final responseRef = _service.responsesCollection
+        .doc(type)
+        .collection(user.uid)
+        .doc(dateStr);
+
+    _responseSubscription = responseRef.snapshots().listen((snapshot) {
+      if (!mounted) return;
+
+      if (!snapshot.exists || snapshot.data() == null) {
+        // Response deleted? (unlikely) — treat as not submitted
+        setState(() {
+          _isSubmitted = false;
+          _isGradedByAdmin = false;
+          _feedback = null;
+          _scores = [];
+          _loadedResponse = null;
+        });
+        return;
+      }
+
+      final data = snapshot.data()!;
+
+      final newResponses = List<String>.from(data['responses'] ?? []);
+      final newScores = data['scores'] is List ? List<int>.from(data['scores']) : <int>[];
+      final newFeedback = data['feedback'] as String?;
+      final newIsGraded = data['isGraded'] as bool? ?? false;
+
+      setState(() {
+        _savedResponses = newResponses.map((s) => s.trim()).toList();
+        _scores = newScores;
+        _feedback = newFeedback;
+        _isGradedByAdmin = newIsGraded;
+
+        // If newly graded, lock editing and show success toast
+        if (newIsGraded && !_isGradedByAdmin) {
+          final submittedProvider = Provider.of<SubmittedDatesProvider>(context, listen: false);
+          submittedProvider.refresh(_service, user.uid);
+          showTopToast(
+            context,
+            AppLocalizations.of(context)?.assignmentGradedToast ?? "Your assignment has been graded!",
+            backgroundColor: AppColors.success,
+          );
+        }
+
+        // Re-create controllers if responses changed (rare, but safe)
+        for (final c in _controllers) c.dispose();
+        _controllers.clear();
+        if (_savedResponses.isEmpty) {
+          _controllers.add(TextEditingController());
+        } else {
+          for (final answer in _savedResponses) {
+            _controllers.add(TextEditingController(text: answer));
+          }
+        }
+
+        _isSubmitted = _savedResponses.isNotEmpty;
+        _isEditing = false; // force exit edit mode if graded
+      });
+    }, onError: (e) {
+      debugPrint("Response listener error: $e");
+    });
   }
 
   Future<void> _saveResponses() async {
@@ -545,6 +626,7 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
                                           _controllers.removeAt(index);
                                         });
                                       },
+                                      enableFeedback: AppSounds.soundEnabled,
                                     ),
                                 ],
                               ),
@@ -556,6 +638,7 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
                             Center(
                               child: IconButton(
                                 onPressed: _addResponseBox,
+                                enableFeedback: AppSounds.soundEnabled,
                                 icon: Icon(Icons.add_circle_outline, size: 24.sp),
                                 color: Colors.grey[600],
                                 tooltip: AppLocalizations.of(context)?.addAnotherResponse ?? "Add another response",
@@ -569,27 +652,37 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
                               context: context,
                               text: _isGradedByAdmin 
                                 ? AppLocalizations.of(context)?.assignmentGraded ?? "Graded — cannot edit" 
-                                : isAnonymous
-                                  ? AppLocalizations.of(context)?.signinToSubmit ?? "Sign in to Submit"
-                                  : (_isSubmitted && !_isEditing ? AppLocalizations.of(context)?.editResponses ?? "Edit Responses" : AppLocalizations.of(context)?.submit ?? "Submit"),
-                              icon: Icon(_isGradedByAdmin 
-                                ? Icons.verified
-                                : isAnonymous
-                                  ? Icons.lock_outline
-                                  : (_isSubmitted && !_isEditing ? Icons.edit : Icons.save_rounded),
+                                : _isPreviewChurch
+                                ? "Preview parish – submission disabled"
+                                  : isAnonymous
+                                    ? AppLocalizations.of(context)?.signinToSubmit ?? "Sign in to Submit"
+                                    : (_isSubmitted && !_isEditing 
+                                      ? AppLocalizations.of(context)?.editResponses ?? "Edit Responses" 
+                                      : AppLocalizations.of(context)?.submit ?? "Submit"),
+                              icon: Icon(
+                                _isGradedByAdmin 
+                                  ? Icons.verified
+                                  : _isPreviewChurch
+                                    ? Icons.info_outline
+                                    : isAnonymous
+                                      ? Icons.lock_outline
+                                      : (_isSubmitted && !_isEditing ? Icons.edit : Icons.save_rounded),
                               ),
                               topColor: _isGradedByAdmin 
                                 ? AppColors.primaryContainer
-                                : isAnonymous
-                                  ? AppColors.primary
-                                  : (_isSubmitted && !_isEditing ? AppColors.success : AppColors.primary),
-                              onPressed: _isGradedByAdmin
+                                : _isPreviewChurch
+                                  ? AppColors.warning
+                                  : isAnonymous
+                                    ? AppColors.primary
+                                    : (_isSubmitted && !_isEditing ? AppColors.success : AppColors.primary),
+                              onPressed: _isGradedByAdmin || _isPreviewChurch
                                 ? null // Fully disabled
                                 : () async {
+                                    final auth = context.read<AuthService>();
 
                                     // 🔐 Anonymous user → redirect
                                     if (user == null || user.isAnonymous) {
-                                      await FirebaseAuth.instance.signOut();
+                                      await auth.signOutAndGoToLogin(context);
                                       Navigator.pushAndRemoveUntil(
                                         context,
                                         MaterialPageRoute(builder: (_) => MainScreen()),
@@ -614,6 +707,19 @@ class _AssignmentResponsePageState extends State<AssignmentResponsePage> {
                                   },
                             ),
                           ),
+                          if (_isPreviewChurch && !_isGradedByAdmin)
+                            Padding(
+                              padding: EdgeInsets.only(top: 16.sp, left: 8.sp, right: 8.sp),
+                              child: Text(
+                                "Leave Default Parish in Account.\nJoin a parish with a 6-digit code to submit assignments.",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  color: Colors.grey[600],
+                                  height: 1.4,
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     )),

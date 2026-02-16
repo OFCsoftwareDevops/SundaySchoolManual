@@ -122,6 +122,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get assignments => 'Assignments';
 
   @override
+  String get soundEffects => 'Sound effects';
+
+  @override
+  String get ageGroup => 'Age Group';
+
+  @override
   String get teachers => 'Teachers';
 
   @override
@@ -352,6 +358,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sunday => 'Sunday';
 
   @override
+  String get monthShortJan => 'Jan';
+
+  @override
+  String get monthShortFeb => 'Feb';
+
+  @override
+  String get monthShortMar => 'Mar';
+
+  @override
+  String get monthShortApr => 'Apr';
+
+  @override
+  String get monthShortMay => 'May';
+
+  @override
+  String get monthShortJun => 'Jun';
+
+  @override
+  String get monthShortJul => 'Jul';
+
+  @override
+  String get monthShortAug => 'Aug';
+
+  @override
+  String get monthShortSep => 'Sep';
+
+  @override
+  String get monthShortOct => 'Oct';
+
+  @override
+  String get monthShortNov => 'Nov';
+
+  @override
+  String get monthShortDec => 'Dec';
+
+  @override
   String get january => 'January';
 
   @override
@@ -476,6 +518,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get myResponses => 'My Responses:';
+
+  @override
+  String get assignmentGradedToast => 'Your assignment has been graded';
 
   @override
   String get yourSubmittedResponses => 'Your submitted responses';
@@ -1065,7 +1110,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get progressNextFreeze => 'Progress to next freeze';
 
   @override
-  String get daysUntilNextFreeze => 'day(s) until next freeze (every 7-day streak awards 1 freeze)';
+  String get daysUntilNextFreeze => 'day(s) until next freeze.';
 
   @override
   String get howFreezesWork => 'How freezes work';

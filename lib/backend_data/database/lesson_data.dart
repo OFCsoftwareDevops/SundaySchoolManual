@@ -22,29 +22,6 @@ class LessonDay extends HiveObject {
   });
 }
 
-/*class LessonDay {
-  final DateTime date;
-  final SectionNotes? teenNotes;
-  final SectionNotes? adultNotes;
-
-  const LessonDay({
-    required this.date,
-    this.teenNotes,
-    this.adultNotes,
-  });
-}
-
-class SectionNotes {
-  final String topic;
-  final String biblePassage;
-  final List<ContentBlock> blocks;
-
-  const SectionNotes({
-    required this.topic,
-    required this.biblePassage,
-    required this.blocks,
-  });*/
-
 @HiveType(typeId: 1)
 class SectionNotes extends HiveObject {
   @HiveField(0)
@@ -90,29 +67,6 @@ class SectionNotes extends HiveObject {
   // Helper: check if completely empty
   bool get isEmpty => topic.trim().isEmpty && blocks.isEmpty;
 }
-
-/*class ContentBlock {
-  final String type;
-  final String? text;
-  final List<String>? items;
-  final String? videoUrl;
-
-  const ContentBlock({
-    required this.type,
-    this.text,
-    this.items,
-    this.videoUrl,
-  });
-
-  // Named constructors
-  factory ContentBlock.heading(String text) => ContentBlock(type: "heading", text: text);
-  factory ContentBlock.text(String text) => ContentBlock(type: "text", text: text);
-  factory ContentBlock.memoryVerse(String text) => ContentBlock(type: "memory_verse", text: text);
-  factory ContentBlock.numberedList(List<String> items) => ContentBlock(type: "numbered_list", items: items);
-  factory ContentBlock.bulletList(List<String> items) => ContentBlock(type: "bullet_list", items: items);
-  factory ContentBlock.quote(String text) => ContentBlock(type: "quote", text: text);
-  factory ContentBlock.prayer(String text) => ContentBlock(type: "prayer", text: text);
-  factory ContentBlock.video(String url) => ContentBlock(type: "video", videoUrl: url);*/
 
 @HiveType(typeId: 2)
 class ContentBlock extends HiveObject {

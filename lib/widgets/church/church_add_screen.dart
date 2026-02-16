@@ -169,11 +169,6 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
         title: AppLocalizations.of(context)?.createYourChurch ?? "Create Your Church",
         showBack: true,
       ),
-      /*appBar: AppBar(
-        title: Text(AppLocalizations.of(context)?.createYourChurch ?? "Create Your Church"),
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
-        foregroundColor: Theme.of(context).appBarTheme.foregroundColor,
-      ),*/
       body: SingleChildScrollView(
         padding: EdgeInsets.all(20.sp),
         child: Column(
@@ -222,7 +217,7 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
               controller: _adminController,
               decoration: InputDecoration(
                 labelText: AppLocalizations.of(context)?.adminEmail ?? "Admin Email *",
-                hintText: "e.g. admin@grace-lagos.org",
+                hintText: "e.g. admin@grace-lagos.org required to get ACCESS code.",
                 border: OutlineInputBorder(),
               ),
             ),

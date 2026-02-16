@@ -194,165 +194,63 @@ class SmartSaveReadingButtonState extends State<SmartSaveReadingButton> {
     final userId = user?.uid;
     final isAnonymous = user?.isAnonymous;
 
-    /*try {
-  if (_isSaved) {
-    // You must have stored the readingId somewhere after adding it last time
-    // Example: in widget state, or a provider, or local variable
-    final readingId = _savedReadingId;  // ← replace with how you actually store/retrieve it
-
-    if (readingId == null) {
-      showTopToast(context, 'Cannot remove: no saved ID found');
-      return;
-    }
-
-    await service.removeFurtherReading(userId!, readingId);
-
-    setState(() {
-      _isSaved = false;
-      _savedReadingId = null;  // clear it
-    });
-
-    showTopToast(context, 'Reading removed');
-  } else {
-    String? newId;
-
-    if (isAnonymous!) {
-      final now = DateTime.now().toUtc();
-      final fakeId = 'local_${now.millisecondsSinceEpoch}';
-
-      final newItem = <String, dynamic>{
-        'id': fakeId,
-        'title': widget.ref,
-        'reading': widget.todayReading,
-        'savedAt': now.toIso8601String(),
-      };
-
-      final current = service.getCachedItems(userId!, 'further_readings');
-      await service.cacheFurtherReadings(userId!, [newItem, ...current]);
-
-      newId = fakeId;
-    } else {
-      newId = await service.addFurtherReading(
-        userId: userId!,
-        title: widget.ref,
-        reading: widget.todayReading,
-      );
-    }
-
-    setState(() {
-      _isSaved = true;
-      _savedReadingId = newId;  // ← store it here for next removal
-    });
-
-    showTopToast(context, 'Reading saved! 📖');
-  }
-} catch (e, stack) {
-  debugPrint("Toggle save failed: $e\n$stack");
-  showTopToast(context, 'Operation failed: $e');
-}*/
-
-    try {
-        if (_isSaved) {
-          // ── REMOVE ────────────────────────────────────────
-          final current = service.getCachedItems(userId!, 'further_readings');
-          final updated = current.where((item) => item['title'] != widget.ref).toList();
-          await service.cacheItems(userId, 'further_readings', updated);
-
-          if (isAnonymous!) {
-            await service.removeFurtherReading(userId, widget.ref);
-          }
-
-          setState(() => _isSaved = false);
-          showTopToast(context, 'Reading removed');
-        } else {
-          // ── ADD ───────────────────────────────────────────
-          final now = DateTime.now().toUtc();
-
-          final newItem = <String, dynamic>{
-            'title': widget.ref,
-            'reading': widget.todayReading,
-            'savedAt': now.toIso8601String(),
-          };
-
-          if (isAnonymous!) {
-            // Anonymous: only local cache + fake ID
-            final fakeId = 'local_${now.millisecondsSinceEpoch}';
-            newItem['id'] = fakeId;
-
-            final current = service.getCachedItems(userId!, 'further_readings');
-            final updated = [newItem, ...current];
-            await service.cacheItems(userId, 'further_readings', updated);
-          } else {
-            // Real user: Firestore + cache
-            final docRef = await service.addFurtherReading(
-              userId,
-              title: widget.ref,
-              reading: widget.todayReading,
-            );
-
-            newItem['id'] = docRef;
-
-            final current = service.getCachedItems(userId!, 'further_readings');
-            final updated = [newItem, ...current];
-            await service.cacheItems(userId, 'further_readings', updated);
-          }
-
-          setState(() => _isSaved = true);
-          showTopToast(
-            context, 
-            'Reading saved! 📖',
-          );
-        }
-      } catch (e, stack) {
-        debugPrint("Toggle save failed: $e\n$stack");
-        showTopToast(context, 'Operation failed: $e');
-      }
-    }
-
-  /*Future<void> _toggleSave() async {
-    final user = FirebaseAuth.instance.currentUser;
-    final auth = context.read<AuthService>();
-
-    if (user == null || auth.churchId == null) {
-      showTopToast(
-        context,
-        'Sign in to save readings',
-      );
-      return;
-    }
-
-    final service = SavedItemsService();
-
     try {
       if (_isSaved) {
-        // REMOVE
-        await service.removeFurtherReadingByTitle(user.uid, widget.ref);
+        // ── REMOVE ────────────────────────────────────────
+        final current = service.getCachedItems(userId!, 'further_readings');
+        final updated = current.where((item) => item['title'] != widget.ref).toList();
+        await service.cacheItems(userId, 'further_readings', updated);
+
+        if (isAnonymous!) {
+          await service.removeFurtherReading(userId, widget.ref);
+        }
+
         setState(() => _isSaved = false);
-        showTopToast(
-          context,
-          'Reading removed',
-        );
+        showTopToast(context, 'Reading removed');
       } else {
-        // ADD
-        await service.addFurtherReading(
-          user.uid,
-          title: widget.ref,           // "Esther 4:16"
-          reading: widget.todayReading, // "Esther 4:16 (KJV)"
-          // note: null,               // optional
-        );
+        // ── ADD ───────────────────────────────────────────
+        final now = DateTime.now().toUtc();
+
+        final newItem = <String, dynamic>{
+          'title': widget.ref,
+          'reading': widget.todayReading,
+          'savedAt': now.toIso8601String(),
+        };
+
+        if (isAnonymous!) {
+          // Anonymous: only local cache + fake ID
+          final fakeId = 'local_${now.millisecondsSinceEpoch}';
+          newItem['id'] = fakeId;
+
+          final current = service.getCachedItems(userId!, 'further_readings');
+          final updated = [newItem, ...current];
+          await service.cacheItems(userId, 'further_readings', updated);
+        } else {
+          // Real user: Firestore + cache
+          final docRef = await service.addFurtherReading(
+            userId,
+            title: widget.ref,
+            reading: widget.todayReading,
+          );
+
+          newItem['id'] = docRef;
+
+          final current = service.getCachedItems(userId!, 'further_readings');
+          final updated = [newItem, ...current];
+          await service.cacheItems(userId, 'further_readings', updated);
+        }
+
         setState(() => _isSaved = true);
         showTopToast(
-          context,
+          context, 
           'Reading saved! 📖',
         );
       }
-    } catch (e) {
-      showTopToast(
-        context,
-        'Operation failed: $e',
-      );
+    } catch (e, stack) {
+      debugPrint("Toggle save failed: $e\n$stack");
+      showTopToast(context, 'Operation failed: $e');
     }
-  }*/
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -361,6 +259,7 @@ class SmartSaveReadingButtonState extends State<SmartSaveReadingButton> {
     return IconButton(
       tooltip: _isSaved ? 'Remove from saved readings' : 'Save this reading',
       onPressed: _isChecking ? null : _toggleSave,
+      enableFeedback: AppSounds.soundEnabled,
       icon: _isChecking
         ? SizedBox(
           width: 24.sp,

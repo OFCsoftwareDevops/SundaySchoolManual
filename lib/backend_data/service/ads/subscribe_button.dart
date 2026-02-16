@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../UI/app_buttons.dart';
 import '../../../UI/app_colors.dart';
-import '../../../l10n/app_localizations.dart';
 import '../../../widgets/helpers/snackbar.dart';
 
 Widget subscribeButton({

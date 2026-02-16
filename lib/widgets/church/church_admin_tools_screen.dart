@@ -14,7 +14,6 @@ import '../../backend_data/service/ads/premium_provider.dart';
 import '../../backend_data/service/ads/premium_subscription_screen.dart';
 import '../../backend_data/service/ads/subscribe_button.dart';
 import '../../l10n/app_localizations.dart';
-import '../../utils/media_query.dart';
 
 class AdminToolsScreen extends StatefulWidget {
   const AdminToolsScreen({super.key});
@@ -192,11 +191,6 @@ class AdminToolsScreenState extends State<AdminToolsScreen> {
           title: AppLocalizations.of(context)?.accessRestricted ?? "Access Restricted",
           showBack: true,
         ),
-        /*/backgroundColor: Theme.of(context).colorScheme.background,
-        appBar: AppBar(
-          centerTitle: true,
-          title: const Text("accessRestricted Access Restricted"),
-        ),*/
         body: Center(
           child: Padding(
             padding: EdgeInsets.all(24.sp),
@@ -206,7 +200,6 @@ class AdminToolsScreenState extends State<AdminToolsScreen> {
                 Icon(
                   Icons.lock_outline,
                   size: 70.sp,
-                  //color: Colors.grey,
                 ),
                 SizedBox(height: 10.sp),
                 Text(
@@ -222,7 +215,6 @@ class AdminToolsScreenState extends State<AdminToolsScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 10.sp, 
-                    //color: Colors.grey[600],
                   ),
                 ),
               ],
@@ -237,25 +229,6 @@ class AdminToolsScreenState extends State<AdminToolsScreen> {
         title: "Global Admin Tools",
         showBack: true,
       ),
-      //backgroundColor: Theme.of(context).colorScheme.background,
-      /*appBar: AppBar(
-        centerTitle: true,
-        title: FittedBox(
-          fit: BoxFit.scaleDown, // Scales down text if it would overflow
-          child: Text(
-            "Global Admin Tools",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: themestyle.monthFontSize.sp, // Matches your other screen's style
-            ),
-          ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          iconSize: themestyle.monthFontSize.sp, // Consistent sizing
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),*/
       body: SingleChildScrollView(
         padding: EdgeInsets.all(15.sp),
         child: Column(
@@ -473,7 +446,6 @@ class AdminToolsScreenState extends State<AdminToolsScreen> {
                       value: _selectedAdminToRemove,
                       style: TextStyle(
                         fontSize: 16.sp,
-                        //color: Colors.black, // required or it may look disabled
                       ),
                       hint: Text(
                         "Select admin to remove",
@@ -650,7 +622,7 @@ class AdminToolsScreenState extends State<AdminToolsScreen> {
 
             SizedBox(height: 10.sp),
 
-            // === NEW: Church Premium Subscription Button ===
+            /*/ === NEW: Church Premium Subscription Button ===
             Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -716,7 +688,7 @@ class AdminToolsScreenState extends State<AdminToolsScreen> {
                     ),
                 ],
               ),
-            ),
+            ),*/
           ],
         ),
       ),

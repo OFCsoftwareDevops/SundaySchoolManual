@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // Add this
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:text_scroll/text_scroll.dart';
 import '../../../l10n/app_localizations.dart';
 import 'premium_provider.dart';
 
@@ -81,17 +82,23 @@ class _BannerAdWidgetState extends ConsumerState<BannerAdWidget> {
           children: [
             Container(
               width: double.infinity,
-              padding: EdgeInsets.symmetric(vertical: 1.sp),
-              color: Theme.of(context).colorScheme.onSurface,
-              child: Text(
-                AppLocalizations.of(context)?.advertsDisclosure ?? "Adverts fund the app and server maintenance, for your pleasure.",
-                textAlign: TextAlign.center,
+              padding: EdgeInsets.symmetric(vertical: 2),
+              color: Theme.of(context).colorScheme.onBackground,
+              child: TextScroll(
+                AppLocalizations.of(context)?.advertsDisclosure ??
+                    "Adverts fund the app and server maintenance, for your pleasure.",
+                velocity: Velocity(pixelsPerSecond: Offset(50, 0)), // similar to your speed: 50
+                intervalSpaces: 80,         // ≈ your gap: 80
+                mode: TextScrollMode.endless, // loops forever (default is .endless)
+                delayBefore: const Duration(milliseconds: 500),   // optional: pause before starting
+                pauseBetween: const Duration(milliseconds: 800),  // optional: pause after each cycle
+                textAlign: TextAlign.center,               // you had it commented – now available
                 style: TextStyle(
                   fontSize: 8.sp,
-                  height: 1.sp,
-                  color: Theme.of(context).colorScheme.surface.withOpacity(1),
+                  color: Theme.of(context).colorScheme.background.withOpacity(1),
                 ),
               ),
+
             ),
             if (_isLoaded && _bannerAd != null)
               _adContainer(context)

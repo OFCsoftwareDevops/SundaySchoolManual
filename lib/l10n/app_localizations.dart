@@ -319,6 +319,18 @@ abstract class AppLocalizations {
   /// **'Assignments'**
   String get assignments;
 
+  /// Sound effect toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Sound effects'**
+  String get soundEffects;
+
+  /// No description provided for @ageGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Age Group'**
+  String get ageGroup;
+
   /// Teachers/grading section for admins
   ///
   /// In en, this message translates to:
@@ -775,6 +787,78 @@ abstract class AppLocalizations {
   /// **'Sunday'**
   String get sunday;
 
+  /// No description provided for @monthShortJan.
+  ///
+  /// In en, this message translates to:
+  /// **'Jan'**
+  String get monthShortJan;
+
+  /// No description provided for @monthShortFeb.
+  ///
+  /// In en, this message translates to:
+  /// **'Feb'**
+  String get monthShortFeb;
+
+  /// No description provided for @monthShortMar.
+  ///
+  /// In en, this message translates to:
+  /// **'Mar'**
+  String get monthShortMar;
+
+  /// No description provided for @monthShortApr.
+  ///
+  /// In en, this message translates to:
+  /// **'Apr'**
+  String get monthShortApr;
+
+  /// No description provided for @monthShortMay.
+  ///
+  /// In en, this message translates to:
+  /// **'May'**
+  String get monthShortMay;
+
+  /// No description provided for @monthShortJun.
+  ///
+  /// In en, this message translates to:
+  /// **'Jun'**
+  String get monthShortJun;
+
+  /// No description provided for @monthShortJul.
+  ///
+  /// In en, this message translates to:
+  /// **'Jul'**
+  String get monthShortJul;
+
+  /// No description provided for @monthShortAug.
+  ///
+  /// In en, this message translates to:
+  /// **'Aug'**
+  String get monthShortAug;
+
+  /// No description provided for @monthShortSep.
+  ///
+  /// In en, this message translates to:
+  /// **'Sep'**
+  String get monthShortSep;
+
+  /// No description provided for @monthShortOct.
+  ///
+  /// In en, this message translates to:
+  /// **'Oct'**
+  String get monthShortOct;
+
+  /// No description provided for @monthShortNov.
+  ///
+  /// In en, this message translates to:
+  /// **'Nov'**
+  String get monthShortNov;
+
+  /// No description provided for @monthShortDec.
+  ///
+  /// In en, this message translates to:
+  /// **'Dec'**
+  String get monthShortDec;
+
   /// Month: January
   ///
   /// In en, this message translates to:
@@ -1014,6 +1098,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'My Responses:'**
   String get myResponses;
+
+  /// No description provided for @assignmentGradedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Your assignment has been graded'**
+  String get assignmentGradedToast;
 
   /// Label for submitted responses
   ///
@@ -2164,7 +2254,7 @@ abstract class AppLocalizations {
   /// No description provided for @daysUntilNextFreeze.
   ///
   /// In en, this message translates to:
-  /// **'day(s) until next freeze (every 7-day streak awards 1 freeze)'**
+  /// **'day(s) until next freeze.'**
   String get daysUntilNextFreeze;
 
   /// No description provided for @howFreezesWork.

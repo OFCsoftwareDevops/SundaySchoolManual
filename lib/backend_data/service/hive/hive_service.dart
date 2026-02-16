@@ -8,12 +8,14 @@ class HiveBoxes {
   static const furtherReadingsCache = 'further_readings_cache';
   static const bookmarksCache       = 'bookmarks_cache';
   static const userCache            = 'user_cache';
+  static const datesCache           = 'dates_cache';
 
-  static Box<LessonDay> get lessons       => Hive.box<LessonDay>(lessonsCache);
-  static Box<LessonDay> get assignments   => Hive.box<LessonDay>(assignmentsCache);
-  static Box<dynamic>    get furtherReadings => Hive.box(furtherReadingsCache);
-  static Box<dynamic>   get bookmarks     => Hive.box(bookmarksCache);
-  static Box<dynamic>   get userBox       => Hive.box(userCache);
+  static Box<LessonDay> get lessons           => Hive.box<LessonDay>(lessonsCache);
+  static Box<LessonDay> get assignments       => Hive.box<LessonDay>(assignmentsCache);
+  static Box<dynamic>   get furtherReadings   => Hive.box(furtherReadingsCache);
+  static Box<dynamic>   get bookmarks         => Hive.box(bookmarksCache);
+  static Box<dynamic>   get userBox           => Hive.box(userCache);
+  static Box<dynamic>   get dates             => Hive.box(datesCache);
 }
 
 class UserCacheKeys {
@@ -27,10 +29,6 @@ class UserCacheKeys {
   static String displayName(String uid) => prefix(uid, 'profile_display_name');
   static String email(String uid)    => prefix(uid, 'profile_email');
   static String uidCheck(String uid) => prefix(uid, 'profile_uid'); // optional sanity check
-
-  // If you later cache user responses or other per-user data:
-  // static String responses(String uid)   => prefix(uid, 'responses_all');
-  // static String responseForDate(String uid, String dateStr) => '${prefix(uid, 'response')}_$dateStr';
 }
 
 class HiveHelper {
@@ -47,6 +45,7 @@ class HiveHelper {
       Hive.openBox(HiveBoxes.furtherReadingsCache),
       Hive.openBox<dynamic>(HiveBoxes.bookmarksCache),
       Hive.openBox<dynamic>(HiveBoxes.userCache),
+      Hive.openBox(HiveBoxes.datesCache),
       Hive.openBox('settings'),
     ]);
   }

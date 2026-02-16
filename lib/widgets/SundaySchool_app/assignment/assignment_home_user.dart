@@ -7,12 +7,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import '../../../UI/app_bar.dart';
 import '../../../UI/app_segment_sliding.dart';
+import '../../../UI/app_sound.dart';
 import '../../../auth/login/auth_service.dart';
 import '../../../backend_data/database/constants.dart';
 import '../../../backend_data/service/firestore/assignment_dates_provider.dart';
 import '../../../backend_data/service/firestore/firestore_service.dart';
 import '../../../backend_data/service/firestore/submitted_dates_provider.dart';
-import '../../../utils/media_query.dart';
 import '../../../l10n/app_localizations.dart';
 import 'assignment_response_page_user.dart';
 
@@ -95,9 +95,6 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
           title: AppLocalizations.of(context)?.myAssignments ?? "My Assignments",
           showBack: true,
         ),
-        /*appBar: AppBar(title: Text(
-          AppLocalizations.of(context)?.myAssignments ?? "My Assignments",
-        )),*/
         body: const Center(
           child: Text("Please log in to view your assignments."),
         ),
@@ -110,25 +107,7 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
         title: "${AppLocalizations.of(context)?.assignments ?? 'Assignments'} — $parishName",
         showBack: true,
       ),
-      //backgroundColor: Theme.of(context).colorScheme.background,
-      /*appBar: AppBar(
-        centerTitle: true,
-        title: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            "${AppLocalizations.of(context)?.assignments ?? 'Assignments'} — $parishName",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: style.monthFontSize.sp, // Matches the style from your Bible screen
-            ),
-          ),
-        ),
-        leading: IconButton( // Optional: explicitly define back button if needed
-          icon: const Icon(Icons.arrow_back),
-          iconSize: style.monthFontSize.sp, // Consistent with your Bible app bar
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),*/
+
       body: Column(
         children: [
           Padding(
@@ -278,6 +257,7 @@ class _UserAssignmentsPageState extends State<UserAssignmentsPage> {
                           ),
                         );
                       },
+                      enableFeedback: AppSounds.soundEnabled,
                       child: Padding(
                         padding: EdgeInsets.all(16.sp),
                         child: Column(

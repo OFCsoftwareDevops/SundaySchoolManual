@@ -8,6 +8,7 @@ import '../../UI/app_colors.dart';
 import '../../auth/login/auth_service.dart';
 import '../../backend_data/service/analytics/analytics_service.dart';
 import '../../l10n/app_localizations.dart';
+import '../../utils/store_links.dart';
 import '../helpers/snackbar.dart';
 
 class ShareChurchButton extends StatelessWidget {
@@ -23,14 +24,14 @@ class ShareChurchButton extends StatelessWidget {
         await AnalyticsService.logButtonClick('Share_Church');
 
         final churchAccessId = auth.accessCode;
-        final appLink = "https://example.com/your_app"; // Replace with your link
+        final appLink = StoreLinks.webPage; // Replace with your link
         final shareText =
             "Join our church community! Church Access ID: $churchAccessId\nDownload the app here: $appLink";
 
         try {
-          final byteData = await rootBundle.load('assets/images/rccg_jhfan_share_image.png');
+          final byteData = await rootBundle.load('assets/images/rccg_sunday_school_manual_preview.png');
           final tempDir = await getTemporaryDirectory();
-          final file = File('${tempDir.path}/rccg_jhfan_share_image.png');
+          final file = File('${tempDir.path}/rccg_sunday_school_manual_preview.png');
           await file.writeAsBytes(byteData.buffer.asUint8List());
 
           await Share.shareXFiles([XFile(file.path)], text: shareText);

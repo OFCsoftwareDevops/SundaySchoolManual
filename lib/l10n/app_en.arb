@@ -43,6 +43,8 @@
   "streaks": "Streaks",
   "leaderboard": "Leaderboard",
   "assignments": "Assignments",
+  "soundEffects": "Sound effects",
+  "ageGroup": "Age Group",
   "teachers": "Teachers",
   "appSuggestions": "App Suggestions",
   "adminTools": "Admin Tools",
@@ -130,6 +132,19 @@
   "saturday": "Saturday",
   "sunday": "Sunday",
 
+  "monthShortJan": "Jan",
+  "monthShortFeb": "Feb",
+  "monthShortMar": "Mar",
+  "monthShortApr": "Apr",
+  "monthShortMay": "May",
+  "monthShortJun": "Jun",
+  "monthShortJul": "Jul",
+  "monthShortAug": "Aug",
+  "monthShortSep": "Sep",
+  "monthShortOct": "Oct",
+  "monthShortNov": "Nov",
+  "monthShortDec": "Dec",
+
   "january": "January",
   "february": "February",
   "march": "March",
@@ -172,6 +187,7 @@
   "editResponses": "Edit Responses",
   "yourScore": "Your Score: {score} / {total}",
   "myResponses": "My Responses:",
+  "assignmentGradedToast": "Your assignment has been graded",
   "yourSubmittedResponses": "Your submitted responses",
   "assignmentGraded": "This assignment has been graded",
   "gradedNoEdit": "Graded — cannot edit",
@@ -422,6 +438,9 @@
   },
   "@pastor": {
     "description": "Label for the name of the pastor of the parish/church"
+  },
+  "@soundEffects": {
+    "description": "Sound effect toggle"
   },
   "@notAvailable": {
     "description": "Fallback text shown when a value (e.g. pastor name, access code) is missing or not set"
@@ -1064,7 +1083,7 @@
   "lastCompleted": "Last Completed",
   "never": "Never",
   "progressNextFreeze": "Progress to next freeze",
-  "daysUntilNextFreeze": "day(s) until next freeze (every 7-day streak awards 1 freeze)",
+  "daysUntilNextFreeze": "day(s) until next freeze.",
   "howFreezesWork": "How freezes work",
   "freezeExplanation": "If you miss a day, a freeze will be consumed to keep your streak.",
   "savedItemsTitle": "Saved Items",

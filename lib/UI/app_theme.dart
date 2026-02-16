@@ -5,9 +5,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 class AppTheme {
-  static ThemeData get lightTheme => ThemeData(
+  static ThemeData lightTheme({bool soundEnabled = true}) => ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
+    splashFactory: soundEnabled ? InkRipple.splashFactory : NoSplash.splashFactory,
 
     colorScheme: ColorScheme.light(
       primary: AppColors.primary,
@@ -38,7 +39,6 @@ class AppTheme {
       foregroundColor: AppColors.primary,
       elevation: 0,
       scrolledUnderElevation: 0,
-      //shadowColor: AppColors.background,
       surfaceTintColor: Colors.transparent,
       titleTextStyle: TextStyle(
         fontFamily: 'Inter',
@@ -58,9 +58,10 @@ class AppTheme {
     textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme),
   );
 
-  static ThemeData get darkTheme => ThemeData(
+  static ThemeData darkTheme({bool soundEnabled = true}) => ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
+    splashFactory: soundEnabled ? InkRipple.splashFactory : NoSplash.splashFactory,
 
     colorScheme: ColorScheme.dark(
       primary: AppColors.primary,                    // Keep brand blue consistent
@@ -91,7 +92,6 @@ class AppTheme {
       foregroundColor: AppColors.darkOnBackground,
       elevation: 0,
       scrolledUnderElevation: 0,
-      //shadowColor: Colors.black54,
       surfaceTintColor: Colors.transparent,
       titleTextStyle: TextStyle(
         fontFamily: 'Inter',
@@ -122,7 +122,7 @@ class CalendarTheme {
 
   // Selected date background
   static Color selectedBackground(BuildContext context) =>
-      Theme.of(context).colorScheme.primary; // Your brand blue (#344862) – perfect in both modes
+      const Color.fromARGB(255, 186, 44, 134); // Your brand blue (#344862) – perfect in both modes
 
   // Selected date text/icon color
   static Color selectedForeground(BuildContext context) =>
@@ -130,7 +130,7 @@ class CalendarTheme {
 
   // Today's date background (special highlight)
   static Color todayBackground(BuildContext context) =>
-      AppColors.divineAccent; // Sacred muted gold (#BCAA73) – warm & meaningful
+      AppColors.grey700.withOpacity(0.5); // Sacred muted gold (#BCAA73) – warm & meaningful
 
   // Today's date text color
   static Color todayForeground(BuildContext context) =>

@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../UI/app_bar.dart';
 import '../../UI/app_buttons.dart';
 import '../../UI/app_colors.dart';
+import '../../UI/app_sound.dart';
 import '../../l10n/app_localizations.dart';
 import '../../backend_data/service/analytics/analytics_service.dart';
 import '../../utils/rate_app.dart';
@@ -82,23 +83,6 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         title: AppLocalizations.of(context)?.yourSuggestions ?? "Your Suggestions",
         showBack: true,
       ),
-      /*appBar: AppBar(
-        centerTitle: true,
-        title: FittedBox(
-          fit: BoxFit.scaleDown,  // Or fitWidth to fill width
-          child: Text(
-            AppLocalizations.of(context)?.yourSuggestions ?? "Your Suggestions",
-            style: TextStyle(fontSize: style.monthFontSize.sp)  // Your desired base size
-          ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          iconSize: style.monthFontSize.sp,
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-      ),*/
       body: SingleChildScrollView(
         padding: EdgeInsets.all(20.sp),
         child: Column(
@@ -151,6 +135,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
             Center(
               child: InkWell(
                 onTap: rateApp,
+                enableFeedback: AppSounds.soundEnabled,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [

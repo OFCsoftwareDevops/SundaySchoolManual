@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import '../../UI/app_bar.dart';
 import '../../UI/app_buttons.dart';
+import '../../UI/app_sound.dart';
 import '../../utils/device_check.dart';
 import '../../utils/media_query.dart';
 import '../../l10n/app_localizations.dart';
@@ -48,7 +49,7 @@ class BiblePage extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.menu_book_rounded, 
-                    size: 50, 
+                    size: 50.sp, 
                     color: colorScheme.onBackground,
                   ),
                   SizedBox(height: 20),
@@ -79,16 +80,15 @@ class BiblePage extends StatelessWidget {
                     ? const CircularProgressIndicator()
                     : DropdownButton<String>(
                       value: manager.currentVersion,
-                      dropdownColor: theme.colorScheme.onSecondaryContainer,
+                      dropdownColor: theme.colorScheme.background,
                       icon: Icon(
                         Icons.keyboard_arrow_down, 
-                        color: theme.colorScheme.onSecondaryContainer,
+                        color: theme.colorScheme.onBackground,
                         size: style.monthFontSize.sp,
                       ),
-                      //underline: const SizedBox(),
                       style: TextStyle(
                         fontSize: style.monthFontSize.sp * 0.5,
-                        color: theme.colorScheme.onSecondaryContainer,
+                        color: theme.colorScheme.onBackground,
                         fontWeight: FontWeight.bold,
                       ),
                       items: manager.availableVersions
@@ -246,15 +246,15 @@ class BookReader extends StatelessWidget {
                       ? const CircularProgressIndicator()
                       : DropdownButton<String>(
                           value: manager.currentVersion,
-                          dropdownColor: theme.colorScheme.onSecondaryContainer,
+                          dropdownColor: theme.colorScheme.background,
                           icon: Icon(
                             Icons.keyboard_arrow_down, 
                             size: style.monthFontSize.sp,
-                            color: theme.colorScheme.onSecondaryContainer,
+                            color: theme.colorScheme.onBackground,
                           ),
                           //underline: const SizedBox(),
                           style: TextStyle(
-                            color: theme.colorScheme.onSecondaryContainer,
+                            color: theme.colorScheme.onBackground,
                             fontWeight: FontWeight.bold,
                             fontSize: style.monthFontSize.sp  * 0.5,
                           ),
@@ -430,6 +430,7 @@ class _ChapterReaderState extends State<ChapterReader> {
                   icon: const Icon(Icons.close),
                   iconSize: fontstyle.monthFontSize.sp,
                   onPressed: () => setState(() => _selectedVerses.clear()),
+                  enableFeedback: AppSounds.soundEnabled,
                 ),
               // ← VERSION SWITCHER (this was missing)
               Padding(
@@ -445,15 +446,15 @@ class _ChapterReaderState extends State<ChapterReader> {
                             )
                           : DropdownButton<String>(
                               value: manager.currentVersion,
-                              dropdownColor: colorScheme.onSecondaryContainer,
+                              dropdownColor: colorScheme.background,
                               icon: Icon(
                                 Icons.keyboard_arrow_down,
-                                color: theme.colorScheme.onSecondaryContainer,
+                                color: theme.colorScheme.onBackground,
                                 size: fontstyle.monthFontSize.sp,
                               ),
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: theme.colorScheme.onSecondaryContainer,
+                                color: theme.colorScheme.onBackground,
                                 fontSize: fontstyle.monthFontSize.sp * 0.5,
                               ),
                               items: manager.availableVersions
@@ -676,6 +677,7 @@ class ChapterNavigationButtons extends StatelessWidget {
                 child: IconButton(
                   iconSize: style.monthFontSize.sp,
                   onPressed: hasPrevious ? goPrevious : null,
+                  enableFeedback: AppSounds.soundEnabled,
                   icon: const Icon(Icons.arrow_back_ios_new_rounded),
                   color: colorScheme.onSecondary,
                 ),
@@ -693,6 +695,7 @@ class ChapterNavigationButtons extends StatelessWidget {
                 child: IconButton(
                   iconSize: style.monthFontSize.sp,
                   onPressed: hasNext ? goNext : null,
+                  enableFeedback: AppSounds.soundEnabled,
                   icon: const Icon(Icons.arrow_forward_ios_rounded),
                   color: colorScheme.onSecondary,
                 ),

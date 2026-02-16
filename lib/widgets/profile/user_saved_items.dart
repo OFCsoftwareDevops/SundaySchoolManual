@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../UI/app_bar.dart';
 import '../../UI/app_colors.dart';
+import '../../UI/app_sound.dart';
 import '../../auth/login/auth_service.dart';
 import '../../backend_data/service/firestore/saved_items_service.dart';
 import '../../backend_data/service/firestore/firestore_service.dart';
@@ -179,6 +180,7 @@ class _BookmarkCard extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12.sp),
+      enableFeedback: AppSounds.soundEnabled,
       child: Card(
         margin: EdgeInsets.symmetric(vertical: 8.sp, horizontal: 8.sp),
         elevation: 2,
@@ -218,6 +220,7 @@ class _BookmarkCard extends StatelessWidget {
             trailing: IconButton(
               icon: Icon(Icons.delete, color: AppColors.grey700, size: 20.sp),
               onPressed: onDelete,
+              enableFeedback: AppSounds.soundEnabled,
               tooltip: AppLocalizations.of(context)?.deleteBookmark ?? 'Delete bookmark',
             ),
             tilePadding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: 8.sp),
@@ -409,6 +412,7 @@ class _LessonCard extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12.sp),
+      enableFeedback: AppSounds.soundEnabled,
       child: Card(
         margin: EdgeInsets.symmetric(vertical: 8.sp, horizontal: 8.sp),
         elevation: 2,
@@ -457,11 +461,13 @@ class _LessonCard extends StatelessWidget {
                   IconButton(
                     icon: const Icon(Icons.open_in_new, color: Colors.grey),
                     onPressed: onTap,
+                    enableFeedback: AppSounds.soundEnabled,
                     tooltip: AppLocalizations.of(context)?.openLesson ?? 'Open lesson',
                   ),
                   IconButton(
                     icon: Icon(Icons.delete, color: AppColors.grey700, size: 20.sp),
                     onPressed: onDelete,
+                    enableFeedback: AppSounds.soundEnabled,
                     tooltip: AppLocalizations.of(context)?.deleteLesson ?? 'Delete lesson',
                   ),
                 ],
@@ -558,6 +564,7 @@ class _ReadingCard extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12.sp),
+      enableFeedback: AppSounds.soundEnabled,
       child: Card(
         margin: EdgeInsets.symmetric(vertical: 8.sp, horizontal: 8.sp),
         child: Padding(
@@ -582,6 +589,7 @@ class _ReadingCard extends StatelessWidget {
                   IconButton(
                     icon: Icon(Icons.delete, size: 20.sp),
                     onPressed: onDelete,
+                    enableFeedback: AppSounds.soundEnabled,
                     tooltip: AppLocalizations.of(context)?.deleteReading ?? 'Delete reading',
                   ),
                 ],

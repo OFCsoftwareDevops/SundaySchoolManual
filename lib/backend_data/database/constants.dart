@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
-import '../../l10n/app_localizations.dart';
 
 const List<String> ownerEmails = [
   "olaoluwa.ogunseye@gmail.com",
   // add more later
 ];
+
+const freezeAward = 3;
 
 class AppConstants {
   // Quarter definitions

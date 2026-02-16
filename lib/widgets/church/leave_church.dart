@@ -5,6 +5,7 @@ import '../../auth/login/auth_service.dart';
 import '../../backend_data/service/analytics/analytics_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../helpers/snackbar.dart';
+import 'church_selection.dart';
 
 class LeaveChurchButton extends StatelessWidget {
   final AuthService auth;
@@ -44,10 +45,16 @@ class LeaveChurchButton extends StatelessWidget {
         if (confirm == true) {
           await AnalyticsService.logButtonClick('Leave_Church');
           await auth.leaveChurch();
+
           if (context.mounted) {
             showTopToast(
               context,
               AppLocalizations.of(context)?.youHaveLeftTheChurch ?? "You have left the church",
+            );
+            // Force go to onboarding / church selection
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const ChurchOnboardingScreen()),
             );
           }
         }

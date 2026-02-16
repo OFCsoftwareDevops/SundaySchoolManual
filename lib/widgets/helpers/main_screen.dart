@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import '../../UI/app_sound.dart';
 import '../../auth/login/auth_service.dart';
 import '../../auth/login/login_page.dart';
 import '../../backend_data/service/ads/banner_ads.dart';
@@ -193,6 +194,7 @@ class MainScreenState extends State<MainScreen> {
               break;
           }
         },
+        enableFeedback: AppSounds.soundEnabled,
         items: [
           _navItem(
             context: context,

@@ -52,25 +52,6 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
         title: AppLocalizations.of(context)?.leaderboard ?? "Leaderboard",
         showBack: true,
       ),
-      /*/backgroundColor: colorScheme.background,
-      appBar: AppBar(
-        centerTitle: true,
-        title: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            AppLocalizations.of(context)?.leaderboard ?? "Leaderboard",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: style.monthFontSize.sp,
-            ),
-          ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          iconSize: style.monthFontSize.sp, // Consistent sizing
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),*/
       body: Column(
         children: [
           // Top: Adult / Teen toggle

@@ -10,6 +10,9 @@ class StoreLinks {
   /// Apple direct review link
   static const String iosReview = 'https://apps.apple.com/app/idYOUR_APP_ID?action=write-review';
 
+  static const String webPage = 'https://ofcsoftwaredevops.com/';
+  //static const String webPage = 'https://ofcsoftwaredevops.github.io/rccg-sunday-school/';
+
   /// Returns correct store link for current platform
   static String get current {
     if (Platform.isIOS) return ios;

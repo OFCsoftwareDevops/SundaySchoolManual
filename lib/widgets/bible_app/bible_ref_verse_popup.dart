@@ -184,9 +184,7 @@ class _VersePopupState extends State<VersePopup> {
                         ),
                         padding: EdgeInsets.zero,
                         constraints: BoxConstraints(),
-                        onPressed: () async {
-                          //await SoundService.playClick();
-                          
+                        onPressed: () async {                      
                           await AnalyticsService.logButtonClick('further_reading_canceled!');
 
                           Navigator.of(context).pop();
@@ -197,6 +195,7 @@ class _VersePopupState extends State<VersePopup> {
                             }
                           });
                         },
+                        enableFeedback: AppSounds.soundEnabled,
                         tooltip: AppLocalizations.of(context)?.close ?? "Close",
                       ),
                   ],

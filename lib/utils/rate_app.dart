@@ -1,4 +1,4 @@
-  import 'package:rccg_sunday_school/utils/store_links.dart';
+import 'package:rccg_sunday_school/utils/store_links.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 Future<void> rateApp() async {

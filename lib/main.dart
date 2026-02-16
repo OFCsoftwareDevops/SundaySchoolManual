@@ -9,6 +9,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart' as provider;
 import 'package:rccg_sunday_school/l10n/fallback_localizations.dart';
@@ -16,18 +17,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-import 'package:workmanager/workmanager.dart'; 
 import 'UI/app_linear_progress_bar.dart';
 import 'UI/app_theme.dart';
 import 'backend_data/database/constants.dart';
 import 'auth/login/auth_service.dart';
 import 'auth/login/login_page.dart';
+import 'backend_data/service/ads/ads_consent.dart';
 import 'backend_data/service/firestore/assignment_dates_provider.dart';
 import 'backend_data/service/firestore/firestore_service.dart';
 import 'backend_data/service/hive/hive_service.dart';
-import 'backend_data/service/notification/background_task.dart';
 import 'backend_data/service/notification/notification_service.dart';
 import 'backend_data/service/firestore/submitted_dates_provider.dart';
+import 'utils/settings_provider.dart';
 import 'widgets/bible_app/bible_actions/highlight_manager.dart';
 import 'backend_data/service/analytics/firebase_options.dart';
 import 'l10n/app_localizations.dart';
@@ -47,6 +48,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   debugPrint('STEP 1');
 
+  await initializeAdsAndConsent();
   await HiveHelper.init();
   debugPrint('STEP 2');
 
@@ -97,7 +99,7 @@ Future<void> main() async {
   tz.initializeTimeZones();
   tz.setLocalLocation(tz.getLocation('America/New_York'));
   await NotificationService().initialize();
-  Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+  //Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
   debugPrint('STEP 7');
 
   // Request notification permission (Android 13+)
@@ -173,6 +175,7 @@ Future<void> main() async {
     ProviderScope(
       child: provider.MultiProvider(
         providers: [
+          provider.ChangeNotifierProvider(create: (_) => SettingsProvider()),
           provider.ChangeNotifierProvider(create: (_) => BibleVersionManager()),
           provider.ChangeNotifierProvider(create: (_) => HighlightManager()), // Already loaded!
           // AuthService now provides church + roles + loading state
@@ -213,6 +216,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver{
   late Locale _locale;
   bool _showIntro = true;
   bool _isPreloading = false;
+  bool soundEnabled = Hive.box('settings').get('sound_enabled', defaultValue: true) as bool;
   bool preloadDone = false;
   int preloadProgress = 0; // 0 to 4
   static const int totalPreloadSteps = 4;
@@ -245,36 +249,88 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver{
       preloadProgress = 0; // reset just in case
     });
 
-    // Step 1
-    await HighlightManager().loadFromPrefs();
-    setState(() => preloadProgress = 1);
+    try {
+      // Wait for Firebase Auth to restore state
+      await FirebaseAuth.instance.authStateChanges().firstWhere(
+        (user) => user != null,
+        orElse: () => null, // anonymous or timeout
+      ).timeout(const Duration(seconds: 6), onTimeout: () {
+        debugPrint("Auth state timeout during preload start");
+        return;
+      });
 
-    // Step 2: preload returns submitted-date sets (adult/teen)
-    //final preloadResult = await context.read<FirestoreService>().preload(context, loadAll: false);
-    await context.read<FirestoreService>().preload(context, loadAll: false);
-    setState(() => preloadProgress = 2);
+      // Step 1
+      await HighlightManager().loadFromPrefs();
+      setState(() => preloadProgress = 1);
 
-    final service = context.read<FirestoreService>();
-    await provider.Provider.of<AssignmentDatesProvider>(context, listen: false).load(null, service);
-    setState(() => preloadProgress = 3);
+      // Step 2 - only preload Firestore if we have church
+      final auth = provider.Provider.of<AuthService>(context, listen: false);
+      if (auth.hasChurch && auth.churchId != null) {
+        final service = context.read<FirestoreService>();
+        await service.preload(context, loadAll: false);
+        setState(() => preloadProgress = 2);
 
-    // Step 3: Load Bible
-    await context.read<BibleVersionManager>().loadInitialBible();
-    setState(() => preloadProgress = 4);
+        await provider.Provider.of<AssignmentDatesProvider>(context, listen: false)
+            .load(null, service);
+        setState(() => preloadProgress = 3);
+      } else {
+        debugPrint("Skipping Firestore/Assignments preload — no church yet");
+        setState(() {
+          preloadProgress = 2;
+          preloadProgress = 3;
+          // jump to 3 if you want
+        });
+      }
 
-    if (!mounted) return;
-    setState(() {
-      _isPreloading = false;
-      preloadDone = true;
-    });
+      /*/ Step 2: preload returns submitted-date sets (adult/teen)
+      await context.read<FirestoreService>().preload(context, loadAll: false);
+      setState(() => preloadProgress = 2);
+
+      final service = context.read<FirestoreService>();
+      await provider.Provider.of<AssignmentDatesProvider>(context, listen: false).load(null, service);
+      setState(() => preloadProgress = 3);*/
+
+      // Step 3: Load Bible
+      await context.read<BibleVersionManager>().loadInitialBible();
+      setState(() => preloadProgress = 4);
+
+      if (mounted) {
+      setState(() {
+        _isPreloading = false;
+        preloadDone = true;
+      });
+    }
+
+      /*if (!mounted) return;
+      setState(() {
+        _isPreloading = false;
+        preloadDone = true;
+      });*/
+  } catch (e, st) {
+    debugPrint("Preload step failed: $e\n$st");
+    // Still allow app to continue
+    if (mounted) {
+      setState(() {
+        _isPreloading = false;
+        preloadDone = true;
+      });
+    }
+  }
   }
 
   void changeLanguage(Locale locale) async {
     if (_locale.languageCode == locale.languageCode) return;
+
+    // 1. Update UI / provider state
     setState(() => _locale = locale);
 
+    // 2. Save preference (you already do this)
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('language_code', locale.languageCode);
+
+    // 3. ← NEW: Clear language-sensitive caches
+    await HiveBoxes.lessons.clear();
+    await HiveBoxes.assignments.clear();
   }
 
   @override
@@ -298,8 +354,8 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver{
             FallbackCupertinoLocalizationsDelegate(),
           ],
           supportedLocales: AppLocalizations.supportedLocales, // en, fr, yo
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
+          theme: AppTheme.lightTheme(soundEnabled: soundEnabled),
+          darkTheme: AppTheme.darkTheme(soundEnabled: soundEnabled),
           themeMode: ThemeMode.system,
           home: provider.Consumer<AuthService>(
             builder: (context, auth, child) {  

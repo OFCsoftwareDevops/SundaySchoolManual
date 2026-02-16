@@ -18,17 +18,6 @@ class AdminDashboardScreen extends StatelessWidget {
         title: "Admin Dashboard",
         showBack: true,
       ),
-      /*/backgroundColor: theme.colorScheme.background,
-      appBar: AppBar(
-        centerTitle: true,
-        title: Text(
-          "Admin Dashboard",
-          style: theme.appBarTheme.titleTextStyle?.copyWith(
-            fontWeight: FontWeight.bold,
-            fontSize: 18.sp,
-          ),
-        ),
-      ),*/
       body: RefreshIndicator(
         onRefresh: () async {
           await AnalyticsService.logButtonClick('admin_dashboard_refresh');

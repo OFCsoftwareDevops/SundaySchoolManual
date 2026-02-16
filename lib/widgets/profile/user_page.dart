@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../../UI/app_bar.dart';
 import '../../UI/app_buttons.dart';
 import '../../UI/app_colors.dart';
+import '../../UI/app_sound.dart';
 import '../../backend_data/service/hive/hive_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../../auth/login/auth_service.dart';
@@ -31,28 +32,6 @@ class UserProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     final loc = AppLocalizations.of(context);
-    /*final displayName = user?.displayName ?? (AppLocalizations.of(context)?.guestUser ?? "Guest User");
-    final email = user?.email ?? (AppLocalizations.of(context)?.guestMode ?? "guest mode");
-
-    // Inside your build method, replace:
-    String? photoUrl;
-    final url = user?.photoURL;
-    if (url != null) {
-      if (url.contains('googleusercontent.com')) {
-        // Replace low-res size param with higher-res (512px is sharp + reasonable size)
-        photoUrl = url.replaceAllMapped(
-          RegExp(r'(=s\d+-c|\?sz=\d+)'),
-          (_) => '=s512-c',
-        );
-
-        // Safety for unusual formats (rare, but covers edge cases)
-        if (!photoUrl.contains('s512-c')) {
-          photoUrl += photoUrl.contains('?') ? '&sz=512' : '?sz=512';
-        }
-      } else {
-        photoUrl = url; // fallback for non-Google providers
-      }
-    }*/
 
     // Fallback to Firebase if cache missing (and user is logged in)
     String? photoUrl;
@@ -80,14 +59,6 @@ class UserProfileScreen extends StatelessWidget {
         email = user.email ?? email;
       }
     }
-
-    // If we have a fresh Firebase user and cache is outdated → update Hive in background
-    /*if (user != null && user.uid == HiveBoxes.userBox.get('uid')) {
-      if (photoUrl == null && user.photoURL != null) {
-        // Optional: trigger background refresh if needed
-        // But usually not necessary since we save on login
-      }
-    }*/
 
     // Use CachedNetworkImage instead of plain NetworkImage
     Widget profileImage;
@@ -135,34 +106,11 @@ class UserProfileScreen extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const SettingsScreen()),
               );
             },
+            enableFeedback: AppSounds.soundEnabled,
           ),
           SizedBox(width: 8.sp),
         ],
       ),
-      /*backgroundColor: Theme.of(context).colorScheme.background,
-      appBar: AppBar(
-        centerTitle: true,
-        title: Text(
-          AppLocalizations.of(context)?.navAccount ?? "Profile",
-          style: theme.appBarTheme.titleTextStyle?.copyWith(
-            fontSize: style.monthFontSize.sp,
-            fontWeight: FontWeight.bold),
-        ),
-
-        actions: [
-          IconButton(
-            icon: Icon(Icons.settings_outlined, color: AppColors.onPrimary),
-            onPressed: () async {
-              await AnalyticsService.logButtonClick('settings');
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const SettingsScreen()),
-              );
-            },
-          ),
-          SizedBox(width: 8.sp),
-        ],
-      ),*/
       body: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(0),
@@ -179,13 +127,6 @@ class UserProfileScreen extends StatelessWidget {
                       child: Stack(
                         children: [
                           profileImage,
-                          /*CircleAvatar(
-                            radius: 55.sp,
-                            backgroundColor: AppColors.secondaryContainer,
-                            backgroundImage: photoUrl != null 
-                              ? NetworkImage(photoUrl) 
-                              : const AssetImage('assets/images/anonymous_user.png') as ImageProvider,
-                          ),*/
                         ],
                       ),
                     ),
@@ -444,7 +385,7 @@ class UserProfileScreen extends StatelessWidget {
                               backOffset: 4.0,
                               backDarken: 0.5,
                               onPressed: () async {
-                                await FirebaseAuth.instance.signOut();
+                                await auth.signOutAndGoToLogin(context);
                               },
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,

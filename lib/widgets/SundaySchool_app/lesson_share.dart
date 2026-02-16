@@ -88,14 +88,9 @@ class LessonShare {
             style: pw.TextStyle(fontSize: 11, color: PdfColors.grey700),
           ));
           content.add(pw.Text(
-            "Android: ${StoreLinks.android}",
+            StoreLinks.webPage,
             style: const pw.TextStyle(fontSize: 12, color: PdfColors.blue),
           ));
-          content.add(pw.Text(
-            "iOS: ${StoreLinks.ios}",
-            style: const pw.TextStyle(fontSize: 12, color: PdfColors.blue),
-          ));
-
           return content;
         },
       ),
@@ -157,15 +152,32 @@ class LessonShare {
   Future<void> shareAsPdf() async {
     try {
       final pdfFile = await generatePdf();
-      await Share.shareXFiles(
+
+      final xFile = XFile(
+        pdfFile.path,
+        mimeType: 'application/pdf',
+        name: 'RCCG_Lesson_${lessonId()}.pdf',  // nicer filename in share dialog
+      );
+
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [xFile],
+          text: "Check out this lesson!\n"
+              "Topic: ${data.topic}\n\n"
+              "Download app:\n${StoreLinks.webPage}",
+          subject: "$title: ${data.topic}",
+        ),
+      );
+
+      /*await Share.shareXFiles(
         [XFile(pdfFile.path)],
         text: "Check out this lesson!\n"
         "Topic: ${data.topic}\n\n"
         "Download the app:\n"
-        "Android: ${StoreLinks.android}\n"
-        "iOS: ${StoreLinks.ios}",
+        "${StoreLinks.webPage}\n",
         subject: "$title: ${data.topic}",
-      );
+      );*/
+
     } catch (e) {
       if (kDebugMode) {
         debugPrint("Error sharing PDF lesson: $e");
@@ -174,17 +186,59 @@ class LessonShare {
   }
 
   // In shareAsLink()
-  Future<void> shareAsLink() async {
+  Future<void> shareAsLink() async {  // Or rename to shareLessonWithPreview()
+    try {
+      // 1. Your lesson-specific link (use deep link if you have universal links set up)
+      final String shareText = 
+          "Check out this RCCG Sunday School lesson! 📖\n\n"
+          "Title: $title\n"
+          "Topic: ${data.topic}\n"
+          "${data.biblePassage.isNotEmpty ? 'Bible: ${data.biblePassage}\n' : ''}\n"
+          "Get the full app: ${StoreLinks.webPage}";
+
+      // 2. Build the share text (include link prominently)
+      final byteData = await rootBundle.load('assets/images/rccg_sunday_school_manual_preview.png');
+      final buffer = byteData.buffer;
+
+      final tempDir = await getTemporaryDirectory();
+      final imageTempPath = '${tempDir.path}/rccg_sunday_school_manual_preview.png';
+
+      final File imageFile = File(imageTempPath);
+      await imageFile.writeAsBytes(
+        buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes),
+      );
+
+      // 3. Load your fixed graphic from assets & save to temp file
+      final xFile = XFile(
+        imageFile.path,
+        mimeType: 'image/png',
+        name: 'RCCG_Lesson_${data.topic.replaceAll(' ', '_')}.png',
+      );
+
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [xFile],
+          text: shareText,
+          subject: "RCCG Lesson: $title - ${data.topic}",
+        ),
+      );
+
+      // Optional: Clean up temp file after share (some platforms copy it anyway)
+      // await imageFile.delete();
+    } catch (e) {
+      if (kDebugMode) debugPrint("Error sharing with graphic: $e");
+    }
+  }
+  /*Future<void> shareAsLink() async {
     final String shareText = 
         "Check out this lesson: ${data.topic}\n\n"
         "Lesson ID: ${lessonId()}\n\n"
         "Download the app:\n"
-        "Android: ${StoreLinks.android}\n"
-        "iOS: ${StoreLinks.ios}\n";
+        "${StoreLinks.webPage}\n";
 
     await Share.share(
       shareText,
       subject: "$title – ${data.topic}",
     );
-  }
+  }*/
 }

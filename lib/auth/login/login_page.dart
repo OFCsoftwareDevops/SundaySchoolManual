@@ -11,6 +11,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../../UI/app_buttons.dart';
 import '../../UI/app_colors.dart';
+import '../../UI/app_sound.dart';
 import '../../backend_data/service/analytics/analytics_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/helpers/snackbar.dart';
@@ -258,11 +259,12 @@ class _AuthScreenState extends State<AuthScreen> {
                         children: [
                           // Google tab
                           Expanded(
-                            child: GestureDetector(
+                            child: InkWell(
                               onTap: () async {
                                 await AnalyticsService.logButtonClick('google_login');
                                 setState(() => _selectedTab = 0);
                               },
+                              enableFeedback: AppSounds.soundEnabled,
                               child: Container(
                                 padding: EdgeInsets.symmetric(vertical: 16.sp),
                                 decoration: BoxDecoration(
@@ -290,11 +292,12 @@ class _AuthScreenState extends State<AuthScreen> {
                           // Apple tab – only show on iOS
                           if (Platform.isIOS)
                             Expanded(
-                              child: GestureDetector(
+                              child: InkWell(
                                 onTap: () async {
                                   await AnalyticsService.logButtonClick('iOS_login');
                                   setState(() => _selectedTab = 1);
                                 },
+                                enableFeedback: AppSounds.soundEnabled,
 
                                 child: Container(
                                   padding: EdgeInsets.symmetric(vertical: 16.sp),
@@ -322,13 +325,14 @@ class _AuthScreenState extends State<AuthScreen> {
                             ),
                           // Guest tab
                           Expanded(
-                            child: GestureDetector(
+                            child: InkWell(
                               onTap: () async {
                                 final tabName = Platform.isIOS ? 'ios_device': 'android_device';
                                 await AnalyticsService.logButtonClick('Anonymous_login_$tabName');
 
                                 setState(() => _selectedTab = Platform.isIOS ? 2 : 1);
                               },// adjust index if no Apple
+                              enableFeedback: AppSounds.soundEnabled,
                               child: Container(
                                 padding: EdgeInsets.symmetric(vertical: 16.sp),
                                 decoration: BoxDecoration(

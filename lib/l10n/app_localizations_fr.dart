@@ -122,6 +122,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get assignments => 'Devoirs';
 
   @override
+  String get soundEffects => 'Effets sonores';
+
+  @override
+  String get ageGroup => 'Groupe d’âge';
+
+  @override
   String get teachers => 'Professeurs';
 
   @override
@@ -352,6 +358,42 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sunday => 'Dimanche';
 
   @override
+  String get monthShortJan => 'Janv.';
+
+  @override
+  String get monthShortFeb => 'Févr.';
+
+  @override
+  String get monthShortMar => 'Mars';
+
+  @override
+  String get monthShortApr => 'Avr.';
+
+  @override
+  String get monthShortMay => 'Mai';
+
+  @override
+  String get monthShortJun => 'Juin';
+
+  @override
+  String get monthShortJul => 'Juil.';
+
+  @override
+  String get monthShortAug => 'Août';
+
+  @override
+  String get monthShortSep => 'Sept.';
+
+  @override
+  String get monthShortOct => 'Oct.';
+
+  @override
+  String get monthShortNov => 'Nov.';
+
+  @override
+  String get monthShortDec => 'Déc.';
+
+  @override
   String get january => 'Janvier';
 
   @override
@@ -476,6 +518,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get myResponses => 'Mes réponses:';
+
+  @override
+  String get assignmentGradedToast => 'Votre assignment a été évalué !';
 
   @override
   String get yourSubmittedResponses => 'Vos réponses soumises';
@@ -1065,7 +1110,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get progressNextFreeze => 'Progression vers le gel suivant';
 
   @override
-  String get daysUntilNextFreeze => 'jour(s) jusqu\'au gel suivant (chaque série de 7 jours donne 1 gel)';
+  String get daysUntilNextFreeze => 'jour(s) jusqu\'au gel suivant.';
 
   @override
   String get howFreezesWork => 'Comment fonctionnent les gels';

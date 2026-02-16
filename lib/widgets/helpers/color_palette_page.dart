@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../../UI/app_bar.dart';
 import '../../UI/app_colors.dart';
+import '../../UI/app_sound.dart';
 import '../../l10n/app_localizations.dart';
 import 'snackbar.dart';
 
@@ -16,10 +17,6 @@ class ColorPalettePage extends StatelessWidget {
         title: AppLocalizations.of(context)?.colorPalette ?? "Color Palette",
         showBack: true,
       ),
-      /*appBar: AppBar(
-        title: const Text("Color Palette"),
-        backgroundColor: AppColors.primary,
-      ),*/
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -170,6 +167,7 @@ class _ColorBox extends StatelessWidget {
             duration: const Duration(seconds: 3),
           );
         },
+        enableFeedback: AppSounds.soundEnabled,
         child: Container(
           width: 140,
           height: 140,

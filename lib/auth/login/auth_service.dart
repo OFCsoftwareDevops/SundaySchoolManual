@@ -6,9 +6,12 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../backend_data/service/hive/hive_service.dart';
+import 'login_page.dart';
 
 enum AdminType { none, group, church, global }
 
@@ -45,6 +48,7 @@ class AuthService extends ChangeNotifier {
   String? _accessCode;
   String? _pastorName;
   AdminStatus? _adminStatus;
+  bool _isDefaultChurch = false;
   bool _isLoading = true;
   bool _isPremium = false;
 
@@ -63,6 +67,7 @@ class AuthService extends ChangeNotifier {
   String? get pastorName => _pastorName;
   String get displayChurchName => _churchFullName ?? _currentChurchName ?? "My Church";
   bool get hasChurch => _currentChurchId != null;
+  bool get isDefaultChurch => _isDefaultChurch;
   bool get isLoading => _isLoading;
   bool get isPremium => _isPremium;
 
@@ -196,6 +201,41 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+  Future<void> signOutAndGoToLogin(BuildContext context) async {
+    try {
+      // 1. Firebase sign out
+      await FirebaseAuth.instance.signOut();
+
+      // 2. Google sign out (helps show account picker next time)
+      await GoogleSignIn().signOut();
+
+      // 3. Clear your own persisted app state
+      //    → very important to avoid stale churchId / role etc.
+      final settingsBox = Hive.box('settings');
+      await settingsBox.clear(); // or delete specific keys only
+
+      final userPrefsBox = Hive.box('user_prefs'); // if you have one
+      await userPrefsBox.clear();
+
+      // If you store churchId in AuthService or Provider → reset it
+      // churchId = null;
+      // hasChurch = false;
+      notifyListeners();
+
+      // 4. Force navigation to AuthScreen and remove everything else
+      if (context.mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const AuthScreen()),
+          (route) => false, // ← this clears the entire stack
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        // show error toast/snackbar
+      }
+    }
+  }
+
   // Helper to auto-cancel deletion on login
   Future<void> _cancelDeletionIfNeeded(String uid) async {
     try {
@@ -257,16 +297,6 @@ class AuthService extends ChangeNotifier {
     await HiveBoxes.userBox.put(UserCacheKeys.uidCheck(uid), uid);
 
     debugPrint("Cached profile for user: $uid");
-    /*/ Only write if something changed (avoid unnecessary writes)
-    final existingUid = HiveBoxes.userBox.get(UserCacheKeys.uidCheck(uid)) as String?;
-    if (existingUid != user.uid) {
-      await HiveBoxes.userBox.put(UserCacheKeys.photo(uid), photoUrl);
-      await HiveBoxes.userBox.put(UserCacheKeys.displayName(uid), user.displayName);
-      await HiveBoxes.userBox.put(UserCacheKeys.email(uid), user.email);
-      await HiveBoxes.userBox.put(UserCacheKeys.uidCheck(uid), uid);
-
-      debugPrint("Cached user profile basics to Hive for uid: ${user.uid}");
-    }*/
   }
 
   Future<void> _loadChurchFromPrefs() async {
@@ -274,12 +304,14 @@ class AuthService extends ChangeNotifier {
     final id = prefs.getString('church_id');
     final name = prefs.getString('church_name');
     final premium = prefs.getBool('church_is_premium');
+    final isDefault = prefs.getBool('church_is_default') ?? false;
 
     if (id != null && name != null) {
       _currentChurchId = id;
       _currentChurchName = name.split(' - ').first.trim();
       _churchFullName = name;
       _isPremium = premium ?? false;
+      _isDefaultChurch   = isDefault;
     }
   }
 
@@ -329,6 +361,7 @@ class AuthService extends ChangeNotifier {
       await prefs.setString('church_id', churchId);
       await prefs.setString('church_name', fullName);
       await prefs.setBool('church_is_premium', premium);
+      _isDefaultChurch = prefs.getBool('church_is_default') ?? false;
 
     } catch (e) {
       if (kDebugMode) {
@@ -478,10 +511,16 @@ class AuthService extends ChangeNotifier {
   }
 
   /// Call this after successful join (from your Cloud Function)
-  Future<void> setCurrentChurch(String churchId, String churchName) async {
+  Future<void> setCurrentChurch(
+    String churchId, 
+    String churchName, {
+    bool isDefault = false,
+  }) async {
     _currentChurchId = churchId;
     _currentChurchName = churchName.split(' - ').first.trim();
     _churchFullName = churchName;
+
+    _isDefaultChurch = isDefault;
 
     // Extract parish name if available
     final parts = churchName.split(' - ');
@@ -513,6 +552,7 @@ class AuthService extends ChangeNotifier {
     await prefs.setString('church_id', churchId);
     await prefs.setString('church_name', churchName);
     await prefs.setBool('church_is_premium', _isPremium);
+    await prefs.setBool('church_is_default', isDefault);
 
     // Optional: update users doc
     if (currentUser != null) {
@@ -586,6 +626,7 @@ class AuthService extends ChangeNotifier {
     _accessCode = null;
     _pastorName = null;
     _isPremium = false;
+    _isDefaultChurch = false;
 
     // Cancel premium listener
     await _premiumListener?.cancel();
@@ -595,6 +636,7 @@ class AuthService extends ChangeNotifier {
     await prefs.remove('church_id');
     await prefs.remove('church_name');
     await prefs.remove('church_is_premium');
+    await prefs.remove('church_is_default');
 
     // Admin status may change when leaving church
     if (currentUser != null) {

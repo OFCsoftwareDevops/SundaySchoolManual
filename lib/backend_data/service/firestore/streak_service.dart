@@ -1,15 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../database/constants.dart';
 
-/// Service to update user's reading streak stored under
-/// streaks/{userId} as fields:
-/// - readingStreak: int
 /// - readingLastDate: Timestamp
 class StreakService {
-
-  /// Updates the reading streak for [churchId]/[userId].
-  /// Rules:
-  /// - If last date is today -> do nothing.
-  /// - If last date is yesterday -> increment streak.
   /// - Otherwise -> reset streak to 1.
   Future<int> updateReadingStreak(String userId) async {
     final userDocRef = FirebaseFirestore.instance.collection('users').doc(userId);
@@ -23,6 +16,9 @@ class StreakService {
       int storedStreak = 0;
       int freezeCount = 0;
       DateTime? lastDate;
+
+      const int graceDays = 2;
+      const int freezeEvery = freezeAward;
 
       if (snap.exists) {
         final data = snap.data()!;
@@ -43,7 +39,7 @@ class StreakService {
           newStreak = storedStreak + 1;
         } else {
           final daysBetween = today.difference(lastDay).inDays;
-          final requiredFreezes = daysBetween - 1;
+          final requiredFreezes = daysBetween - graceDays;
 
           if (requiredFreezes <= 0) {
             newStreak = storedStreak + 1;
@@ -61,7 +57,7 @@ class StreakService {
       if (newStreak > storedStreak) {
         int awards = 0;
         for (int s = storedStreak + 1; s <= newStreak; s++) {
-          if (s % 7 == 0) awards++;
+          if (s % freezeEvery == 0) awards++;
         }
         freezeCount += awards;
       }

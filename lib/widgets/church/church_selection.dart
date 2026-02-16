@@ -8,6 +8,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../UI/app_buttons.dart';
 import '../../UI/app_colors.dart';
 import '../../UI/app_linear_progress_bar.dart';
+import '../../UI/app_sound.dart';
 import '../../auth/login/auth_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../helpers/snackbar.dart';
@@ -41,6 +42,86 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
       return; // Optional: early return to skip rest of init
     }
   }
+
+  // ────────────────────────────────────────────────
+  //  NEW: Join default church
+  // ────────────────────────────────────────────────
+  Future<void> _joinDefaultChurch() async {
+    if (!mounted) return;
+    setState(() => _isJoining = true);
+
+    final navigator = Navigator.of(context);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final callable = FirebaseFunctions.instance.httpsCallable('joinChurchWithCode');
+      final result = await callable.call({'code': 'BYE442'});
+
+      final data = result.data as Map<String, dynamic>? ?? {};
+
+      final message = data['message'] as String? 
+          ?? AppLocalizations.of(context)?.joinedSuccessfully 
+          ?? "Joined default church successfully!";
+
+      final churchId   = data['churchId']   as String?;
+      final churchName = data['churchName'] as String?;
+
+      if (churchId != null && churchName != null) {
+        await AuthService.instance.setCurrentChurch(
+          churchId, 
+          churchName,
+          isDefault: true);
+      }
+
+      if (!mounted) return;
+      // On success
+      Navigator.of(context).pop();
+
+      showTopToast(
+        context,
+        message,
+        backgroundColor: AppColors.success,
+        textColor: AppColors.surface,
+        duration: const Duration(seconds: 3),
+      );
+
+      await Future.delayed(const Duration(milliseconds: 400));
+
+      if (mounted) {
+        navigator.pushReplacement(
+          MaterialPageRoute(builder: (_) => const MainScreen()),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.of(context).pop();
+
+      String errorMsg = AppLocalizations.of(context)?.failedToJoinChurch 
+          ?? "Could not join default church";
+
+      if (e is FirebaseFunctionsException) {
+        errorMsg = e.message ?? errorMsg;
+      } else {
+        errorMsg = e.toString();
+      }
+
+      showTopToast(
+        context,
+        errorMsg,
+        backgroundColor: AppColors.error,
+        textColor: AppColors.onError,
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isJoining = false);
+      }
+    }
+  }
   
   Future<void> _joinWithCode(String code) async {
     final trimmedCode = code.trim().toUpperCase();
@@ -55,8 +136,8 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
     if (!mounted) return;
     setState(() => _isJoining = true);
 
-    // Capture navigator early — safe to use after async
-    final navigator = Navigator.of(context);
+    /*/ Capture navigator early — safe to use after async
+    final navigator = Navigator.of(context);*/
 
     try {
       final callable = FirebaseFunctions.instance.httpsCallable('joinChurchWithCode');
@@ -73,7 +154,10 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
       final churchId = data['churchId'] as String?;
       final churchName = data['churchName'] as String?;
       if (churchId != null && churchName != null) {
-        await AuthService.instance.setCurrentChurch(churchId, churchName);
+        await AuthService.instance.setCurrentChurch(
+          churchId, 
+          churchName,
+        );
       }
 
       if (!mounted) return;
@@ -81,7 +165,6 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
       showTopToast(
         context,
         message,
-        //AppLocalizations.of(context)?.failedToSaveYourAnswers ?? "Failed to save your answers. Please try again.",
         backgroundColor: AppColors.success,
         textColor: AppColors.surface,
         duration: const Duration(seconds: 2),
@@ -107,7 +190,6 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
       showTopToast(
         context,
         errorMsg,
-        //AppLocalizations.of(context)?.failedToSaveYourAnswers ?? "Failed to save your answers. Please try again.",
         backgroundColor: AppColors.error,
         textColor: AppColors.onError,
       );
@@ -123,7 +205,7 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
     required Color color,
     required String title,
     required String subtitle,
-    required VoidCallback onTap,
+    required VoidCallback? onTap,
   }) {
     return Card(
       elevation: 2,
@@ -131,6 +213,7 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
       child: InkWell(
         borderRadius: BorderRadius.circular(20.sp),
         onTap: onTap,
+        enableFeedback: AppSounds.soundEnabled,
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 24.sp, vertical: 32.sp),
           child: Row(
@@ -375,6 +458,15 @@ class _ChurchOnboardingScreenState extends State<ChurchOnboardingScreen> {
                             ),
                           );
                         },
+                      ),
+                      SizedBox(height: 10.sp),
+                      // 3. NEW: Join Default Church
+                      _optionCard(
+                        icon: Icons.auto_awesome,
+                        color: const Color.fromARGB(255, 38, 68, 167),
+                        title: "Use Default Parish",
+                        subtitle: "Quick start with the community parish!",
+                        onTap: _isJoining ? null : () => _joinDefaultChurch(),
                       ),
                       SizedBox(height: 24.sp),
                     ],

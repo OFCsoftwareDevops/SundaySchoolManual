@@ -6,8 +6,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../UI/app_bar.dart';
 import '../../../UI/app_colors.dart';
-import '../../../l10n/app_localizations.dart';
-import '../../../utils/media_query.dart';
 import '../../../widgets/helpers/snackbar.dart';
 import 'premium_provider.dart'; 
 
@@ -143,7 +141,6 @@ class SubscriptionScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final style = CalendarDayStyle.fromContainer(context, 50);
     // Watch admin directly from AuthService singleton
     final adminStatus = ref.watch(adminStatusProvider);
 
@@ -155,25 +152,6 @@ class SubscriptionScreen extends ConsumerWidget {
         title: "Church Settings",
         showBack: true,
       ),
-      //backgroundColor: Theme.of(context).colorScheme.background,
-      /*appBar: AppBar(
-        centerTitle: true,
-        title: FittedBox(
-          fit: BoxFit.scaleDown, // Scales down text if it would overflow
-          child: Text(
-            "Church Settings",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: style.monthFontSize.sp, // Matches your other screen's style
-            ),
-          ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          iconSize: style.monthFontSize.sp, // Consistent sizing
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),*/
       body: ListView(
         padding: EdgeInsets.all(16.sp),
         children: [

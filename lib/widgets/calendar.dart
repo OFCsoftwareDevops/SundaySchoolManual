@@ -1,10 +1,14 @@
 // lib/widgets/month_calendar.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
+import '../UI/app_sound.dart';
 import '../UI/app_theme.dart';
+import '../backend_data/service/firestore/firestore_service.dart';
+import '../backend_data/service/hive/hive_service.dart';
 import '../utils/media_query.dart';
 import '../l10n/app_localizations.dart';
+import 'profile/user_choice.dart';
 
 class MonthCalendar extends StatefulWidget {
   final Function(DateTime) onDateSelected;
@@ -38,15 +42,25 @@ class _MonthCalendarState extends State<MonthCalendar> {
     });
   }
 
+  String formatDateId(DateTime d) =>
+    "${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}";
+
   bool _hasIndicatorsInMonth(DateTime month) {
+    final ageGroup = getCurrentAgeGroup();
+    final type = ageGroupToFirestoreField(ageGroup);
+
+    // Lessons: only Sundays with selected group content
+    final lessonsInMonth = widget.datesWithLessons?.any((d) =>
+      d.year == month.year && d.month == month.month &&
+      HiveBoxes.lessons.containsKey('lesson_${getCurrentLang(context)}_${type}_${formatDateId(d)}')
+    ) ?? false;
+
+    // Further readings: any day with cached entry (assuming cache is group-aware)
+    final readingsInMonth = widget.datesWithFurtherReadings?.any((d) =>
+      d.year == month.year && d.month == month.month
+    ) ?? false; // If further readings cache isn't group-specific yet, keep as-is
 
     // Check if any lesson or reading date falls in this month
-    final lessonsInMonth = widget.datesWithLessons?.any((d) =>
-      d.year == month.year && d.month == month.month) ?? false;
-
-    final readingsInMonth = widget.datesWithFurtherReadings?.any((d) =>
-      d.year == month.year && d.month == month.month) ?? false;
-
     return lessonsInMonth || readingsInMonth;
   }
 
@@ -73,6 +87,8 @@ class _MonthCalendarState extends State<MonthCalendar> {
   Widget build(BuildContext context) {
     // Create a dynamic style for the calendar
     final style = CalendarDayStyle.fromContainer(context, 50); // 50 is example day cell size
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     final canGoLeft = _hasIndicatorsInMonth(
       DateTime(currentMonth.year, currentMonth.month - 1)
@@ -94,7 +110,8 @@ class _MonthCalendarState extends State<MonthCalendar> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 IconButton(
-                  onPressed: () => _changeMonth(-1), 
+                  onPressed: () => _changeMonth(-1),
+                  enableFeedback: AppSounds.soundEnabled,
                   icon: Icon(
                     Icons.chevron_left, 
                     size: style.iconSize.sp,
@@ -110,6 +127,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
                 ),
                 IconButton(
                   onPressed: () => _changeMonth(1), 
+                  enableFeedback: AppSounds.soundEnabled,
                   icon: Icon(
                     Icons.chevron_right, 
                     size: style.iconSize.sp,
@@ -129,7 +147,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
                       d, 
                       style: TextStyle(
                         fontSize: style.weekdayFontSize.sp,
-                        color: Color.fromARGB(255, 109, 109, 109), 
+                        color: colorScheme.onSurface,
                         fontWeight: FontWeight.w600),
                       ),
                     ),
@@ -149,6 +167,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
     final firstDay = DateTime(currentMonth.year, currentMonth.month, 1);
     final daysInMonth = DateTime(currentMonth.year, currentMonth.month + 1, 0).day;
     final startWeekday = firstDay.weekday % 7; // 0 = Sunday
+    final _service = context.read<FirestoreService>();
 
     final List<Widget> rows = [];
 
@@ -184,10 +203,83 @@ class _MonthCalendarState extends State<MonthCalendar> {
                 customBorder: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(CalendarRadius.dayBorderRadius),
                 ),
-                onTap: () {
-                  SystemSound.play(SystemSoundType.click);
-                  widget.onDateSelected(date);       // ← Normal date selection
+                onTap: () async {
+                  // Lesson cache (only Sundays)
+                  String? lessonCacheKey;
+                  final normalized = DateTime(date.year, date.month, date.day);
+                  final isSunday = normalized.weekday == DateTime.sunday;
+
+                  final lang = Localizations.localeOf(context).languageCode;
+                  final ageGroup = getCurrentAgeGroup();
+                  final type = ageGroupToFirestoreField(ageGroup);
+                  lessonCacheKey = 'lesson_${lang}_${type}_${formatDateId(normalized)}';
+                  final readingCacheKey = 'further_readings_$type';
+
+
+                  bool hasLesson = false;
+                  if (isSunday) {
+                    final cached = HiveBoxes.lessons.get(lessonCacheKey);
+                    hasLesson = cached != null && 
+                        (ageGroup == AgeGroup.teen ? cached.teenNotes != null : cached.adultNotes != null);
+                  }
+
+                  // Further reading check (daily, from Hive persistent cache)
+                  final readingHiveMap = HiveBoxes.furtherReadings.get(readingCacheKey) as Map? ?? {};
+                  final readingIsoKey = normalized.toIso8601String();
+                  final hasReading = readingHiveMap.containsKey(readingIsoKey);
+
+                  if (hasLesson || hasReading) {
+                    // Has something → safe to proceed
+                    widget.onDateSelected(date);
+                    return;
+                  }
+
+                  // Nothing in cache → try fetch if allowed
+                  if (_service.canFetchDate(normalized)) {
+                    if (isSunday) {
+                      // Sunday: try lesson first
+                      final fetchedLesson = await _service.loadLesson(context, normalized);
+                      if (fetchedLesson != null && (ageGroup == AgeGroup.teen 
+                          ? fetchedLesson.teenNotes != null 
+                          : fetchedLesson.adultNotes != null)) {
+                        widget.onDateSelected(date);
+                        return;
+                      }
+                    }
+
+                    // Try further reading (fetch the week's Sunday doc)
+                    final daysBack = (normalized.weekday - DateTime.sunday + 7) % 7;
+                    final weekSunday = normalized.subtract(Duration(days: daysBack));
+                    final sundayId = _service.formatDateId(weekSunday);
+
+                    final coll = _service.globalFurtherReadingsCollection(context);
+                    final doc = await coll.doc(sundayId).get();
+
+                    if (doc.exists) {
+                      // Trigger full parse/refresh to fill cache
+                      await _service.getFurtherReadingsWithText(context);
+                      // Re-check Hive after refresh
+                      final updatedMap = HiveBoxes.furtherReadings.get(readingCacheKey) as Map? ?? {};
+                      if (updatedMap.containsKey(readingIsoKey)) {
+                        widget.onDateSelected(date);
+                        return;
+                      }
+                    }
+                  }
+
+                  // Still nothing → show message
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        isSunday
+                            ? "No ${type} lesson or further reading available for this Sunday."
+                            : "No ${type} further reading available for this day.",
+                      ),
+                      duration: const Duration(seconds: 4),
+                    ),
+                  );
                 },
+                enableFeedback: AppSounds.soundEnabled,
                 child: Stack(
                   children: [
                     Positioned.fill(
@@ -208,7 +300,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
                                   : isToday
                                       ? CalendarTheme.todayBackground(context)
                                       : Colors.transparent,
-                                borderRadius: BorderRadius.circular(style.dayBorderRadius),
+                                borderRadius: BorderRadius.circular((style.dayBorderRadius)/2),
                               ),
                               alignment: Alignment.center,
                               child: Text(
