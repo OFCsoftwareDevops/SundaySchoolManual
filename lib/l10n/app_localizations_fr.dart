@@ -226,7 +226,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get churchName => 'Nom de l\'église';
 
   @override
-  String get pastorName => 'Nom du pasteur';
+  String get pastorName => 'Nom du pasteur *';
 
   @override
   String get leaveChurch => 'Quitter l\'église';

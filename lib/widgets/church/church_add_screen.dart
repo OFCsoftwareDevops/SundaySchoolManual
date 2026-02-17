@@ -21,35 +21,55 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
   final _adminController = TextEditingController();
   final _locationController = TextEditingController();
   final _countryController = TextEditingController();
-  bool _isLoading = false;
+
+  bool _isSubmitting = false;
 
   Future<void> _createChurch() async {
+    if (_isSubmitting) return;
+
     final churchName = _nameController.text.trim();
     final parishName = _parishController.text.trim();
-    final pastorName = _pastorController.text.trim();
+    final pastorNameRaw = _pastorController.text.trim();
     final churchAdminEmail = _adminController.text.trim();
     final address = _locationController.text.trim();
     final country = _countryController.text.trim();
 
-    if (churchName.isEmpty || parishName.isEmpty || pastorName.isEmpty || churchAdminEmail.isEmpty || country.isEmpty) {
+    if (churchName.isEmpty || 
+        parishName.isEmpty || 
+        pastorNameRaw.isEmpty || 
+        churchAdminEmail.isEmpty || 
+        country.isEmpty) {
       showTopToast(
         context,
-        AppLocalizations.of(context)?.pleaseFillAllRequiredFields ?? "Please fill all required fields",
+        AppLocalizations.of(context)?.pleaseFillAllRequiredFields ?? 
+          "Please fill all required fields",
       );
       return;
     }
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _isSubmitting = true;
+    });
 
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        throw AppLocalizations.of(context)?.mustBeSignedIn ?? "You must be signed in";
+        throw AppLocalizations.of(context)?.mustBeSignedIn ?? 
+          "You must be signed in";
       }
 
       final churchId = "${churchName.toLowerCase().replaceAll(' ', '_')}_${parishName.toLowerCase().replaceAll(' ', '_')}";
 
-      // Call secure backend
+      // Prepare pastor name with "Pastor " prefix (no duplicate)
+      String pastorName = pastorNameRaw;
+      final lower = pastorNameRaw.toLowerCase();
+      if (!lower.startsWith('pastor') && 
+          !lower.startsWith('past ') && 
+          !lower.startsWith('pas ') && 
+          !lower.startsWith('pastr')) {
+        pastorName = 'Pastor $pastorNameRaw';
+      }
+
       // THIS IS THE NEW PART — WRITE TO church_requests COLLECTION
       await FirebaseFirestore.instance.collection('church_requests').add({
         'fullChurchName': "$churchName - $parishName",
@@ -81,11 +101,15 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
               Text(AppLocalizations.of(context)?.thankYouPastor(user.displayName as Object) ?? "Thank you, ${user.displayName ?? 'Pastor'}!"),
               SizedBox(height: 12.sp),
               Text(
-                AppLocalizations.of(context)?.requestSummary(churchName, parishName, country) ?? "Your request to create:\n\n"
-                "🏛️ $churchName\n"
-                "📍 $parishName\n"
-                "🌍 $country\n\n"
-                "has been sent.",
+                AppLocalizations.of(context)?.requestSummary(
+                  churchName, 
+                  parishName, 
+                  country,
+                ) ?? "Your request to create:\n\n"
+                    "🏛️ $churchName\n"
+                    "📍 $parishName\n"
+                    "🌍 $country\n\n"
+                    "has been sent.",
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 12.sp),
@@ -127,7 +151,7 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.sp)),
           title: Row(
             children: [
               Icon(Icons.error, color: Colors.red),
@@ -147,7 +171,9 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
         ),
       );
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
   }
 
@@ -185,6 +211,7 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
 
             TextField(
               controller: _nameController,
+              enabled: !_isSubmitting,
               decoration: InputDecoration(
                 labelText: AppLocalizations.of(context)?.churchName ?? "Church Name *",
                 hintText: "e.g. RCCG, Winners Chapel, Deeper Life",
@@ -195,6 +222,7 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
 
             TextField(
               controller: _parishController,
+              enabled: !_isSubmitting,
               decoration: InputDecoration(
                 labelText: AppLocalizations.of(context)?.parishName ?? "Parish / Branch Name *",
                 hintText: "e.g. Grace Lagos, Jesus House Abuja",
@@ -205,9 +233,10 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
 
             TextField(
               controller: _pastorController,
+              enabled: !_isSubmitting,
               decoration: InputDecoration(
                 labelText: AppLocalizations.of(context)?.pastorName ?? "Pastor's Name *",
-                hintText: "e.g. Pastor John Doe",
+                hintText: "e.g. John Doe (We'll add 'Pastor' on your behalf)",
                 border: OutlineInputBorder(),
               ),
             ),
@@ -215,6 +244,7 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
 
             TextField(
               controller: _adminController,
+              enabled: !_isSubmitting,
               decoration: InputDecoration(
                 labelText: AppLocalizations.of(context)?.adminEmail ?? "Admin Email *",
                 hintText: "e.g. admin@grace-lagos.org required to get ACCESS code.",
@@ -225,6 +255,7 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
 
             TextField(
               controller: _locationController,
+              enabled: !_isSubmitting,
               decoration: InputDecoration(
                 labelText: AppLocalizations.of(context)?.addressOptional ?? "Address (optional)",
                 hintText: "123 Faith Street, Lagos",
@@ -235,6 +266,7 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
 
             TextField(
               controller: _countryController,
+              enabled: !_isSubmitting,
               decoration: InputDecoration(
                 labelText: AppLocalizations.of(context)?.country ?? "Country *",
                 hintText: "e.g. Nigeria, USA, UK",
@@ -250,10 +282,12 @@ class _AddChurchScreenState extends State<AddChurchScreen> {
                 height: 60.sp,
                 child: LoginButtons(
                   context: context,
-                  text: AppLocalizations.of(context)?.submitRequest ?? "Submit Request",
+                  text: _isSubmitting
+                      ? "Submitting…"
+                      : AppLocalizations.of(context)?.submitRequest ?? "Submit Request",
                   topColor: Theme.of(context).colorScheme.primaryContainer,
                   borderColor: Colors.transparent,
-                  onPressed: _isLoading ? null : _createChurch,
+                  onPressed: _isSubmitting ? null : _createChurch,
                 ),
               ),
             ),

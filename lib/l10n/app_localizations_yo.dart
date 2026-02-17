@@ -226,7 +226,7 @@ class AppLocalizationsYo extends AppLocalizations {
   String get churchName => 'Orúkọ ilé ìjọ';
 
   @override
-  String get pastorName => 'Orúkọ òjìṣẹ́';
+  String get pastorName => 'Orúkọ òjìṣẹ́ *';
 
   @override
   String get leaveChurch => 'Kúrò nínú ilé ìjọ';

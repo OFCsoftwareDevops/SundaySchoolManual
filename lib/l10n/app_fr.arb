@@ -80,7 +80,7 @@
   "selectChurch": "Sélectionner une église",
   "churchAccessCode": "Code d'accès de l'église",
   "churchName": "Nom de l'église",
-  "pastorName": "Nom du pasteur",
+  "pastorName": "Nom du pasteur *",
   "leaveChurch": "Quitter l'église",
   "selectYourChurch": "Sélectionnez votre église",
   "noChurchSelected": "Aucune église sélectionnée",

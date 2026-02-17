@@ -526,7 +526,7 @@ abstract class AppLocalizations {
   /// Name of the pastor
   ///
   /// In en, this message translates to:
-  /// **'Pastor Name'**
+  /// **'Pastor\'s Name *'**
   String get pastorName;
 
   /// Leave the current church

@@ -111,7 +111,7 @@ class FirestoreService {
       // Further readings (your existing)
       final prefetchSundays = _getPrefetchSundays(DateTime.now());
       for (final sunday in prefetchSundays) {
-        await _loadFurtherReadingWeek(context, sunday);
+        await loadFurtherReadingWeek(context, sunday);
       }
 
       // User responses (background to avoid blocking)
@@ -244,7 +244,7 @@ class FirestoreService {
     // Normalize to midnight first
     final today = DateTime(now.year, now.month, now.day);
     // Dart: weekday 1 = Monday, 7 = Sunday
-    int daysBackToSunday = (now.weekday % 7); // Mon=1→1, Tue=2→2, ..., Sun=7→0
+    final daysBackToSunday = today.weekday % 7; // Mon=1→1, Tue=2→2, ..., Sun=7→0
     return today.subtract(Duration(days: daysBackToSunday));
   }
 
@@ -980,7 +980,7 @@ class FirestoreService {
     _cachedFurtherReadingsByGroup.clear();
   }
 
-  Future<void> _loadFurtherReadingWeek(BuildContext context, DateTime sunday) async {
+  Future<void> loadFurtherReadingWeek(BuildContext context, DateTime sunday) async {
     final id = formatDateId(sunday);
     final coll = globalFurtherReadingsCollection(context); // Handles null context via getCurrentLang
 

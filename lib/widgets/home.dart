@@ -63,6 +63,11 @@ class HomeState extends State<Home> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
         await _service.prefetchAllPastAndNearFuture(context);
+        // Force wider prefetch for next month(s)
+        final futureSundays = List.generate(6, (i) => _service.getCurrentWeekSunday(DateTime.now()).add(Duration(days: 7 * (i + 1))));
+        for (final sunday in futureSundays) {
+          await _service.loadFurtherReadingWeek(context, sunday);
+        }
         await _loadLesson();
         await _loadFurtherReadings();
         await _refreshVisibleDates();

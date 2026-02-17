@@ -80,7 +80,7 @@
   "selectChurch": "Select a Church",
   "churchAccessCode": "Church Access Code",
   "churchName": "Church Name",
-  "pastorName": "Pastor Name",
+  "pastorName": "Pastor's Name *",
   "leaveChurch": "Leave Church",
   "selectYourChurch": "Select your church",
   "noChurchSelected": "No Church Selected",
